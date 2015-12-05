@@ -28,7 +28,6 @@ if __name__ == '__main__':
     second = SecondClass()
     second.do_something()
 
-    ##设置私有logger
     first_logger = logging.getLogger(__name__ + '.first_class')
     first_logger.setLevel(logging.DEBUG)
     first.do_something()
