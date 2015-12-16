@@ -14,3 +14,5 @@ Web开发框架： https://github.com/chenzheng128/pythonWebFramwork
 并发处理（参 廖雪峰 课程）： https://github.com/chenzheng128/pythonMultiProcessAndThreadExamples
 
 讲座（下载器，定时器例子）： https://github.com/chenzheng128/20150623codingPractice
+
+PyMOTW: Python Module of the Week https://pymotw.com (待加入）
