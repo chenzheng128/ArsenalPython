@@ -7,3 +7,16 @@ EduLogging/.idea/
 *.pyc
 
 *.pyc
+
+.idea/*
+.idea/misc.xml
+
+.idea/misc.xml
+
+.idea/dbnavigator.xml
+
+.idea/ArsenalPython.iml
+
+.idea/misc.xml
+
+.idea/workspace.xml
