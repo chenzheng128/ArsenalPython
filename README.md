@@ -1,6 +1,9 @@
 #ArsenalPython 
 python 开发的兵器库. 收藏内容包括参考代码（官方文档），教程，实验，培训资料等
 
+## stdmod
+python standard module 使用, 
+
 ## PyCharm Edu
 包括 PyCharm Edu 的课程。 Source: https://github.com/JetBrains/pycharm-courses
 ```
