@@ -1,0 +1,18 @@
+<form method='post'>
+
+{% csrf_token %}
+{{ form }}
+
+<input type="submit" value="提交">
+</form>
+
+
+
+<!-- 注释： django 上面代码自动生成的表单内容如下 
+<form method='post'>
+<input type='hidden' name='csrfmiddlewaretoken' value='NKWhbTAmYI1lxP70Q6ZLTeFmtvATwDsL' />
+<tr><th><label for="id_a">A:</label></th><td><input id="id_a" name="a" type="number" /></td></tr>
+<tr><th><label for="id_b">B:</label></th><td><input id="id_b" name="b" type="number" /></td></tr>
+<input type="submit" value="提交">
+</form>
+-->

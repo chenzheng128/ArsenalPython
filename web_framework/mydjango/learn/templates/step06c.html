@@ -1,0 +1,14 @@
+教程列表：
+<ul>
+
+
+	<li> <i>key: value </i></li>
+{% for key, value in info_dict.items %}
+    <li>{{ key }}: {{ value }} </li>
+{% endfor %}
+
+
+</ul>
+
+<h5>小结</h5>
+一般的变量之类的用 { { } }（变量），功能类的，比如循环，条件判断是用 { %  % }（标签）

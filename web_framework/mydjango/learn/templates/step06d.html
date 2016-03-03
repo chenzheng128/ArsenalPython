@@ -1,0 +1,44 @@
+<h2>Dict字典 for 遍历</h2>
+<ul>
+
+
+	<li> <i>key: value </i></li>
+{% for key, value in info_dict.items %}
+    <li>{{ key }}: {{ value }} {% if not forloop.last%},{% endif %}  </li>
+{% endfor %}
+
+
+</ul>
+
+
+<h2>list列表 for 遍历 + if判断跳过最后一个元素</h2>
+{% for item in List %}
+    {{ item }} {% if not forloop.last%},{% endif %} 
+{% endfor %}
+
+
+<h2>空列表处理 empty</h2>
+<ul>
+{% for athlete in athlete_list %}
+    <li>{{ athlete.name }}</li>
+{% empty %}
+    <li>抱歉，列表为空</li>
+{% endfor %}
+</ul>
+
+<h5>备注</h5>
+
+<pre>
+在for循环中还有很多有用的东西，如下：
+
+变量	描述
+forloop.counter	索引从 1 开始算
+forloop.counter0	索引从 0 开始算
+forloop.revcounter	索引从最大长度到 1
+forloop.revcounter0	索引从最大长度到 0
+forloop.first	当遍历的元素为第一项时为真
+forloop.last	当遍历的元素为最后一项时为真
+forloop.parentloop	
+用在嵌套的 for 循环中，获取上一层 for 循环的 forloop (???)
+
+</pre>

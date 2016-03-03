@@ -1,0 +1,20 @@
+<!--从 base 页面继承下来 -->
+{% extends 'base.html' %}
+
+{% block title %}欢迎光临 众筹页面 {% endblock %}
+
+{% block content %}
+
+<!--还可以include 新的ad页面-->
+{% include 'ad.html' %}
+
+这里是首页，欢迎光临
+
+<div>来给你一个列表
+    <ul>
+        <li>a</li>
+        <li>b</li>
+        <li>c</li>
+    </ul>
+</div>
+{% endblock %}

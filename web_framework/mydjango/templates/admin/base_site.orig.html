@@ -1,0 +1,12 @@
+{% extends "admin/base.html" %}
+
+{% block title %}{{ title }} | {{  欢迎访问 {% endblock %}
+
+{% block branding %}
+<h3 id="site-name"><a href="{% url 'admin:index' %}"> 欢迎访问 (自定义模板 base_site.html)</a></h3>
+{% endblock %}
+
+
+
+{% block nav-global %}
+{% endblock %}

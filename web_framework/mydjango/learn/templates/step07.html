@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title></title>
+<script src="http://apps.bdimg.com/libs/jquery/1.10.2/jquery.min.js"></script>
+</head>
+<body>
+
+<h2>/step07/ python对象(List,Dict)转换为json在模板中加载</h2>
+<h4>打开 开发者模式 控制台 "console" 可以查看到更多信息</h4>
+
+<div id="list"> 学习 </div>
+<div id='dict'></div>
+
+
+<h3>这是重后台传来的json对象（List）</h3>
+<ul id='myList'></ul>
+<h3>这是重后台传来的json对象（Dict）</h3>
+<ul id='myDict'></ul>
+
+<h3>这样可以生成一个表格，或是div布局</h3>
+<table id='myTable' border="2" ></table>
+
+<script type="text/javascript">
+    //列表
+    var List = {{ List|safe }};
+ 
+    //下面的代码把List的每一部分放到头部和尾部
+    $('#list').prepend(List[0]);
+    $('#list').append(List[1]);
+ 
+    console.log('--- 遍历 List 方法 1 ---')
+    for(i in List){
+        console.log(i);// i为索引
+         $('#myList').append("<li>"+List[i]+"</li>");  //在myList中追加子元素
+    }
+ 
+    console.log('--- 遍历 List 方法 2 ---')
+    for (var i = List.length - 1; i >= 0; i--) {
+        // 鼠标右键，审核元素，选择 console可以看到输入的值
+        console.log(List[i]);
+    };
+ 
+    console.log('--- 同时遍历索引和内容，使用 jQuery.each() 方法 ---')
+    $.each(List, function(index, item){
+        console.log(index+": ");
+        console.log(item);
+    });
+ 
+ 
+    // 字典
+    var Dict = {{ Dict|safe }};
+    console.log("--- 两种字典的取值方式  ---")
+    console.log(Dict['site']);
+    console.log(Dict.site);
+     
+    console.log("---  遍历字典  ---");
+    for(key in Dict) {
+        console.log(key + ":"+ Dict[key]);//注意，此处 key 为键值
+        $('#myDict').append("<li>"+key + ":" + Dict[key]+"</li>");  //在myList中追加子元素
+        $('#myTable').append("<tr><td>"+key + "</td><td>" + Dict[key]+"</td></tr>");  //在myTable中追加子元素
+    }
+</script>
+</body>
+</html>
