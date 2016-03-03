@@ -7,11 +7,11 @@
 		<script src="http://libs.baidu.com/jquery/2.0.0/jquery.min.js"></script>
 	</head>
 
-	<h2>从json生成新闻页面</h2>
+	<h2>从json生成电影页面</h2>
 
 
 	<body>
-		<p>从网易新闻获取到了json数据（保存到本地 163_news.json）, 使用jQeury生成了HTML表格页面进行展示</p>
+		<p>从Douban电影获取到了json数据（保存到本地 douban_top250.json）, 使用jQeury生成了HTML表格页面进行展示</p>
 
 		<table id="news" border="1">
 			<tbody></tbody>
@@ -20,7 +20,14 @@
 	<script>
 
 	//数据获取方法
+	// API地址： https://developers.douban.com/wiki/?title=api_v2
+	// wget https://api.douban.com/v2/movie/top250"
+	// mv top250 douban_top250.json
+  // 用python工具生成更容易查看的json格式
+  //
 
+	//本地请求（不跨站）
+	var url = "./douban_top250.201603.json";
 
 		 //
 		 //不支持：远端json数据（ 从安全设计的角度，所有跨站请求（静态，动态都不被浏览器支持）
@@ -61,14 +68,28 @@
 		 			$.each(data, function() {
 		 				var tbl_row = "";
 		 				$.each(this, function(k, v) {
-		 					tbl_row ="";
-		 					tbl_row += "<td>" + v.title + "</td>";
-		 					tbl_row += "<td>" + v.source + "</td>";
-		 					tbl_row += "<td>" + v.digest + "</td>";
-		 					tbl_row += "<td> <img height=50 width=100 src=" + v.imgsrc + "></td>";
-		 					tbl_body += "<tr class=\"" + (odd_even ? "odd" : "even") + "\">" + tbl_row + "</tr>";
-		 					odd_even = !odd_even;
-		 					console.log(v)
+							try
+							{
+			 					tbl_row ="";
+								//tbl_row += "<td>" + console.log(v) + "</td>";
+								tbl_row += "<td><a href='" + v.alt +"'>" +v.id + "</a></td>";
+								console.log(tbl_row)
+			 					tbl_row += "<td>" + v.title + "</td>";
+								tbl_row += "<td>" + v.original_title + "</td>";
+			 					tbl_row += "<td>" + v.year + "</td>";
+								tbl_row += "<td>" + v.rating.average + "</td>";
+			 					tbl_row += "<td> <img src=" + v.images.small + "></td>";
+								tbl_row += "<td> <img src=" + v.casts[0].avatars.small + "></td>";
+								tbl_row += "<td> <img src=" + v.directors[0].avatars.small + "></td>";
+
+			 					tbl_body += "<tr class=\"" + (odd_even ? "odd" : "even") + "\">" + tbl_row + "</tr>";
+			 					odd_even = !odd_even;
+			 					console.log(JSON.stringify(v.rating))
+								//console.log(v.images.small)
+							}
+							catch(e){
+								console.log(e)
+							}
 		 				})
 
 		 			})
