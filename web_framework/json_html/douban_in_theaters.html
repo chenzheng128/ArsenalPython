@@ -11,7 +11,7 @@
 
 
 	<body>
-		<p>从Douban电影获取到了json数据（保存到本地 douban_top250.json）, 使用jQeury生成了HTML表格页面进行展示</p>
+		<p>从Douban电影获取到了json数据（保存到本地 douban_in_theaters.json）, 使用jQeury生成了HTML表格页面进行展示</p>
 
 		<table id="news" border="1">
 			<tbody></tbody>
@@ -21,13 +21,13 @@
 
 	//数据获取方法
 	// API地址： https://developers.douban.com/wiki/?title=api_v2
-	// wget https://api.douban.com/v2/movie/top250"
-	// mv top250 data/douban_top250.json
+	// wget https://api.douban.com/v2/movie/in_theaters"
+	// mv in_theaters data/douban_in_theaters.201603.json
   // 用python工具生成更容易查看的json格式
   //
 
 	//本地请求（不跨站）
-	var url = "./data/douban_top250.201603.json";
+	var url = "./data/douban_in_theaters.201603.json";
 
 		 //
 		 //不支持：远端json数据（ 从安全设计的角度，所有跨站请求（静态，动态都不被浏览器支持）
