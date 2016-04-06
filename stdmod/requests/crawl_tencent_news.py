@@ -9,12 +9,14 @@ from lxml import etree
 def main():
     url = 'http://xw.qq.com/index.htm'
     response = requests.get(url)
+    print "orig encoding:",response.encoding
+    response.encoding = 'utf-8'
+    print "new  encoding:",response.encoding
     content = response.text
     print "response:",response
-    print "content:",response.encoding
+
 
     tree = etree.HTML(content)
-	
     ########腾讯新闻mobile版导航栏########
     #<div class="nav">
     #<ul>
