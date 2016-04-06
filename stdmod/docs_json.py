@@ -1,6 +1,7 @@
 # -*- coding:utf-8 -*-
 import logging
 import json
+from datetime import datetime
 
 """
 https://docs.python.org/2/library/json.html
@@ -56,7 +57,9 @@ def load():
     print myjson
     if isinstance(myjson, dict):
         print myjson["cn"]
-    pass
+
+    return myjson
+    #pass
 
 
 """
@@ -90,12 +93,24 @@ def to_bean():
     print json.loads('1.1', parse_float=decimal.Decimal) #使用 parse_float 处理浮点数
     # Decimal('1.1')
 
+def insert(data):
+    """
+    插入数据
+    :param data:
+    :return:
+    """
+    #pass
+    data["timestamp"] = datetime.now().strftime("%s")
+    data["timestr"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    log.info("插入timestr到json对象中 %s" % data)
 
 def main():
     log.info("=== main start ===")
     dumps()
-    load()
+    myjson = load()
     to_bean()
+    log.info( "获取到json对象 \t\t %s" % myjson)
+    insert(myjson)
 
 
 if __name__ == "__main__":
