@@ -8,6 +8,9 @@ solution: http://www.pythonchallenge.com/pcc/def/equality.html
 """
 import math
 
+"""
+读取完整文件拼接，去掉换行为一个字符
+"""
 with open('data/03.txt') as f:
     lines = f.readlines()
 orig_str="".join(lines).replace("\n", "")
