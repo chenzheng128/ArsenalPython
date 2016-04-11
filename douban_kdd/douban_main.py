@@ -85,6 +85,8 @@ if __name__ == "__main__":
         if content == None and error.code == 1998:
             print "我们抓取的太快了, 休息一下 ..."
             time.sleep(BREAK_INTERVEL_SECONDS)  # 如果抓取太快, 等候下一轮抓取
+
         task_movie_list()
+        time.sleep(BREAK_INTERVEL_SECONDS)
         task_movie_subject_recent()
         #break  # debug

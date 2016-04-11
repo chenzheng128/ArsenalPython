@@ -89,7 +89,7 @@ class DoubanClient(object):
         return content, None
 
 class APIError(object):
-    def __init__(self, status, content, code):
+    def __init__(self, status, content, code=-1):
         self.status = status
         self.content = content
         self.code = code
