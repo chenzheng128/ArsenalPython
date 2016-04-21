@@ -1,8 +1,12 @@
-#ArsenalPython 
+#ArsenalPython
 python 开发的兵器库. 收藏内容包括参考代码（官方文档），教程，实验，培训资料等
 
+## douban_kdd
+ 使用豆瓣API 获取影视评论变化，存储至 mongodb 中 
 ## stdmod
-python standard module 使用, 
+python standard module 使用
+
+包括 json, math, requests, unitest  等等
 
 ## PyCharm Edu
 包括 PyCharm Edu 的课程。 Source: https://github.com/JetBrains/pycharm-courses
@@ -11,8 +15,10 @@ eduLogging  PyCharm Edu 的 logging 教程
 eduIntro    PyCharm Edu 的 Intro 教程
 eduUnitTest PyCharm Edu 的 unit test 单元测试教程
 ```
+## web_framework
+网页框架开发 django 为主， 包括 json_html 例子
+
 ## 其他弹药
-Web开发框架： https://github.com/chenzheng128/pythonWebFramwork
 
 并发处理（参 廖雪峰 课程）： https://github.com/chenzheng128/pythonMultiProcessAndThreadExamples
 
