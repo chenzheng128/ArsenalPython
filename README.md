@@ -1,8 +1,13 @@
 #ArsenalPython
-python 开发的兵器库. 收藏内容包括参考代码（官方文档），教程，实验，培训资料等
+python 开发的兵器库（代码库）. 收藏内容包括参考代码（官方文档），教程，实验，培训资料等
+
+此代码库以项目目录（文件>5个以上）为主，包含代码、参考文件等
+
+小的示例代码（拷贝、粘贴）（文件 < 3个）一般不放这，而是存放在 Gist 之上 (https://app.gistboxapp.com/library/my-gists),
 
 ## douban_kdd
- 使用豆瓣API 获取影视评论变化，存储至 mongodb 中 
+ 使用豆瓣API 获取影视评论变化，存储至 mongodb 中
+
 ## stdmod
 python standard module 使用
 
