@@ -6,6 +6,7 @@ pythonchanllenge 备忘
 ipython 页面
 pythonchanllenge.ipynb: 将挑战汇聚到 ipynb 中, 一览所有的解决方法
 
+
 python 代码(旧)
 01.py: math.power()
 02.py: string.maketrans() translate() 翻译加密字符a-z
