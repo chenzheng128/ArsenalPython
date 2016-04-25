@@ -25,3 +25,6 @@ EduLogging/.idea/
 scikit/notebook/.ipynb_checkpoints/
 
 douban_kdd/data/dataset.json
+
+pythonchallenge/channel/
+*/.ipynb_checkpoints/
