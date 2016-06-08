@@ -36,7 +36,7 @@ public:
       .SetParent<Object> ()
       .SetGroupName ("Tutorial")
       .AddConstructor<MyObject> ()
-      .AddTraceSource ("MyInteger",
+      .AddTraceSource ("MyInteger",  //定义了 TraceSource
                        "An integer value to trace.",
                        MakeTraceSourceAccessor (&MyObject::m_myInt),
                        "ns3::TracedValueCallback::Int32")
@@ -45,20 +45,24 @@ public:
   }
 
   MyObject () {}
-  TracedValue<int32_t> m_myInt;
+  TracedValue<int32_t> m_myInt;  //我们要跟踪的对象
 };
 
+//定义了 Callback 函数
 void
 IntTrace (int32_t oldValue, int32_t newValue)
 {
-  std::cout << "Traced " << oldValue << " to " << newValue << std::endl;
+  std::cout << "Traced myObject m_myInt:  " << oldValue << " to " << newValue << std::endl;
 }
 
 int
 main (int argc, char *argv[])
 {
   Ptr<MyObject> myObject = CreateObject<MyObject> ();
+
+  //使用 MyInteger TraceSource， 调用 IntTrace Callback 函数
   myObject->TraceConnectWithoutContext ("MyInteger", MakeCallback (&IntTrace));
 
+  //sink 触发了事件改变
   myObject->m_myInt = 1234;
 }

@@ -8,6 +8,9 @@ python 开发的兵器库（代码库）. 收藏内容包括参考代码（官�
 ## douban_kdd
  使用豆瓣API 获取影视评论变化，存储至 mongodb 中
 
+## sdn
+ 增加 sdn 目录， 收集 mininet / ryu 代码等
+  
 ## ipython
  ipython notebook 例子， pylot绘图, networkx 绘图等。 notebook的的演示优点在于可以将图像输出结果集成在统一的文档中。转移到 https://github.com/chenzheng128/pythonNotebook
 
