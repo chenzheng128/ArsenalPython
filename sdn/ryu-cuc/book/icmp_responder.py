@@ -100,6 +100,15 @@ class IcmpResponder(app_manager.RyuApp):
         self._send_packet(datapath, port, pkt)
 
     def _handle_icmp(self, datapath, port, pkt_ethernet, pkt_ipv4, pkt_icmp):
+        """
+        依据传入的 eth, ip, icmp 生成 packet包
+        :param datapath:
+        :param port:
+        :param pkt_ethernet:
+        :param pkt_ipv4:
+        :param pkt_icmp:
+        :return:
+        """
         if pkt_icmp.type != icmp.ICMP_ECHO_REQUEST:
             return
         pkt = packet.Packet()

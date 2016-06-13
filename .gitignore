@@ -34,3 +34,7 @@ yun_sdk/baidu/ASR/config.py
 yun_sdk/baidu/config.py
 
 yun_sdk/baidu/tmp.mp3
+
+.idea/
+
+.idea/modules.xml
