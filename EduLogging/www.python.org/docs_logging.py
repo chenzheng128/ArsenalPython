@@ -69,6 +69,9 @@ def log4():
 
 def main():
     # logging.basicConfig 需要最开始被调用
+    FORMAT="%(levelname)8s %(asctime)s %(module)s.py(10S)  %(process)d %(thread)d %(message)60s"
+    #FORMAT="%-5 - [%-80m] - at %c.M(F:L)n"
+    logging.basicConfig(format=FORMAT)
     log1()
     log2()
     log3()
