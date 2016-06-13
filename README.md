@@ -5,6 +5,8 @@ python 开发的兵器库（代码库）. 收藏内容包括参考代码（官�
 
 小的示例代码（拷贝、粘贴）（文件 < 3个）一般不放这，而是存放在 Gist 之上 (https://app.gistboxapp.com/library/my-gists),
 
+运行 `./bin/collect_my_codes.sh` 以汇集其他项目中的代码 
+
 ## douban_kdd
  使用豆瓣API 获取影视评论变化，存储至 mongodb 中
 
