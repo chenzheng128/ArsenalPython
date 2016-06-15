@@ -125,12 +125,49 @@ OFPST_FLOW reply (OF1.3) (xid=0x2):
 ## 11. QoS
  英文Book才有的内容(晕): https://osrg.github.io/ryu-book/en/html/rest_qos.html
  需要 ovs 库支持 `pip install ovs`
- 
- `qos_simple_switch_13.py`  
- 
+
+在mininet中启动网络, 并设置交换机协议与ovsdb管理端口6632, 正常设置后6632将开始监听
 ```
- cd $RYU_HOME 
- PYTHONPATH=. ./bin/ryu-manager cuc/rest_qos.py cuc/rest_conf_switch.py cuc/qos_simple_switch_13.py
+# mn --mac --topo linear --controller remote,ip=127.0.0.1 #如果ryu在本机, 此ip为 controller ip,  ryu在本机时应为127.0.0.1
+# ovs-vsctl set-manager ptcp:6632
+# netstat -nat | grep 6632
+tcp        0      0 0.0.0.0:6632            0.0.0.0:*               LISTEN
+# ovs-vsctl set Bridge s1 protocols=OpenFlow13 #设置交换机协议, 设置正常ryu 将显示 [QoS][INFO] dpid=0000000000000001: Join qos switch. 
+# ovs-vsctl set Bridge s2 protocols=OpenFlow13 #设置交换机协议, 设置正常ryu 将显示 [QoS][INFO] dpid=0000000000000002: Join qos switch.
+```
+
+
+ 参考book 用sed命令创建 `qos_simple_switch_13.py` 文件 (在文件中仅增加 tableid=1 增加qos控制) 
+ 
+运行 ryu qos app, ( 为便于显示调试信息, 可追加日志输出 `./bin/ryu-manager --verbose --log-config-file cuc/logging_config.ini` )
+```
+# cd $RYU_HOME 
+# PYTHONPATH=. ./bin/ryu-manager ryu.app.rest_conf_switch ryu.app.rest_qos  cuc/book/qos_simple_switch_13.py
+```
+
+3个app作用
+- `qos_simple_switch_13.py` 维护 tableid=1 转发flow操作 
+- `rest_qos.py _set_qos()` 维护 tableid=0 SET_QUEUE 等qos操作, 然后 GOTO_TABLE id=1 进行转发 (TODO 待实验验证)
+- `rest_conf_switch.py` 维护rest方式的交换机 ovsdb 配置 http://localhost:8080/v1.0/conf/switches/0000000000000001/ovsdb_addr 
+
+通过 `rest_conf_switch.py` rest配置ovsdb_addr地址 
+```
+# curl -X PUT -d '"tcp:127.0.0.1:6632"' http://localhost:8080/v1.0/conf/switches/0000000000000001/ovsdb_addr # book命令中如果ryu在本机, 则此ip应为127.0.0.1
+```
+
+通过 `rest_qos.py` rest配置htb队列, 格式化json输出
+```
+# time curl -X POST -d '{"port_name": "s1-eth1", "type": "linux-htb", "max_rate": "1000000", "queues": [{"max_rate": "500000"}, {"min_rate": "800000"}]}' http://localhost:8080/qos/queue/0000000000000001 | python -mjson.tool
+"result": "success" #配置成功的返回信息
+real	0m0.07s # 设置的运行时间
+```
+
+检查端口 tc 配置
+```
+# tc qdisc show dev s1-eth1
+class htb 1:1 parent 1:fffe prio 0 rate 12000bit ceil 500000bit burst 1563b cburst 1564b
+class htb 1:fffe root rate 1000Kbit ceil 1000Kbit burst 1500b cburst 1500b
+class htb 1:2 parent 1:fffe prio 0 rate 800000bit ceil 1000Kbit burst 1564b cburst 1564b
 ```
 
 ## 12. 测试
