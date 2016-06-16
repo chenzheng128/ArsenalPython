@@ -17,13 +17,14 @@ class L2Switch(app_manager.RyuApp):
     @set_ev_cls(ofp_event.EventOFPPacketIn, MAIN_DISPATCHER)
     def packet_in_handler(self, ev):
         msg = ev.msg
-        dp = msg.datapath  #交换机, 包含源地址, 端口等
-        ofp = dp.ofproto
-        ofp_parser = dp.ofproto_parser
+        dp = msg.datapath  #dp交换机, 包含源地址, 端口等
+        ofp = dp.ofproto   #dp交换机对应的 OF 协议 CONSTANTS 常量
+        ofp_parser = dp.ofproto_parser  #dp交换机对应的 OF 协议 parsing 处理
 
-        actions = [ofp_parser.OFPActionOutput(ofp.OFPP_FLOOD)]
+        actions = [ofp_parser.OFPActionOutput(ofp.OFPP_FLOOD)] # 构建 FLOOD Action
         out = ofp_parser.OFPPacketOut(
             #datapath=dp, buffer_id=msg.buffer_id, in_port=msg.in_port,          # OF1.0 msg.in_port
             datapath=dp, buffer_id=msg.buffer_id, in_port=msg.match['in_port'],  # OF1.3 msg.match
             actions=actions)
-        dp.send_msg(out)
+        print "(handle by l2.py) EventOFPPacketIn:", ev
+        dp.send_msg(out)  #将 out 消息发送到 dp 上
