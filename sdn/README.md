@@ -6,7 +6,7 @@
 
 收集命令
 ```
-cd PycharmProjects/ryu
+cd ~/PycharmProjects/ryu
 git branch zhchen #切换至 zhchen 分支
 cd PycharmProjects/
 mkdir -p ArsenalPython/sdn/ryu-cuc
