@@ -29,6 +29,7 @@ except ImportError:
     pass
 
 from ryu.cmd.manager import main
+#from cuc.docs import l2
 
 
 class Test_Manager(unittest.TestCase):
@@ -44,10 +45,18 @@ class Test_Manager(unittest.TestCase):
     def tearDown(self):
         pass
 
-    @raises(SystemExit)
-    @mock.patch('sys.argv', new=['ryu-manager', 'ryu.app.simple_switch'])
-    def test_123(self):
-        main()
+    #@raises(SystemExit)
+    #@mock.patch('sys.argv', new=['ryu-manager', 'ryu.app.simple_switch'])
+    #def test_simple_switch(self):
+    #    main()
+
+    #@raises(SystemExit)
+    @mock.patch('sys.argv', new=['ryu-manager', 'cuc.docs.l2'])
+    def test_l2_switch(self):
+        pass
+        #raises(SystemExit("exit"))
+        #main()
+
 
     @raises(SystemExit)
     @mock.patch('sys.argv', new=['ryu-manager', '--version'])
