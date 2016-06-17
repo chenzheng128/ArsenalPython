@@ -1,0 +1,4 @@
+Traceback (most recent call last):
+  File "./tests/run_tests_cuc.py", line 15, in <module>
+    import cuc
+ImportError: No module named cuc
