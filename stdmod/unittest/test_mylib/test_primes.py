@@ -1,6 +1,11 @@
 # -*- coding:utf-8 -*-
 import unittest
-from main.primes import is_prime
+
+from mylib.primes import is_prime, print_next_prime
+
+
+#from unittest.mylib import MagicMock, Mock
+#from mylib.rm_module import ProductionClass
 
 
 class PrimesTestCase(unittest.TestCase):
@@ -26,6 +31,8 @@ class PrimesTestCase(unittest.TestCase):
         for index in range(-1, -10, -1):
             self.assertFalse(is_prime(index), msg='{} should not be determined to be prime'.format(index))
 
+    def test_next_prime(self):
+        print_next_prime(5)
 
 if __name__ == '__main__':
     unittest.main()

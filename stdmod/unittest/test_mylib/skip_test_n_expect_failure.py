@@ -1,8 +1,7 @@
 # -*- coding:utf-8 -*-
 import unittest
 import sys
-import main
-
+import mylib
 
 class MyTestCase(unittest.TestCase):
     def test_go(self):
@@ -12,7 +11,7 @@ class MyTestCase(unittest.TestCase):
     def test_nothing(self):
         self.fail("shouldn't happen")
 
-    @unittest.skipIf(main.__version__ < (1, 3),
+    @unittest.skipIf(mylib.__version__ < (1, 3),
                      "not supported in this library version")
     def test_format(self):
         # Tests that work for only a certain version of the library.

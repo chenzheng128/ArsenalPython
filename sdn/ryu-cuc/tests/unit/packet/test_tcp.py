@@ -108,7 +108,7 @@ class Test_tcp(unittest.TestCase):
         eq_(res[6], self.window_size)
         eq_(res[8], self.urgent)
 
-        # test __len__
+        # test_mylib __len__
         # offset indicates the number of 32 bit (= 4 bytes)
         # words in the TCP Header.
         # So, we compare len(tcp) with offset * 4, here.
@@ -123,7 +123,7 @@ class Test_tcp(unittest.TestCase):
         eq_(0, s)
 
     def test_serialize_option(self):
-        # prepare test data
+        # prepare test_mylib data
         offset = 0
         csum = 0
         option = [
@@ -143,7 +143,7 @@ class Test_tcp(unittest.TestCase):
         prev = ipv4(4, 5, 0, 0, 0, 0, 0, 64,
                     inet.IPPROTO_TCP, 0, '192.168.10.1', '192.168.100.1')
 
-        # test serializer
+        # test_mylib serializer
         t = tcp.tcp(self.src_port, self.dst_port, self.seq, self.ack,
                     offset, self.bits, self.window_size, csum, self.urgent,
                     option)
@@ -151,7 +151,7 @@ class Test_tcp(unittest.TestCase):
         r_option_buf = buf[tcp.tcp._MIN_LEN:tcp.tcp._MIN_LEN + len(option_buf)]
         eq_(option_buf, r_option_buf)
 
-        # test parser
+        # test_mylib parser
         (r_tcp, _, _) = tcp.tcp.parser(buf)
         eq_(str(option), str(r_tcp.option))
 
@@ -212,7 +212,7 @@ class Test_tcp(unittest.TestCase):
 
 
 class Test_TCPOption(unittest.TestCase):
-    # prepare test data
+    # prepare test_mylib data
     input_options = [
         tcp.TCPOptionEndOfOptionList(),
         tcp.TCPOptionNoOperation(),

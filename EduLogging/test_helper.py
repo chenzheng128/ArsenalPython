@@ -153,7 +153,7 @@ def passed(name=None):
     """ Reports success """
     if not name:
         name = sys._getframe().f_back.f_code.co_name
-    print("#educational_plugin " + name + " test OK")
+    print("#educational_plugin " + name + " test_mylib OK")
 
 
 def get_answer_placeholders():

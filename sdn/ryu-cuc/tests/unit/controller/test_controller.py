@@ -82,7 +82,7 @@ class Test_Datapath(unittest.TestCase):
 
     @mock.patch("ryu.base.app_manager", spec=app_manager)
     def test_recv_loop(self, app_manager_mock):
-        # Prepare test data
+        # Prepare test_mylib data
         test_messages = [
             "4-6-ofp_features_reply.packet",
             "4-14-ofp_echo_reply.packet",
@@ -100,13 +100,13 @@ class Test_Datapath(unittest.TestCase):
         expected_json = list()
         for msg in test_messages:
             # Construct the received packet buffer as one packet data in order
-            # to test the case of the OpenFlow messages composed in one packet.
+            # to test_mylib the case of the OpenFlow messages composed in one packet.
             packet_data_file = os.path.join(packet_data_dir, msg)
             packet_buf += open(packet_data_file, 'rb').read()
             json_data_file = os.path.join(json_dir, msg + '.json')
             expected_json.append(json.load(open(json_data_file)))
 
-        # Prepare mock for socket
+        # Prepare mylib for socket
         class SocketMock(mock.MagicMock):
             buf = bytearray()
             random = None
@@ -117,7 +117,7 @@ class Test_Datapath(unittest.TestCase):
                 self.buf = self.buf[size:]
                 return out
 
-        # Prepare mock
+        # Prepare mylib
         ofp_brick_mock = mock.MagicMock(spec=app_manager.RyuApp)
         app_manager_mock.lookup_service_brick.return_value = ofp_brick_mock
         sock_mock = SocketMock()
@@ -125,7 +125,7 @@ class Test_Datapath(unittest.TestCase):
         sock_mock.random = random.Random('Ryu SDN Framework')
         addr_mock = mock.MagicMock()
 
-        # Prepare test target
+        # Prepare test_mylib target
         dp = controller.Datapath(sock_mock, addr_mock)
         dp.set_state(handler.MAIN_DISPATCHER)
         ofp_brick_mock.reset_mock()

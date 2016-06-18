@@ -14,27 +14,27 @@ class StorageClient(object):
         self.db_movie = MongoClient().douban_movie
         pass
 
-    def save_movie_in_theaters(self, data={"test":"true"}):
+    def save_movie_in_theaters(self, data={"test_mylib":"true"}):
         result = self._save(self.db.movie_in_theaters, data)
         if result!=None: log.debug( "insert movie_in_theaters id: %s" % result.inserted_id)
         return result
-    def save_movie_top250(self, data={"test":"true"}):
+    def save_movie_top250(self, data={"test_mylib":"true"}):
         result = self._save(self.db.movie_top250, data)
         if result!=None: log.debug( "insert movie_top250 id: %s" % result.inserted_id)
         return result
-    def save_movie_coming_soon(self, data={"test":"true"}):
+    def save_movie_coming_soon(self, data={"test_mylib":"true"}):
         result = self._save(self.db.movie_coming_soon, data)
         if result!=None: log.debug( "insert movie_coming_soon id: %s" % result.inserted_id)
         return result
-    def save_movie_us_box(self, data={"test":"true"}):
+    def save_movie_us_box(self, data={"test_mylib":"true"}):
         result = self._save(self.db.movie_us_box, data)
         if result!=None: log.debug( "insert movie_us_box id: %s" % result.inserted_id)
         return result
-    def save_movie_weekly(self, data={"test":"true"}):
+    def save_movie_weekly(self, data={"test_mylib":"true"}):
         result = self._save(self.db.movie_weekly, data)
         if result!=None: log.debug( "insert movie_weekly id: %s" % result.inserted_id)
         return result
-    def save_movie_new_movies(self, data={"test":"true"}):
+    def save_movie_new_movies(self, data={"test_mylib":"true"}):
         result = self._save(self.db.movie_new_movies, data)
         if result!=None: log.debug( "insert movie_new_movies id: %s" % result.inserted_id)
         return result

@@ -16,7 +16,7 @@ def dump_res(buf):
 	print buf
 
 def use_cloud(token):
-	fp = wave.open('test.wav','rb')
+	fp = wave.open('test_mylib.wav','rb')
 	nf = fp.getnframes()
 	f_len = nf * 2
 	audio_data = fp.readframes(nf)

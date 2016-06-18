@@ -2,7 +2,8 @@
 # REF: http://pyunit.sourceforge.net/pyunit_cn.html#USING
 
 import unittest
-from main.widget import Widget
+
+from mylib.widget import Widget
 
 
 class SimpleWidgetTestCase(unittest.TestCase):
@@ -31,16 +32,16 @@ class WidgetResizeTestCase(SimpleWidgetTestCase):
     """
 
     def runTest(self):
-        print __name__, "runTest"
+        print (__name__, "runTest")
         self.widget.resize(100, 150)
         assert self.widget.size() == (100, 150), \
             'wrong size after resize'
 
     def test_nothing(self):
-        print "test_nothing"
+        print ("test_nothing")
 
     def test_runTest(self):
-        print self.runTest()
+        print (self.runTest())
 
 
 if __name__ == '__main__':

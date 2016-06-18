@@ -59,7 +59,7 @@ if __name__ == '__main__':
 
     # generate a bunch of debug messages to show they are not written out
     for i in range(1, 100):
-        logging.debug('test %d', i)
+        logging.debug('test_mylib %d', i)
 
     payment = get_monthly_payment(100000, 0)
     print('Monthly payment is %s' % payment)

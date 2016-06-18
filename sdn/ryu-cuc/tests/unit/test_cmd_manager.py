@@ -46,7 +46,7 @@ class Test_Manager(unittest.TestCase):
         pass
 
     #@raises(SystemExit)
-    #@mock.patch('sys.argv', new=['ryu-manager', 'ryu.app.simple_switch'])
+    #@mylib.patch('sys.argv', new=['ryu-manager', 'ryu.app.simple_switch'])
     #def test_simple_switch(self):
     #    main()
 
@@ -71,7 +71,7 @@ class Test_Manager(unittest.TestCase):
     @staticmethod
     def _reset_globals():
         # hack to reset globals like SERVICE_BRICKS.
-        # assumption: this is the only test which actually starts RyuApp.
+        # assumption: this is the only test_mylib which actually starts RyuApp.
         import ryu.base.app_manager
         import ryu.ofproto.ofproto_protocol
 

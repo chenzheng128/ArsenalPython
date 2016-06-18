@@ -30,6 +30,6 @@ if __name__ == '__main__':
     logging.config.dictConfig(pass the dict object containing log configuration)
 
     logger.warn('This is a warning')
-    logger.debug('test')
+    logger.debug('test_mylib')
 
     logging.root.warn('This is a root logger warning')

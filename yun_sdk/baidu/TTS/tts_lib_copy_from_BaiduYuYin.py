@@ -138,8 +138,8 @@ class TTS(object):
         Create a new ``TTS`` instance, which represents a collection of text-to-speech functionality
 
         @:param language: language, ``en`` for English, ``zh`` for Chinese
-        @:param app_key: Baidu App Key, the default value should only be used for test
-        @:param secret_key: Baidu Secret Key, the default value should only be used for test
+        @:param app_key: Baidu App Key, the default value should only be used for test_mylib
+        @:param secret_key: Baidu Secret Key, the default value should only be used for test_mylib
         """
         assert isinstance(language, str), "Language code must be a string"
         assert isinstance(app_key, str), "Key must be a string"

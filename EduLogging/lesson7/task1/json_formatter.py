@@ -36,7 +36,7 @@ if __name__ == '__main__':
     except:
         root_logger.exception('caught exception')
 
-    root_logger.warn('this is a test message')
+    root_logger.warn('this is a test_mylib message')
     root_logger.debug('this request_id=%d name=%s', 1, 'John')
 
 
