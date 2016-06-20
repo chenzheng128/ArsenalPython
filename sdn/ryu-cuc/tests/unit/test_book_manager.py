@@ -32,12 +32,12 @@ from ryu.cmd.manager import main
 #from cuc.docs import l2
 
 
-class Test_Manager(unittest.TestCase):
+class Test_Book_Manager(unittest.TestCase):
     """Test ryu-manager command
     """
 
     def __init__(self, methodName):
-        super(Test_Manager, self).__init__(methodName)
+        super(Test_Book_Manager, self).__init__(methodName)
 
     def setUp(self):
         pass
@@ -86,7 +86,7 @@ class Test_Manager(unittest.TestCase):
         self._reset_globals()
 
     @mock.patch('sys.argv', new=['ryu-manager', '--verbose',
-                                 'ryu.tests.unit.cmd.dummy_openflow_app'])
+                                 'cuc.book.simple_switch_13'])
     def test_openflow_app(self):
         self._reset_globals()
         main()

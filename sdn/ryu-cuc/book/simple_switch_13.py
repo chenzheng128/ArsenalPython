@@ -140,7 +140,7 @@ class SimpleSwitch13(app_manager.RyuApp):
         就使用 datapath.id 來進行確認
         # dp=1 交换机1 dp=2 交换机2
         # 测试命令
-        sudo mn --topo=linear --mac --controller=remote,ip=192.168.57.2 --test_mylib pingal
+        sudo mn --topo=linear --mac --controller=remote,ip=192.168.57.2 --test pingal
         """
         self.mac_to_port[dpid][src] = in_port
 

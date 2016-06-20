@@ -222,8 +222,8 @@ class RyuTestResult(result.TextTestResult):
                 self.stream.writeln(current_case)
                 self._last_case = current_case
             # NOTE(salvatore-orlando):
-            # slightly changed in order to print test_mylib case class
-            # together with unit test_mylib name
+            # slightly changed in order to print test case class
+            # together with unit test name
             self.stream.write(
                 '    %s' % str(test.test).ljust(60))
             self.stream.flush()
@@ -249,7 +249,7 @@ def run_tests(c=None):
     # calling run_tests from a plugin directory run_tests.py (instead of the
     # main run_tests.py).  It will call run_tests with no arguments and the
     # testing of run_tests will fail (though the plugin tests will pass).  For
-    # now we just return True to let the run_tests test_mylib pass.
+    # now we just return True to let the run_tests test pass.
     if not c:
         return True
 
