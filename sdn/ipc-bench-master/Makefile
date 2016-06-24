@@ -1,10 +1,13 @@
 
-CFLAGS = -g -Wall -O3
+#CFLAGS = -g -Wall -O3
+CFLAGS = -g -O3 -w # disable warning
 
 all: pipe_lat pipe_thr \
 	unix_lat unix_thr \
 	tcp_lat tcp_thr \
+	get_tc_queue_lat \
 	tcp_local_lat tcp_remote_lat
+
 
 run:
 	./pipe_lat 100 10000
@@ -16,7 +19,8 @@ run:
 
 clean:
 	rm -f *~ core
-	rm -f pipe_lat pipe_thr 
-	rm -f unix_lat unix_thr 
-	rm -f tcp_lat tcp_thr 
+	rm -f pipe_lat pipe_thr
+	rm -f unix_lat unix_thr
+	rm -f tcp_lat tcp_thr
 	rm -f tcp_local_lat tcp_remote_lat
+	rm -f get_tc_queue_lat get_tc_queue_lat.o
