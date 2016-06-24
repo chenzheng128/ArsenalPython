@@ -11,8 +11,8 @@ sudo mn -c ; sudo python cuc/hailong_topo.py
 from mininet.topo import Topo
 from mininet.net import Mininet
 from mininet.util import dumpNodeConnections
-from mininet.log import setLogLevel
-from mininet.node import RemoteController, OVSSwitch
+from mininet.log import setLogLevel, MininetLogger
+from mininet.node import RemoteController, OVSSwitch, UserSwitch
 from mininet.node import OVSController, Controller
 from mininet.cli import CLI
 import threading
@@ -20,6 +20,7 @@ import os
 import threading
 import time
 import json
+import logging
 from signal import SIGINT, SIGKILL
 from mininet.link import TCLink
 
@@ -41,7 +42,7 @@ class QbbTopo(Topo):
         middleSwitch1 = self.addSwitch('s3')
         middleSwitch2 = self.addSwitch('s4')
 
-        leftHost = self.addHost('h1', inNamespace=True)
+        leftHost = self.addHost('h1', inNamespace=True)  # inNameSpace=False to using root space for this host
         rightHost = self.addHost('h2', inNamespace=True)
         serverHost1 = self.addHost('h3', inNamespace=True)
         serverHost2 = self.addHost('h4', inNamespace=True)
@@ -61,18 +62,32 @@ class QbbTopo(Topo):
 
 
 def qbbTest():
+    lg = MininetLogger()
+    lg.setLogLevel("debug") #打开 debug 日志
     "Create and test our QBB network standard"
     qbbTopo = QbbTopo()
     global net
-    #MMininet 类 API 参考: http://mininet.org/api/classmininet_1_1net_1_1Mininet.html#a1ed0f0c8ba06a398e02f3952cc4c8393
-    #命令行参数对应 --mac => autoSetMacs
-    net = Mininet(topo=qbbTopo, controller=None, link=TCLink, autoSetMacs=True, xterms=True)
+    # MMininet 类 API 参考: http://mininet.org/api/classmininet_1_1net_1_1Mininet.html#a1ed0f0c8ba06a398e02f3952cc4c8393
+    # 命令行参数对应 --mac => autoSetMacs
+    net = Mininet(topo=qbbTopo, controller=None, link=TCLink, autoSetMacs=True, xterms=True,
+                   switch=OVSSwitch) #kernel switch
+                  #switch=UserSwitch) #user switch 不能正常工作ping通, 奇怪
 
-    c0 = Controller( 'c0', port=6633 )
-    #net.addController('c0', controller=RemoteController, ip='192.168.57.2', port=6653)
-    net.addController(c0)
+    # copy from mn.py beigin()
+    # mn = Net( topo=topo,
+    #               switch=switch, host=host, controller=controller,
+    #               link=link,
+    #               ipBase=ipBase,
+    #               inNamespace=inNamespace,
+    #               xterms=xterms, autoSetMacs=mac,
+    #               autoStaticArp=arp, autoPinCpus=pin,
+    #               listenPort=listenPort )
+
+
+    # c0 = Controller('c0', port=6633)  # 本地 OVS控制器
+    # net.addController(c0)
+    net.addController('c0', controller=RemoteController, ip='192.168.57.2', port=6653)  # 远程控制器
     net.start()
-
 
     print "调整 s1-eth1 qlen: sudo ip link set txqueuelen 500 dev s1-eth1"
     os.popen("sudo ip link set txqueuelen 500 dev s1-eth1")
@@ -105,7 +120,6 @@ def qbbTest():
     print "队列接口 s2-eth1,  tc class show "
     print os.popen('tc class show dev s2-eth1').readlines()
 
-
     # check = threading.Timer(5, checkTimer)
     # check.start()
 
@@ -115,7 +129,7 @@ def qbbTest():
     # thread = threadOne(1,7)
     # thread.start()
 
-    CLI(net) #激活命令行交互
+    CLI(net)  # 激活命令行交互
     net.stop()
 
 
