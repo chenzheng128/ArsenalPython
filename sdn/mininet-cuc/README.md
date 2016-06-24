@@ -14,10 +14,10 @@ sudo python cuc/hailong_local_qos.py
 
 拓扑图: https://www.processon.com/view/link/5752d7f1e4b0695484404d39
 
-- `hailong_local_qos.py` 本地 ovs，追加qos策略
-- `hailong_topo_local_controller.py` 本地ovs controller 拓扑, 作本地测试用
-- `hailong_topo.py` 远程 controller 拓扑,
-
+- `hailong_remote.orignial.py` 最初的 远程 controller 拓扑
+- `hailong_local_no_qos.py`  本地 ovs controller 控制器, 无 qos 策略, 便于作 tc qos 命令行设置
+- `hailong_local_qos.py`     本地 ovs controller 控制器, 有 qos 策略
+ 
 
 ```
 cd /opt/mininet

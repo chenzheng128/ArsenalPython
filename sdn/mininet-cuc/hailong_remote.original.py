@@ -6,7 +6,7 @@
 origined from 海龙拓扑测试
 revised by zhchen
 Usage:
-sudo mn -c ; sudo python cuc/hailong_topo.py
+sudo mn -c ; sudo python cuc/hailong_remote.original.py
 """
 from mininet.topo import Topo
 from mininet.net import Mininet
@@ -21,6 +21,10 @@ import time
 import json
 from signal import SIGINT, SIGKILL
 from mininet.link import TCLink
+
+#
+SW_PORTS="s1-eth1 s1-eth2 s1-eth3 s3-eth1 s2-eth1 s2-eth2 s2-eth3 s3-eth1 s3-eth2 s4-eth1 s4-eth2"
+sw_ports=SW_PORTS.split()
 
 flags1 = False
 flags2 = False
@@ -71,8 +75,9 @@ def qbbTest():
     net.start()
 
 
-    print "调整 s1-eth1 qlen: sudo ip link set txqueuelen 500 dev s1-eth1"
-    os.popen("sudo ip link set txqueuelen 500 dev s1-eth1")
+    for port in sw_ports:
+        print "调整 %s 网络 队列长度 txqueuelen: sudo ip link set txqueuelen 500 dev s1-eth1" % port
+        os.popen("sudo ip link set txqueuelen 500 dev %s" % port)
 
     print "创建 s2 s3 4m 5m QoS 队列"
     os.popen("""sudo ovs-vsctl \

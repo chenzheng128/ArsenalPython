@@ -6,7 +6,7 @@
 origined from 海龙拓扑测试
 revised by zhchen
 Usage:
-sudo mn -c ; sudo python cuc/hailong_topo.py
+sudo mn -c ; sudo python cuc/hailong_remote.original.py
 """
 from mininet.topo import Topo
 from mininet.net import Mininet
@@ -63,7 +63,7 @@ class QbbTopo(Topo):
 
 def qbbTest():
     lg = MininetLogger()
-    lg.setLogLevel("debug") #打开 debug 日志
+    # lg.setLogLevel("debug") #打开 debug 日志
     "Create and test our QBB network standard"
     qbbTopo = QbbTopo()
     global net
@@ -84,9 +84,9 @@ def qbbTest():
     #               listenPort=listenPort )
 
 
-    # c0 = Controller('c0', port=6633)  # 本地 OVS控制器
-    # net.addController(c0)
-    net.addController('c0', controller=RemoteController, ip='192.168.57.2', port=6653)  # 远程控制器
+    c0 = Controller('c0', port=6633)  # 本地 OVS控制器
+    net.addController(c0)
+    # net.addController('c0', controller=RemoteController, ip='192.168.57.2', port=6653)  # 远程控制器
     net.start()
 
     print "调整 s1-eth1 qlen: sudo ip link set txqueuelen 500 dev s1-eth1"
