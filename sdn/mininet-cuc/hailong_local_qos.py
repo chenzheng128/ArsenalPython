@@ -158,7 +158,13 @@ def qbb_test():
     LOG.debug("\n".join(os.popen('tc class show dev s1-eth3').readlines()))
     print "  查看 htb filter 队列接口 s1-eth3,  tc filter show dev $NDEV parent 1:fffe"
     LOG.debug("\n".join(os.popen('tc filter show dev s1-eth3 parent 1:0').readlines()))
+
+
+    print "设置 iperf 测试服务: h3 iperf -s -u -i 3 -p 5002 "
+    print " 连接服务: h1 iperf -c h3 -u -i 3 -p 5002 -t 6000 -b 5m "
     print " 检查端口状态: s1 watch -n 0.1 tc -s -d class show dev s1-eth3 "
+    print " 应当流量都在 class 1:2 中处理. 如修改端口号为 5003 则在 1:3 队列处理"
+    print " 如 iperf -b 带宽超过 5m 瓶颈之上, 应该能看到当前队列增加 ( backlog 100p ) 至TX_QUEUELEN后, 并开始丢包 (dropped)"
 
     # check = threading.Timer(5, checkTimer)
     # check.start()
