@@ -6,12 +6,12 @@
 origined from 海龙拓扑测试
 revised by zhchen
 Usage:
-sudo mn -c ; sudo python cuc/hailong_topo.py
+sudo mn -c ; sudo python cuc/hailong_remote.original.py
 """
 from mininet.topo import Topo
 from mininet.net import Mininet
 from mininet.util import dumpNodeConnections
-from mininet.log import setLogLevel
+from mininet.log import setLogLevel, MininetLogger
 from mininet.node import RemoteController, OVSSwitch
 from mininet.node import OVSController, Controller
 from mininet.cli import CLI
@@ -27,6 +27,22 @@ flags1 = False
 flags2 = False
 global popens
 
+TX_QUEUE_LEN = 100  # 网卡队列长度设置
+
+# 实验拓扑的相关网卡 s1/s2 host-switch, s3/s4 middle-switch
+
+# 主机端口
+HOST_PORT = " h1-eth0 h2-eth0 h3-eth0 h4-eth0"
+# 交换机连主机端口
+SW_HOST_PORTS = "s1-eth1 s1-eth2 s1-eth3 s2-eth1 s2-eth2 s2-eth3"
+
+# 所有主机端口 = 交换机连主机端口 + 主机端口
+# ALL_HOST_PORTS = SW_HOST_PORTS + HOST_PORT
+# 所有端口 = 交换机连主机端口 + 交换机级联端口
+ALL_PORTS = SW_HOST_PORTS + " s3-eth1 s3-eth2 s4-eth1 s4-eth2"
+
+LOG = MininetLogger()
+
 
 class QbbTopo(Topo):
     """
@@ -36,49 +52,58 @@ class QbbTopo(Topo):
     """
 
     def build(self):
-        leftSwitch = self.addSwitch('s1')
-        rightSwitch = self.addSwitch('s2')
-        middleSwitch1 = self.addSwitch('s3')
-        middleSwitch2 = self.addSwitch('s4')
+        s1 = self.addSwitch('s1')
+        s2 = self.addSwitch('s2')
+        s3 = self.addSwitch('s3')
+        s4 = self.addSwitch('s4')
 
-        leftHost = self.addHost('h1', inNamespace=True)
-        rightHost = self.addHost('h2', inNamespace=True)
-        serverHost1 = self.addHost('h3', inNamespace=True)
-        serverHost2 = self.addHost('h4', inNamespace=True)
+        h1 = self.addHost('h1', inNamespace=True)
+        h2 = self.addHost('h2', inNamespace=True)
+        h3 = self.addHost('h3', inNamespace=True)
+        h4 = self.addHost('h4', inNamespace=True)
 
-        self.addLink(leftHost, leftSwitch)
-        self.addLink(rightHost, leftSwitch)
-        self.addLink(leftSwitch, middleSwitch1)
+        self.addLink(h1, s1)
+        self.addLink(h2, s1)
+        self.addLink(s1, s3)
         """
         # s3 <-> s4 查看 含延时链路状态
         tc qdisc show dev s3-eth2
         tc class show dev s3-eth2
         """
-        self.addLink(middleSwitch1, middleSwitch2, delay='10ms', use_htb=True)
-        self.addLink(middleSwitch2, rightSwitch)
-        self.addLink(serverHost1, rightSwitch)
-        self.addLink(serverHost2, rightSwitch)
+        self.addLink(s3, s4, delay='10ms', use_htb=True)
+        self.addLink(s4, s2)
+        self.addLink(h3, s2)
+        self.addLink(h4, s2)
 
 
-def qbbTest():
-    "Create and test our QBB network standard"
-    qbbTopo = QbbTopo()
+def qbb_test():
+    """
+    :return:
+    Create and test our QBB network standard"
+    """
+
+    # LOG.setLogLevel("debug") #打开 debug 日志
+
+    qbb_topo = QbbTopo()
     global net
-    #MMininet 类 API 参考: http://mininet.org/api/classmininet_1_1net_1_1Mininet.html#a1ed0f0c8ba06a398e02f3952cc4c8393
-    #命令行参数对应 --mac => autoSetMacs
-    net = Mininet(topo=qbbTopo, controller=None, link=TCLink, autoSetMacs=True, xterms=True)
+    # MMininet 类 API 参考: http://mininet.org/api/classmininet_1_1net_1_1Mininet.html#a1ed0f0c8ba06a398e02f3952cc4c8393
+    # 命令行参数对应 --mac => autoSetMacs
+    net = Mininet(topo=qbb_topo, controller=None, link=TCLink, autoSetMacs=True, xterms=True)
 
-    c0 = Controller( 'c0', port=6633 )
-    #net.addController('c0', controller=RemoteController, ip='192.168.57.2', port=6653)
+    c0 = Controller('c0', port=6633)
+    # net.addController('c0', controller=RemoteController, ip='192.168.57.2', port=6653)
     net.addController(c0)
     net.start()
 
+    # 调整队列大小
+    print "调整下列端口的 txqueuelen 网络队列大小为 %s ..." % TX_QUEUE_LEN
+    for port in ALL_PORTS.split():
+        print "  %s" % port,
+        LOG.debug("  调整 %s 网络 队列长度 txqueuelen: sudo ip link set txqueuelen %s dev %s ..." % (port, TX_QUEUE_LEN, port))
+        os.popen("sudo ip link set txqueuelen %s dev %s" % (TX_QUEUE_LEN, port))
+    print " 检查设置: ifconfig | grep txqueuelen"
 
-    print "调整 s1-eth1 qlen: sudo ip link set txqueuelen 500 dev s1-eth1"
-    os.popen("sudo ip link set txqueuelen 500 dev s1-eth1")
-
-    print "创建 s2 s3 4m 5m QoS 队列"
-
+    print "使用 ovs-vsctl 创建 s2 s3 4m 5m QoS 策略 ( tc htb qdisc )"
     os.popen("""sudo ovs-vsctl \
         -- set port s2-eth1 qos=@4mqos \
         -- set port s2-eth2 qos=@4mqos \
@@ -95,16 +120,45 @@ def qbbTest():
         -- --id=@q4 create queue other-config:min-rate=5000000 other-config:max-rate=5000000 \
         -- --id=@q5 create queue other-config:min-rate=5000000 other-config:max-rate=5000000 """)
 
-    print "普通接口 s3-eth1 状态为:  tc qdisc show dev s3-eth1"
-    print os.popen('tc qdisc show dev s3-eth1').readlines()
-    print "延时链路 s3-eth2 <->s4-eth1 接口状态为:  tc qdisc show dev s3-eth2 / s4-eth1"
-    print os.popen('tc qdisc show dev s3-eth2').readlines()
-    print os.popen('tc qdisc show dev s4-eth1').readlines()
-    print "队列接口 s2-eth1, tc qdisc show 采用的应是 htb, 而不是 pfifo_fast(普通) 或 netem(延时) "
-    print os.popen('tc qdisc show dev s2-eth1').readlines()
-    print "队列接口 s2-eth1,  tc class show "
-    print os.popen('tc class show dev s2-eth1').readlines()
+    # for port in SW_HOST_PORTS.split():  # 配置 HOST_PORT 和上面的 ovsctl 一样策略 (如果用 ALL_PORT 来执行可以不用上面 ovs-vsctl 了,
+    #     之前用 ovs-vsctl 是为了保持和ovs的兼容性)
+    #     os.popen("tc qdisc add dev %s root handle 1: htb default 1" % port)
+    #     TODO 这里host的 burst 值还和 ovs 的不一样, 回头细调
+    #     os.popen("tc class add dev %s parent 1: classid 1:fffe htb rate 10000mbit burst 1250b cburst 1250b" % port)
+    #     os.popen("tc class add dev %s parent 1:fffe classid 1:1 htb rate 5mbit burst 1563b cburst 1563b" % port)
+    #     os.popen("tc class add dev %s parent 1:fffe classid 1:2 htb rate 5mbit burst 1563b" % port)
+    #     os.popen("tc class add dev %s parent 1:fffe classid 1:3 htb rate 5mbit burst 1563b" % port)
+    #     pass  # 通过 ovs-vsctl 已配置
 
+    # 设置 tc filter:  端口 5001 -> 队列 1:1, 5002 -> 1:2 , 5003 -> 1:3
+    LOG.info("在交换机接主机端口上设置 handle 和 filter 端口 5001 -> 队列 1:1, 5002 -> 1:2 , 5003 -> 1:3 ... \n")
+    for port in SW_HOST_PORTS.split():
+        # 放置 class handle sfq 支持公平发包,借用其他队列的带宽 # limit 即
+        os.popen("tc qdisc add dev %s parent 1:1 handle 1: sfq perturb 10 limit %s" % (port, TX_QUEUE_LEN))
+        os.popen("tc qdisc add dev %s parent 1:2 handle 2: sfq perturb 10 limit %s" % (port, TX_QUEUE_LEN))
+        os.popen("tc qdisc add dev %s parent 1:3 handle 3: sfq perturb 10 limit %s" % (port, TX_QUEUE_LEN))
+
+        # 放置 class filter
+        u32_filter_prefix = "tc filter add dev %s protocol ip parent 1:0 prio 1 u32" % port
+        os.popen('%s match ip dport 5001 0xffff flowid 1:1' % u32_filter_prefix)
+        os.popen('%s match ip dport 5002 0xffff flowid 1:2' % u32_filter_prefix)
+        os.popen('%s match ip dport 5003 0xffff flowid 1:3' % u32_filter_prefix)
+        print "  设置端口 %s 完成 ..." % port
+    print " 检查设置: tc filter show dev $NDEV parent 1:fffe"
+
+    LOG.info("查看 tc qdisc")
+    LOG.info("  普通 pfifo_fast 接口 s3-eth1 状态为:  tc qdisc show dev s3-eth1\n")
+    LOG.debug("\n".join(os.popen('tc qdisc show dev s3-eth1').readlines()))
+    print "  查看 netem 延时链路 s3-eth2 <->s4-eth1 接口状态为:  tc qdisc show dev s3-eth2 / s4-eth1"
+    LOG.debug("\n".join(os.popen('tc qdisc show dev s3-eth2').readlines()))
+    LOG.debug("\n".join(os.popen('tc qdisc show dev s4-eth1').readlines()))
+    print "  查看 htb qdisc 队列接口 s1-eth3, tc qdisc show dev $NDEV (采用的应是 htb, 而不是 pfifo_fast(普通) 或 netem(延时) )"
+    LOG.debug("\n".join(os.popen('tc qdisc show dev s1-eth3').readlines()))
+    print "  查看 htb class 队列接口 s1-eth3,  tc class show dev $NDEV"
+    LOG.debug("\n".join(os.popen('tc class show dev s1-eth3').readlines()))
+    print "  查看 htb filter 队列接口 s1-eth3,  tc filter show dev $NDEV parent 1:fffe"
+    LOG.debug("\n".join(os.popen('tc filter show dev s1-eth3 parent 1:0').readlines()))
+    print " 检查端口状态: s1 watch -n 0.1 tc -s -d class show dev s1-eth3 "
 
     # check = threading.Timer(5, checkTimer)
     # check.start()
@@ -114,24 +168,30 @@ def qbbTest():
 
     # thread = threadOne(1,7)
     # thread.start()
-
-    CLI(net) #激活命令行交互
+    # s1 = net.get('s1')
+    # s1.sendCmd('ls')
+    # s1.sendCmd('watch -n 0.1 tc -s -d class show dev s1-eth3')
+    # s1 = net.getNodeByName('s1')
+    # s1.sendCmd('ls')
+    CLI(net)  # 激活命令行交互
+    # cli.do_sh("ls")
     net.stop()
 
 
-def checkTimer():  # no timer in use now
-    '''result=os.popen('tc -s class ls dev s2-eth2 parent 1:fffe classid 1:3').read()
-    arr=result.split(' ')
-    sendbyte = arr[17]
-    sendpack = arr[19]
-    backlog = arr[33]
-    sendpackint = int(sendpack)
-    backlogint = int(backlog[:-1])
-    print "queue statistics"
-    print 's2-eth2'
-    print(sendbyte)
-    print(sendpack)
-    print(backlogint)'''
+def check_timer():  # no timer in use now
+
+    # result=os.popen('tc -s class ls dev s2-eth2 parent 1:fffe classid 1:3').read()
+    # arr=result.split(' ')
+    # sendbyte = arr[17]
+    # sendpack = arr[19]
+    # backlog = arr[33]
+    # sendpackint = int(sendpack)
+    # backlogint = int(backlog[:-1])
+    # print "queue statistics"
+    # print 's2-eth2'
+    # print(sendbyte)
+    # print(sendpack)
+    # print(backlogint)
     print "queue statistics"
     global flags1
     global flags2
@@ -162,22 +222,24 @@ def checkTimer():  # no timer in use now
     # another method rest api
     command = "curl -s http://192.168.57.2:8080/wm/core/switch/queue/00:00:00:00:00:00:00:02/2/json"
     result = os.popen(command).read()
-    parsedResult = json.loads(result)
+    parsed_result = json.loads(result)
 
-    leftPackets2 = parsedResult['queue_sts_reply'][0]['queue_sts'][2]['leftPackets']
-    leftInt2 = int(leftPackets2)
+    left_packets2 = parsed_result['queue_sts_reply'][0]['queue_sts'][2]['leftPackets']
+    left_int2 = int(left_packets2)
 
-    print "s2-eth3 queue3 leftpackets:" + leftPackets2
-    if (leftInt2 > 800) and (flags2 == False):
+    print "s2-eth3 queue3 leftpackets:" + left_packets2
+    if (left_int2 > 800) and (flags2 is False):
         flags2 = True
-        command2 = "curl -s http://192.168.57.2:8080/wm/core/switch/queuerate/00:00:00:00:00:00:00:01/s1-eth3/2/1000000/json"
-        result2 = os.popen(command2).read()
+        command2 = \
+            "curl -s http://192.168.57.2:8080/wm/core/switch/queuerate/00:00:00:00:00:00:00:01/s1-eth3/2/1000000/json"
+        os.popen(command2).read()
         # os.popen('tc class change dev s1-eth2 parent 1:fffe classid 1:3 htb rate 1000000bit ceil 1000000bit')
         print "change s1-eth3 to 1M"
-    elif (leftInt2 < 300) and (flags2 == True):
+    elif (left_int2 < 300) and (flags2 is True):
         flags2 = False
-        command2 = "curl -s http://192.168.57.2:8080/wm/core/switch/queuerate/00:00:00:00:00:00:00:01/s1-eth3/2/5000000/json"
-        result2 = os.popen(command2).read()
+        command2 = \
+            "curl -s http://192.168.57.2:8080/wm/core/switch/queuerate/00:00:00:00:00:00:00:01/s1-eth3/2/5000000/json"
+        os.popen(command2).read()
         # os.popen('tc class change dev s1-eth2 parent 1:fffe classid 1:3 htb rate 5000000bit ceil 5000000bit')
         print "change s1-eth3 to 5M"
 
@@ -217,19 +279,19 @@ def checkTimer():  # no timer in use now
     # another method rest api
     command = "curl -s http://192.168.57.2:8080/wm/core/switch/queue/00:00:00:00:00:00:00:01/2/json"
     result = os.popen(command).read()
-    parsedResult = json.loads(result)
+    parsed_result = json.loads(result)
 
-    leftPackets2 = parsedResult['queue_sts_reply'][0]['queue_sts'][2]['leftPackets']
-    leftInt2 = int(leftPackets2)
+    left_packets2 = parsed_result['queue_sts_reply'][0]['queue_sts'][2]['leftPackets']
+    left_int2 = int(left_packets2)
 
-    print "s1-eth3 queue3 leftpackets:" + leftPackets2
-    if (leftInt2 > 800) and (flags1 == False):
+    print "s1-eth3 queue3 leftpackets:" + left_packets2
+    if (left_int2 > 800) and (flags1 is False):
         flags1 = True
         h2 = net.get('h2')
         h2.popen("tc class change dev h2-eth0 parent 1:fffe classid 1:1 htb rate 1000000bit ceil 1000000bit")
 
         print "change h2 to slow speed"
-    elif (leftInt2 < 30) and (flags1 == True):
+    elif (left_int2 < 30) and (flags1 is True):
         flags1 = False
         h2 = net.get('h2')
         h2.popen("tc class change dev h2-eth0 parent 1:fffe classid 1:1 htb rate 10000kbit ceil 10000kbit")
@@ -238,17 +300,16 @@ def checkTimer():  # no timer in use now
         # test queue 2
     command = "curl -s http://192.168.57.2:8080/wm/core/switch/queue/00:00:00:00:00:00:00:02/1/json"
     result = os.popen(command).read()
-    parsedResult = json.loads(result)
-    leftPackets2 = parsedResult['queue_sts_reply'][0]['queue_sts'][1]['leftPackets']
-    print "s2-eth2 queue2 leftpackets:" + leftPackets2
+    parsed_result = json.loads(result)
+    left_packets2 = parsed_result['queue_sts_reply'][0]['queue_sts'][1]['leftPackets']
+    print "s2-eth2 queue2 leftpackets:" + left_packets2
 
     command = "curl -s http://192.168.57.2:8080/wm/core/switch/queue/00:00:00:00:00:00:00:01/1/json"
     result = os.popen(command).read()
-    parsedResult = json.loads(result)
-    leftPackets2 = parsedResult['queue_sts_reply'][0]['queue_sts'][2]['leftPackets']
-    print "s1-eth3 queue2 leftpackets:" + leftPackets2
+    parsed_result = json.loads(result)
+    left_packets2 = parsed_result['queue_sts_reply'][0]['queue_sts'][2]['leftPackets']
+    print "s1-eth3 queue2 leftpackets:" + left_packets2
     # print '%s:' % h1.name, h1.monitor().strip()
-
 
     # if backlogint > 900:
     #  popens[h1].send_signal(SIGINT)
@@ -259,11 +320,11 @@ def checkTimer():  # no timer in use now
     #  thread.stop()
     # print h1.cmd('ps aux|grep ping')
     global check
-    check = threading.Timer(0.5, checkTimer)
+    check = threading.Timer(0.5, check_timer)
     check.start()
 
 
-class threadOne(threading.Thread):
+class ThreadOne(threading.Thread):
     def __init__(self, num, interval):
         threading.Thread.__init__(self)
         self.thread_num = num
@@ -280,8 +341,16 @@ class threadOne(threading.Thread):
         h3 = net.get('h3')
         h4 = net.get('h4')
         # h1.sendCmd('ping -i0.01 10.0.0.2')
-        # h1.popen("sudo ovs-vsctl -- set port h1-eth0 qos=@newqos -- --id=@newqos create qos type=linux-htb queues=0=@q0,1=@q1,2=@q2 -- --id=@q0 create queue other-config:min-rate=20000000 other-config:max-rate=20000000 -- --id=@q1 create queue other-config:min-rate=20000000 other-config:max-rate=20000000 -- --id=@q2 create queue other-config:min-rate=20000000 other-config:max-rate=20000000")
-        # h2.popen("sudo ovs-vsctl -- set port h2-eth0 qos=@newqos -- --id=@newqos create qos type=linux-htb queues=0=@q0,1=@q1,2=@q2 -- --id=@q0 create queue other-config:min-rate=20000000 other-config:max-rate=20000000 -- --id=@q1 create queue other-config:min-rate=20000000 other-config:max-rate=20000000 -- --id=@q2 create queue other-config:min-rate=20000000 other-config:max-rate=20000000")
+        # h1.popen("sudo ovs-vsctl -- set port h1-eth0 qos=@newqos --
+        # --id=@newqos create qos type=linux-htb queues=0=@q0,1=@q1,2=@q2 --
+        # --id=@q0 create queue other-config:min-rate=20000000 other-config:max-rate=20000000 --
+        # --id=@q1 create queue other-config:min-rate=20000000 other-config:max-rate=20000000 --
+        # --id=@q2 create queue other-config:min-rate=20000000 other-config:max-rate=20000000")
+        # h2.popen("sudo ovs-vsctl -- set port h2-eth0 qos=@newqos --
+        # --id=@newqos create qos type=linux-htb queues=0=@q0,1=@q1,2=@q2 --
+        # --id=@q0 create queue other-config:min-rate=20000000 other-config:max-rate=20000000 --
+        # --id=@q1 create queue other-config:min-rate=20000000 other-config:max-rate=20000000 --
+        # --id=@q2 create queue other-config:min-rate=20000000 other-config:max-rate=20000000")
 
         h1.popen("sudo /sbin/tc qdisc add dev h1-eth0 root handle 1: htb default 1")
         h1.popen("sudo /sbin/tc class add dev h1-eth0 parent 1: classid 1:0xffff htb rate 300000kbit ceil 300000kbit")
@@ -329,7 +398,7 @@ class threadOne(threading.Thread):
         self.thread_stop = True
 
 
-class threadTwo(threading.Thread):
+class ThreadTwo(threading.Thread):
     def __init__(self, num, interval):
         threading.Thread.__init__(self)
         self.thread_num = num
@@ -339,13 +408,13 @@ class threadTwo(threading.Thread):
     def run(self):
         time.sleep(self.interval)
         h1 = net.get('h1')
-        h2 = net.get('h2')
+        net.get('h2')
         while 1:
             result = os.popen('tc -s class ls dev s2-eth2 parent 1:fffe classid 1:3').read()
             arr = result.split(' ')
             sendbyte = arr[17]
             sendpack = arr[19]
-            sendpackint = int(sendpack)
+            # sendpackint = int(sendpack)
             backlog = arr[33]
             backlogint = int(backlog[:-1])
             print "queue statistics"
@@ -360,18 +429,18 @@ class threadTwo(threading.Thread):
         self.thread_stop = True
 
 
-def pingTimerTwo():
+def ping_timer_two():
     print "ping two"
 
 
-def pingTimerThree():
+def ping_timer_three():
     print "ping three"
 
 
 if __name__ == '__main__':
     # Tell mininet to print useful information
     setLogLevel('info')
-    qbbTest()
+    qbb_test()
     # check = threading.Timer(8, checkTimer)
     # check.start()
     # killPing = threadTwo(2,5)
