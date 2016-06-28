@@ -31,7 +31,16 @@ average latency: 847618 ns  # 0.8 ms
 ```
 
 ## udp 测试
-* 新增 udp_lat.c 文件: 基于 `tcp_lat.c` 复制 `udp_lat.c` 文件, 增加编译代码; 
+* 新增 udp_lat.c 文件: 基于 `tcp_lat.c` 复制 `udp_lat.c` 文件, 增加编译代码;
+* 对比情况: unix_lat < udp_lat < tcp_lat
+* 测试结果: 3us;   
+```
+$ make && ./udp_lat 100 100000
+debug: listen_ip=127.0.0.1 port=33333
+message size: 100 octets
+roundtrip count: 100000
+average latency: 3326 ns
+```
 
 ipc-bench
 =========
