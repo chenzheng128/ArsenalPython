@@ -1,0 +1,26 @@
+This is a small program that demonstrates basic communication using UDP sockets.
+It's similar to the previous demo but here the server sends an acknowledegement message back to the sender.
+
+Before compiling it, you may want to edit port.h and set a
+(hopefully unique for your environment) default port number
+(in the range 1024...65535).
+
+Then run make to compile it. It should work fine on linux or OS X systems.
+(on solaris systems, you may need to add /usr/ccs/bin to your PATH environment)
+
+1. Start the server
+In one window, run
+	./udp-recv
+
+The server runs forever, listening for UDP packets on a port defined in port.h.
+Each time a message is received, it is printed and an acknowledgement message is
+sent pack to the client.
+Break out of the server via ^C (or whatever your interrupt character is).
+
+2. Client
+In another window, run the client:
+	./udp-send
+
+As it's written, the server's address is set to 127.0.0.1, a 
+special address for the local host, so the client and server should be on
+the same machine if you don't change the address.
