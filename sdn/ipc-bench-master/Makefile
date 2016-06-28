@@ -2,10 +2,17 @@
 #CFLAGS = -g -Wall -O3
 CFLAGS = -g -O3 -w # disable warning
 
+build: \
+	tc_shell_lat \
+	tc_shell_p_lat \
+	unix_lat
+
+
 all: pipe_lat pipe_thr \
 	unix_lat unix_thr \
 	tcp_lat tcp_thr \
 	get_tc_queue_lat \
+	tc_shell_lat \
 	tcp_local_lat tcp_remote_lat
 
 
@@ -23,4 +30,5 @@ clean:
 	rm -f unix_lat unix_thr
 	rm -f tcp_lat tcp_thr
 	rm -f tcp_local_lat tcp_remote_lat
-	rm -f get_tc_queue_lat get_tc_queue_lat.o
+	rm -f tc_shell_p_lat
+	rm -f tc_shell_lat
