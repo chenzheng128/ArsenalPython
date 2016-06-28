@@ -38,3 +38,6 @@ yun_sdk/baidu/tmp.mp3
 .idea/
 
 .idea/modules.xml
+
+sdn/akaedu/out/
+sdn/akaedu/*/*.o
