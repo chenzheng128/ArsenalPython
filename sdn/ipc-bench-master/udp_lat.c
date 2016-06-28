@@ -47,7 +47,7 @@ int main(int argc, char *argv[]) {
 #ifdef HAS_CLOCK_GETTIME_MONOTONIC
   struct timespec start, stop;
 #else
-  struct timeval start, stop;
+  // struct timeval start, stop;
 #endif
 
   ssize_t len;
@@ -62,7 +62,7 @@ int main(int argc, char *argv[]) {
   int sockfd, new_fd;
 
   if (argc != 3) {
-    printf("usage: tcp_lat <message-size> <roundtrip-count>\n");
+    printf("usage: udp_lat <message-size> <roundtrip-count>\n");
     return 1;
   }
 
@@ -183,19 +183,15 @@ int main(int argc, char *argv[]) {
       perror("clock_gettime");
       return 1;
     }
-
     delta = ((stop.tv_sec - start.tv_sec) * 1000000000 +
              (stop.tv_nsec - start.tv_nsec));
-
 #else
     if (gettimeofday(&stop, NULL) == -1) {
       perror("gettimeofday");
       return 1;
     }
-
     delta =
         (stop.tv_sec - start.tv_sec) * 1000000000 + (stop.tv_usec - start.tv_usec) * 1000;
-
 #endif
 
     printf("average latency: %li ns\n", delta / (count * 2));

@@ -5,6 +5,8 @@ CFLAGS = -g -O3 -w # disable warning
 build: \
 	tc_shell_lat \
 	tc_shell_p_lat \
+	udp_lat \
+	tcp_lat \
 	unix_lat
 
 
@@ -25,6 +27,7 @@ run:
 	./tcp_thr 100 10000
 
 clean:
+	#rm -f *.o
 	rm -f *~ core
 	rm -f pipe_lat pipe_thr
 	rm -f unix_lat unix_thr
@@ -32,3 +35,4 @@ clean:
 	rm -f tcp_local_lat tcp_remote_lat
 	rm -f tc_shell_p_lat
 	rm -f tc_shell_lat
+	rm -f udp_lat

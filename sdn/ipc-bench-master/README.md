@@ -30,6 +30,9 @@ roundtrip count: 10000
 average latency: 847618 ns  # 0.8 ms
 ```
 
+## udp 测试
+* 新增 udp_lat.c 文件: 基于 `tcp_lat.c` 复制 `udp_lat.c` 文件, 增加编译代码; 
+
 ipc-bench
 =========
 
