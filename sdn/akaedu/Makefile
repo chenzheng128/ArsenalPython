@@ -24,8 +24,11 @@ bar = "start building"
 
 # 代码目录
 CODE_DIR = \
+    ch08 \
+    ch10 \
     ch25 \
-	ch28
+	ch28 \
+	ch37
 
 .PHONY: project_code
 
