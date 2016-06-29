@@ -13,9 +13,10 @@
 #include <netdb.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
-#include "port.h"
 
 #define BUFSIZE 2048
+
+#define SERVICE_PORT	33333	/* hard-coded port number */
 
 int
 main(int argc, char **argv)
@@ -27,7 +28,7 @@ main(int argc, char **argv)
 	int fd;				/* our socket */
 	int msgcnt = 0;			/* count # of messages we received */
 	unsigned char buf[BUFSIZE];	/* receive buffer */
-
+    char addr_str[INET_ADDRSTRLEN];
 
 	/* create a UDP socket */
 
@@ -54,7 +55,15 @@ main(int argc, char **argv)
 		recvlen = recvfrom(fd, buf, BUFSIZE, 0, (struct sockaddr *)&remaddr, &addrlen);
 		if (recvlen > 0) {
 			buf[recvlen] = 0;
-			printf("received message: \"%s\" (%d bytes)\n", buf, recvlen);
+			printf("received message from %s port %d: \"%s\" (%d bytes)\n",
+			    inet_ntop(AF_INET, &remaddr.sin_addr, addr_str, sizeof(addr_str)),
+			    ntohs(remaddr.sin_port),
+			    buf, recvlen);
+
+
+			//printf("received from %s at PORT %d\n",
+            //inet_ntop(AF_INET, &cliaddr.sin_addr, str, sizeof(str)),
+
 		}
 		else
 			printf("uh oh - something went wrong!\n");

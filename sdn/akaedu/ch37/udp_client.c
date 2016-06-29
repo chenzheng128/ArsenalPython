@@ -14,10 +14,11 @@
 #include <string.h>
 #include <netdb.h>
 #include <sys/socket.h>
-#include "port.h"
 
 #define BUFLEN 2048
 #define MSGS 5	/* number of messages to send */
+
+#define SERVICE_PORT	33333	/* hard-coded port number */
 
 int main(void)
 {

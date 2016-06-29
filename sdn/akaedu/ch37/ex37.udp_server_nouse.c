@@ -16,14 +16,22 @@ int main(void)
 	char str[INET_ADDRSTRLEN];
 	int i, n;
 
-	sockfd = Socket(AF_INET, SOCK_DGRAM, 0);
+	//if ( (sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0 ){
+	if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
+	    perror("cannot create socket\n");
+		return 0;
+	}
 
-	bzero(&servaddr, sizeof(servaddr));
+	// bzero(&servaddr, sizeof(servaddr));
+	memset((char *)&servaddr, 0, sizeof(servaddr));
 	servaddr.sin_family = AF_INET;
 	servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
 	servaddr.sin_port = htons(SERV_PORT);
 
-	Bind(sockfd, (struct sockaddr *)&servaddr, sizeof(servaddr));
+	if (bind(sockfd, (struct sockaddr *)&servaddr, sizeof(servaddr)) ){
+        perror("bind failed");
+		return 0;
+	}
 
 	printf("Accepting connections ...\n");
 	while (1) {
