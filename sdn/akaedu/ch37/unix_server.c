@@ -50,7 +50,7 @@ int main(int argc, char *argv[]) {
       continue;
     }
 
-    while ( (readcount=read(client_fd,buf,sizeof(buf))) > 0) {
+    while ( (readcount=read(client_fd,buf,sizeof(buf))) > 0) { // 在会话中, 等候client发数据
       printf("read client %u bytes: %.*s", readcount, readcount, buf);
       // echo back
       int wcount=0;
@@ -74,7 +74,7 @@ int main(int argc, char *argv[]) {
       perror("read");
       exit(-1);
     }
-    else if (readcount == 0) {
+    else if (readcount == 0) {  // client 会话 close, 重新回到 accept() 等候
       printf("EOF\n");
       close(client_fd);
     }
