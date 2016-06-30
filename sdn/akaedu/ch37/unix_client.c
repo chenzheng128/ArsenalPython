@@ -4,8 +4,8 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-//char *socket_path = "./socket";
-char *socket_path = "\0hidden";
+char *socket_path = "/tmp/sw.socket";
+// char *socket_path = "\0hidden";
 
 int main(int argc, char *argv[]) {
   struct sockaddr_un addr;
@@ -28,11 +28,13 @@ int main(int argc, char *argv[]) {
     strncpy(addr.sun_path, socket_path, sizeof(addr.sun_path)-1);
   }
 
+  printf ("debug: connet on socket_path: %s\n", socket_path);
   if (connect(fd, (struct sockaddr*)&addr, sizeof(addr)) == -1) {
     perror("connect error");
     exit(-1);
   }
 
+  int readcount = 0;
   while( (rc=read(STDIN_FILENO, buf, sizeof(buf))) > 0) {
     if (write(fd, buf, rc) != rc) {
       if (rc > 0) fprintf(stderr,"partial write");
@@ -41,6 +43,13 @@ int main(int argc, char *argv[]) {
         exit(-1);
       }
     }
+    if ((readcount=read(fd,buf,sizeof(buf))) > 0){
+          // %.*s 表示打印buf 的 readcount 长度; 如果不设定readcount长度直接打印 %s;
+          // 就应该调用后面的 memset 对buf 清零,
+          // 而是会因为buf中的字符不会结束在 \0 而打印出一些剩余内容否则
+        printf("server echo %u bytes: \n%.*s", readcount, readcount, buf);
+    }
+    memset(&buf, 0, sizeof(buf)); //每次结束时注意清零buf, 便于字符串正常结束
   }
 
   return 0;

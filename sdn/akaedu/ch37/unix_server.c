@@ -9,8 +9,9 @@ char *socket_path = "/tmp/sw.socket";
 
 int main(int argc, char *argv[]) {
   struct sockaddr_un addr;
-  char buf[100];
-  int fd,cl,rc;
+  char buf[100];            //单行缓存
+  char buf_mutiline[500];   //多行缓存
+  int fd,client_fd,readcount;
 
   if (argc > 1) socket_path=argv[1];
 
@@ -44,22 +45,38 @@ int main(int argc, char *argv[]) {
   }
 
   while (1) {
-    if ( (cl = accept(fd, NULL, NULL)) == -1) {
+    if ( (client_fd = accept(fd, NULL, NULL)) == -1) {
       perror("accept error");
       continue;
     }
 
-    while ( (rc=read(cl,buf,sizeof(buf))) > 0) {
-      // printf("read %u bytes: %.*s\n", rc, rc, buf);
-      write(cl, "i got it");
+    while ( (readcount=read(client_fd,buf,sizeof(buf))) > 0) {
+      printf("read client %u bytes: %.*s", readcount, readcount, buf);
+      // echo back
+      int wcount=0;
+
+      // 将 echo 值复制 3 次到 buf_mutiline 中
+      memset(buf_mutiline,0,500*sizeof(char));
+      memcpy(buf_mutiline, buf, readcount);
+      memcpy(buf_mutiline+readcount, buf, readcount);
+      memcpy(buf_mutiline+readcount*2, buf, readcount);
+
+      //if ((wcount=write(client_fd, buf, readcount)) != readcount) { // echo 单行缓存
+      if ((wcount=write(client_fd, buf_mutiline, readcount*3)) != readcount*3) { // echo 3行缓存
+          if (readcount > 0) fprintf(stderr,"partial write %d \n", wcount);
+          else {
+            perror("write error");
+            exit(-1);
+          }
+      }
     }
-    if (rc == -1) {
+    if (readcount == -1) {
       perror("read");
       exit(-1);
     }
-    else if (rc == 0) {
+    else if (readcount == 0) {
       printf("EOF\n");
-      close(cl);
+      close(client_fd);
     }
   }
 
