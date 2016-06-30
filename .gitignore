@@ -41,3 +41,5 @@ yun_sdk/baidu/tmp.mp3
 
 sdn/akaedu/out/
 sdn/akaedu/*/*.o
+
+sdn/iproute2

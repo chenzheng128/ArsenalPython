@@ -3,8 +3,9 @@
 #include <sys/un.h>
 #include <stdlib.h>
 
-//char *socket_path = "./socket";
-char *socket_path = "\0hidden";
+char *socket_path = "/tmp/sw.socket";
+// char *socket_path = "\0hidden";
+
 
 int main(int argc, char *argv[]) {
   struct sockaddr_un addr;
@@ -30,6 +31,8 @@ int main(int argc, char *argv[]) {
 
   unlink(socket_path);
 
+  // 如果绑定不上, 应检查该目录权限问题
+  printf ("debug: binding on socket_path: %s\n", socket_path);
   if (bind(fd, (struct sockaddr*)&addr, sizeof(addr)) == -1) {
     perror("bind error");
     exit(-1);
@@ -47,7 +50,8 @@ int main(int argc, char *argv[]) {
     }
 
     while ( (rc=read(cl,buf,sizeof(buf))) > 0) {
-      printf("read %u bytes: %.*s\n", rc, rc, buf);
+      // printf("read %u bytes: %.*s\n", rc, rc, buf);
+      write(cl, "i got it");
     }
     if (rc == -1) {
       perror("read");

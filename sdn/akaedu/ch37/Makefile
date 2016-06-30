@@ -48,5 +48,6 @@ clean:
 	rm -f udp_server udp_client
 	rm -f ex37.unix.bind
 	rm -f ex37.tcp_server ex37.tcp_client
+	rm -f unix_server unix_client
 
 run:
