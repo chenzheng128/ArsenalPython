@@ -1,11 +1,14 @@
 #Python Stand Library Demo
 
- python 标准库使用参考代码
-```
-unittest: using noise test all classes in this folder
-json: json dump/load 操作  
-requests: 爬虫例子（需要额外安装 lxml 库）
-```
+ stdmod: python 标准库使用参考代码
+
+
+- json: json dump/load 操作
+- requests: 爬虫例子（需要额外安装 lxml 库）
+- socket: 
+    * pymotw:
+        - unix domain socket 服务与客户端: `python ./socket_echo_server_uds.py` `python ./socket_echo_client_uds.py [filepath.socket]` 
+- unittest: using noise test all classes in this folder
 
 ## unittest 单元测试
 对于  mylib 实现了 `100%` 的 converage 测试 
