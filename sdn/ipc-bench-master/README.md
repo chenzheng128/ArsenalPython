@@ -7,7 +7,75 @@ TODO: 将 `unix_lat`的 `socketpair`无名管道方法, 修改为 C/S 架构.
 - S: Server 为需要被控制的网卡主机, 例如 h1/h2 或 s1/2.
 - `tc_shell_p_lat` 修补strok存在指针异常情况
 
-## tc 测试命令
+## 完成unix domain socket 延时测试
+
+ipc-bench 完成 C /  python / tc 的unix延时测试
+其单方向延时如下
+- C:    3us  较小, 可忽略
+- Python: 60us 较大, 不可忽略
+- 调用tc查询代码: 30us (比之前有睡眠的50us的速度提高了,)
+
+
+### 扩展测试4: Python -> C(tc)
+
+- 客户端 `python unix_lat_client.py /var/sdn/bench.socket "class show dev s1-eth1" 250 100000`
+- 服务端 `while true; do  make && ./tc/tc bench; done`
+
+```
+polling_interval: 10 (等候数据回写间隔)
+roundtrip count: 100000
+total_bytes: 25000250
+avg_bytes(should equals to interactive mode): 250 bytes
+average latency: 71036 ns
+```
+从时间上看: Time(扩展测试4) = Time(扩展测试3) + Time(扩展测试2); 增加的时间差不多是python的效率(60us), 加上tc效率(30us) 
+
+### 扩展测试3: C -> C(tc) *最优方式*
+比echo服务增加了 tc 的查询内容
+
+- 客户端 `./unix_lat_client "class show dev s1-eth1" 300 10000`
+- 服务端 `while true; do  make && ./tc/tc bench; done`
+效率如下 27us 不低; 日志都打印出也很快; TODO 如果 expect_recv_size 很小不是 300 程序会崩溃, why?  
+```
+message content: class show dev s1-eth1
+message size: 23 octets
+roundtrip count: 1
+debug: connet on socket_path: /var/sdn/bench.socket
+average latency: 27175 ns
+```
+
+### 扩展测试2: Python -> C(echo)
+比echo服务增加了 tc 的查询内容
+
+- 客户端 `python unix_lat_client.py /tmp/bench.socket "class show dev s1-eth1" 100 100000`
+- 服务端 `make && while true; do ./unix_lat_server 22 100; done`
+延时为 53us 不高; python的效率还是有待提高  
+```
+polling_interval: 10 (等候数据回写间隔)
+roundtrip count: 100000
+total_bytes: 10000100
+avg_bytes(should equals to interactive mode): 100 bytes
+average latency: 52939 ns
+closing socket
+```
+
+### 基准测试1: C -> C(echo)
+原有的 ./unix_lat 用的是fork 无名管道, 这里我们将它拆分为 
+- 客户端 `./unix_lat_client "class show dev s2-eth1" 100 100000`
+- 服务端 `make && while true; do ./unix_lat_server 23 100; done`
+这里 "class show dev s2-eth1" 的长度正好是 23, 如果两边的长度对齐之后, 
+ 发送效率是最高的, 约 2us 左右
+ 没对齐的情况下如果发送消息很多超过缓存, 时间就不容易保证了.
+```
+essage content: class show dev s2-eth1
+message size: 23 octets
+roundtrip count: 100000
+debug: connet on socket_path: /tmp/bench.socket
+average latency: 2087 ns
+```
+
+
+## tc shell 测试命令
 `make && sudo ./tc_shell_lat 100 10000` 测试tc change速度; (TODO strtok 函数崩溃问题)
 
 ```

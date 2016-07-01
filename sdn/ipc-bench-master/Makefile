@@ -7,6 +7,8 @@ build: \
 	tc_shell_p_lat \
 	udp_lat \
 	tcp_lat \
+	unix_lat_client \
+	unix_lat_server \
 	unix_lat
 
 
@@ -36,3 +38,4 @@ clean:
 	rm -f tc_shell_p_lat
 	rm -f tc_shell_lat
 	rm -f udp_lat
+	rm -f unix_lat_server unix_lat_client

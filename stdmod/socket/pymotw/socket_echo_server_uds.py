@@ -4,6 +4,9 @@ import os
 
 server_address = '/tmp/pymotw_uds.socket'
 
+if len(sys.argv) >1:
+    server_address = sys.argv[1]
+
 # Make sure the socket does not already exist
 try:
     os.unlink(server_address)
