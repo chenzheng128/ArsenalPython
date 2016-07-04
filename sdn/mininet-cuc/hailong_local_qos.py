@@ -134,15 +134,18 @@ def qbb_test():
     LOG.info("在交换机接主机端口上设置 handle 和 filter 端口 5001 -> 队列 1:1, 5002 -> 1:2 , 5003 -> 1:3 ... \n")
     for port in SW_HOST_PORTS.split():
         # 放置 class handle sfq 支持公平发包,借用其他队列的带宽 # limit 即
-        os.popen("tc qdisc add dev %s parent 1:1 handle 1: sfq perturb 10 limit %s" % (port, TX_QUEUE_LEN))
-        os.popen("tc qdisc add dev %s parent 1:2 handle 2: sfq perturb 10 limit %s" % (port, TX_QUEUE_LEN))
-        os.popen("tc qdisc add dev %s parent 1:3 handle 3: sfq perturb 10 limit %s" % (port, TX_QUEUE_LEN))
+        os.popen("tc qdisc add dev %s parent 1:1 handle 1: pfifo limit %s" % (port, TX_QUEUE_LEN))
+        os.popen("tc qdisc add dev %s parent 1:2 handle 2: pfifo limit %s" % (port, TX_QUEUE_LEN))
+        os.popen("tc qdisc add dev %s parent 1:3 handle 3: pfifo limit %s" % (port, TX_QUEUE_LEN))
 
         # 放置 class filter
         u32_filter_prefix = "tc filter add dev %s protocol ip parent 1:0 prio 1 u32" % port
         os.popen('%s match ip dport 5001 0xffff flowid 1:1' % u32_filter_prefix)
         os.popen('%s match ip dport 5002 0xffff flowid 1:2' % u32_filter_prefix)
         os.popen('%s match ip dport 5003 0xffff flowid 1:3' % u32_filter_prefix)
+        os.popen('%s match ip dport 5003 0xffff flowid 1:3' % u32_filter_prefix)
+        os.popen('%s match match ip src 10.0.0.1/32 flowid 1:2' % u32_filter_prefix)  # 把h1所有包 match 到队列2
+        os.popen('%s match ip protocol 1 0xff flowid 1:2' % u32_filter_prefix)  # 把icmp所有包 match 到队列2
         print "  设置端口 %s 完成 ..." % port
     print " 检查设置: tc filter show dev $NDEV parent 1:fffe"
 
@@ -156,7 +159,7 @@ def qbb_test():
     LOG.debug("\n".join(os.popen('tc qdisc show dev s1-eth3').readlines()))
     print "  查看 htb class 队列接口 s1-eth3,  tc class show dev $NDEV"
     LOG.debug("\n".join(os.popen('tc class show dev s1-eth3').readlines()))
-    print "  查看 htb filter 队列接口 s1-eth3,  tc filter show dev $NDEV parent 1:fffe"
+    print "  查看 htb filter 队列接口 s1-eth3,  tc filter show dev $NDEV parent 1:0"
     LOG.debug("\n".join(os.popen('tc filter show dev s1-eth3 parent 1:0').readlines()))
 
     print "拥塞测试方法:"
@@ -167,8 +170,7 @@ def qbb_test():
     print " 当发送流量 > 5m 时, s1-eth3 发生拥塞"
     print "   检查端口拥塞状态: s1(xterm)> watch -n 0.1 tc -s -d class show dev s1-eth3 "
     print " 当发送流量 >= 3.9m 时, s2-eth2 发生拥塞"
-    print "   检查端口拥塞状态: s2(xterm)> watch -n 0.1 tc -s -d class show dev s2-eth1 "
-
+    print "   检查端口拥塞状态: s2(xterm)> watch -n 0.1 tc -s -d class show dev s2-eth2 "
 
     # check = threading.Timer(5, checkTimer)
     # check.start()
