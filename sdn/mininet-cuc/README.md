@@ -54,7 +54,9 @@ Mininet实验拓扑Node: 4个主机, 4个交换机的linear配置, s3-s4之间�
 
 
 拓扑代码
-- `hailong_local_qos.py`     本地 ovs controller 控制器, 有 qos 策略.  通过设置的 QoS 策略 (4mqos, 5mqos),
+- `hailong_local_qos.py`     
+     * 本地 ovs controller 控制器, 有 qos 策略.  通过设置的 QoS 策略建立哑铃带宽拓扑 
+     * 增加 red qdisc 策略, 支持 ecn mark 策略. 
 - `hailong_local_no_qos.py`  本地 ovs controller 控制器, 无 qos 策略, 便于作 tc qos 命令行设置
 - `hailong_remote.orignial.py` 最初的 远程 controller 拓扑
 当使用 iperf 在 h1和h3直接进行传输时应能看到拥塞情况. 具体测试方法运行 `sudo python cuc/hailong_local_qos.py` 后可查看.

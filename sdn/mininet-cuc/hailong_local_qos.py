@@ -52,6 +52,10 @@ class QbbTopo(Topo):
     """
 
     def build(self):
+        """
+        建立哑铃拓扑, 网卡顺序为对称
+        """
+
         s1 = self.addSwitch('s1')
         s2 = self.addSwitch('s2')
         s3 = self.addSwitch('s3')
@@ -62,18 +66,22 @@ class QbbTopo(Topo):
         h3 = self.addHost('h3', inNamespace=True)
         h4 = self.addHost('h4', inNamespace=True)
 
+        # mininet> link # 查看网卡连接
+
         self.addLink(h1, s1)
         self.addLink(h2, s1)
         self.addLink(s1, s3)
+
+        self.addLink(h3, s2) # 优化网卡顺序, 与s1 主机接口对应
+        self.addLink(h4, s2)
+        self.addLink(s2, s4)
+
         """
-        # s3 <-> s4 查看 含延时链路状态
+        # s3 <-> s4 查看 含延时链路状态 )
         tc qdisc show dev s3-eth2
         tc class show dev s3-eth2
         """
-        self.addLink(s3, s4, delay='10ms', use_htb=True)
-        self.addLink(s4, s2)
-        self.addLink(h3, s2)
-        self.addLink(h4, s2)
+        self.addLink(s3, s4, delay='10ms', use_htb=True) # 最后连接 s3 s4 优化网卡顺序
 
 
 def qbb_test():
@@ -103,22 +111,24 @@ def qbb_test():
         os.popen("sudo ip link set txqueuelen %s dev %s" % (TX_QUEUE_LEN, port))
     print " 检查设置: ifconfig | grep txqueuelen"
 
-    print "使用 ovs-vsctl 创建 s2 s3 4m 5m QoS 策略 ( tc htb qdisc )"
+    print "使用 ovs-vsctl 创建 s2 s3  哑铃拓扑的流量策略, 主机接口带宽大 big_link, \n" \
+          "   交换机接口流量带宽小 small_lin. QoS 策略 ( tc htb qdisc ), "
+
     os.popen("""sudo ovs-vsctl \
-        -- set port s2-eth1 qos=@4mqos \
-        -- set port s2-eth2 qos=@4mqos \
-        -- set port s2-eth3 qos=@4mqos \
-        -- --id=@4mqos create qos type=linux-htb queues=0=@q0,1=@q1,2=@q2 \
-        -- --id=@q0 create queue other-config:min-rate=4000000 other-config:max-rate=4000000 \
-        -- --id=@q1 create queue other-config:min-rate=4000000 other-config:max-rate=4000000 \
-        -- --id=@q2 create queue other-config:min-rate=4000000 other-config:max-rate=4000000 \
-        -- set port s1-eth1 qos=@5mqos2 \
-        -- set port s1-eth2 qos=@5mqos2 \
-        -- set port s1-eth3 qos=@5mqos2 \
-        -- --id=@5mqos2 create qos type=linux-htb queues=0=@q3,1=@q4,2=@q5 \
-        -- --id=@q3 create queue other-config:min-rate=5000000 other-config:max-rate=5000000 \
-        -- --id=@q4 create queue other-config:min-rate=5000000 other-config:max-rate=5000000 \
-        -- --id=@q5 create queue other-config:min-rate=5000000 other-config:max-rate=5000000 """)
+        -- set port s1-eth3 qos=@small_link \
+        -- set port s2-eth3 qos=@small_link \
+        -- --id=@small_link create qos type=linux-htb queues=0=@q0,1=@q1,2=@q2 \
+        -- --id=@q0 create queue other-config:min-rate=5000000 other-config:max-rate=5000000 \
+        -- --id=@q1 create queue other-config:min-rate=5000000 other-config:max-rate=5000000 \
+        -- --id=@q2 create queue other-config:min-rate=5000000 other-config:max-rate=5000000 \
+        -- set port s1-eth1 qos=@big_link \
+        -- set port s1-eth2 qos=@big_link \
+        -- set port s2-eth1 qos=@big_link \
+        -- set port s2-eth2 qos=@big_link \
+        -- --id=@big_link create qos type=linux-htb queues=0=@q3,1=@q4,2=@q5 \
+        -- --id=@q3 create queue other-config:min-rate=20000000 other-config:max-rate=20000000 \
+        -- --id=@q4 create queue other-config:min-rate=20000000 other-config:max-rate=20000000 \
+        -- --id=@q5 create queue other-config:min-rate=20000000 other-config:max-rate=20000000 """)
 
     # for port in SW_HOST_PORTS.split():  # 配置 HOST_PORT 和上面的 ovsctl 一样策略 (如果用 ALL_PORT 来执行可以不用上面 ovs-vsctl 了,
     #     之前用 ovs-vsctl 是为了保持和ovs的兼容性)
@@ -131,11 +141,13 @@ def qbb_test():
     #     pass  # 通过 ovs-vsctl 已配置
 
     # 设置 tc filter:  端口 5001 -> 队列 1:1, 5002 -> 1:2 , 5003 -> 1:3
-    LOG.info("在交换机接主机端口上设置 handle 和 filter 端口 5001 -> 队列 1:1, 5002 -> 1:2 , 5003 -> 1:3 ... \n")
+    LOG.info("在交换机接主机端口上设置 handle 和 filter 端口 5001 -> 队列 1:1, 5002 -> 1:2 , 5003 -> 1:3 \n" \
+             "  h1 -> 队列2, icmp -> 队列2... \n")
     for port in SW_HOST_PORTS.split():
-        # 放置 class handle sfq 支持公平发包,借用其他队列的带宽 # limit 即
+        # 放置 class handle
         os.popen("tc qdisc add dev %s parent 1:1 handle 1: pfifo limit %s" % (port, TX_QUEUE_LEN))
-        os.popen("tc qdisc add dev %s parent 1:2 handle 2: pfifo limit %s" % (port, TX_QUEUE_LEN))
+        # 队列2 采用RED队列, 支持 早期随机mark为ecn的方式
+        os.popen("tc qdisc add dev $NDEV parent 1:2 handle 2: red limit 200000 min 50000 max 150000 avpkt 1000 ecn")
         os.popen("tc qdisc add dev %s parent 1:3 handle 3: pfifo limit %s" % (port, TX_QUEUE_LEN))
 
         # 放置 class filter
@@ -163,14 +175,16 @@ def qbb_test():
     LOG.debug("\n".join(os.popen('tc filter show dev s1-eth3 parent 1:0').readlines()))
 
     print "拥塞测试方法:"
-    print " 设置 iperf server 测速: h3(xterm)> iperf -s -u -i 3 -p 5002 # udp监听在5002端口, 会被 tc filter 匹配到队列2中 "
-    print " 连接 iperf client 测速: h1(xterm)> iperf -c h3 -u -i 3 -p 5002 -t 6000 -b 5m #发送 5m 流量"
+    print " 设置 iperf server 测速: h3(xterm)>  iperf -s -p 5002 -m # 监听在5002端口, 会被 tc filter 匹配到队列2中 "
+    print " 连接 iperf client 测速: h1(xterm)> iperf -c h3 -p 5002 -i 3 -t 60 -M 500 -m #以MSS500 发送数据流量"
     print " 应当流量都在队列2 class 1:2 中处理. 如修改端口号为 5003 则在 1:3 队列处理"
     print " 如 iperf -b 带宽超过QoS瓶颈之上, 应该能看到当前队列增加 ( backlog 100p ) 至TX_QUEUELEN后, 丢包(dropped)数开始增加"
-    print " 当发送流量 > 5m 时, s1-eth3 发生拥塞"
-    print "   检查端口拥塞状态: s1(xterm)> watch -n 0.1 tc -s -d class show dev s1-eth3 "
-    print " 当发送流量 >= 3.9m 时, s2-eth2 发生拥塞"
-    print "   检查端口拥塞状态: s2(xterm)> watch -n 0.1 tc -s -d class show dev s2-eth2 "
+    print " 当发送流量过高 时, s1-eth3 发生拥塞"
+    print "   检查端口拥塞状态: s1(xterm)> watch -n 0.1 tc -s -d qdisc show dev s1-eth3 "
+    print "队列2 qdisc 的修改方法 "
+    print "  - 先删除: tc qdisc delete dev $NDEV parent 1:2 handle 2: ; \ "
+    print "  - 再新增RED: " \
+          "tc qdisc add dev $NDEV parent 1:2 handle 2: red limit 200000 min 50000 max 150000 avpkt 1000 ecn"
 
     # check = threading.Timer(5, checkTimer)
     # check.start()
