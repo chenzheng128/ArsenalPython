@@ -81,7 +81,7 @@ class QbbTopo(Topo):
         tc qdisc show dev s3-eth2
         tc class show dev s3-eth2
         """
-        self.addLink(s3, s4, delay='10ms', use_htb=True) # 最后连接 s3 s4 优化网卡顺序
+        self.addLink(s3, s4, delay='150ms', use_htb=True) # 最后连接 s3 s4 优化网卡顺序
 
 
 def qbb_test():
@@ -118,17 +118,17 @@ def qbb_test():
         -- set port s1-eth3 qos=@small_link \
         -- set port s2-eth3 qos=@small_link \
         -- --id=@small_link create qos type=linux-htb queues=0=@q0,1=@q1,2=@q2 \
-        -- --id=@q0 create queue other-config:min-rate=5000000 other-config:max-rate=5000000 \
-        -- --id=@q1 create queue other-config:min-rate=5000000 other-config:max-rate=5000000 \
-        -- --id=@q2 create queue other-config:min-rate=5000000 other-config:max-rate=5000000 \
+        -- --id=@q0 create queue other-config:min-rate=1000000 other-config:max-rate=1000000 \
+        -- --id=@q1 create queue other-config:min-rate=1000000 other-config:max-rate=1000000 \
+        -- --id=@q2 create queue other-config:min-rate=1000000 other-config:max-rate=1000000 \
         -- set port s1-eth1 qos=@big_link \
         -- set port s1-eth2 qos=@big_link \
         -- set port s2-eth1 qos=@big_link \
         -- set port s2-eth2 qos=@big_link \
         -- --id=@big_link create qos type=linux-htb queues=0=@q3,1=@q4,2=@q5 \
-        -- --id=@q3 create queue other-config:min-rate=20000000 other-config:max-rate=20000000 \
-        -- --id=@q4 create queue other-config:min-rate=20000000 other-config:max-rate=20000000 \
-        -- --id=@q5 create queue other-config:min-rate=20000000 other-config:max-rate=20000000 """)
+        -- --id=@q3 create queue other-config:min-rate=100000000 other-config:max-rate=20000000 \
+        -- --id=@q4 create queue other-config:min-rate=100000000 other-config:max-rate=20000000 \
+        -- --id=@q5 create queue other-config:min-rate=100000000 other-config:max-rate=20000000 """)
 
     # for port in SW_HOST_PORTS.split():  # 配置 HOST_PORT 和上面的 ovsctl 一样策略 (如果用 ALL_PORT 来执行可以不用上面 ovs-vsctl 了,
     #     之前用 ovs-vsctl 是为了保持和ovs的兼容性)
