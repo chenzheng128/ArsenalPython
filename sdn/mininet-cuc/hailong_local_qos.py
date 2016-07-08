@@ -5,8 +5,12 @@
 """
 origined from 海龙拓扑测试
 revised by zhchen
+
 Usage:
-sudo mn -c ; sudo python cuc/hailong_remote.original.py
+sudo mn -c ; sudo python cuc/hailong_local_qos.py
+
+
+
 """
 from mininet.topo import Topo
 from mininet.net import Mininet
@@ -34,7 +38,7 @@ TX_QUEUE_LEN = 100  # 网卡队列长度设置
 # 主机端口
 HOST_PORT = " h1-eth0 h2-eth0 h3-eth0 h4-eth0"
 # 交换机连主机端口
-SW_HOST_PORTS = "s1-eth1 s1-eth2 s1-eth3 s2-eth1 s2-eth2 s2-eth3"
+SW_HOST_PORTS = "s1-eth1 s1-eth2 s1-eth3 s2-eth1 s2-eth2 s2-eth3 s3-eth2 s4-eth2"
 
 # 所有主机端口 = 交换机连主机端口 + 主机端口
 # ALL_HOST_PORTS = SW_HOST_PORTS + HOST_PORT
@@ -49,6 +53,9 @@ class QbbTopo(Topo):
     Qbb experiment test topology
     @ZHL@CUC@2015.12.26"
     拓扑图: https://www.processon.com/view/link/5752d7f1e4b0695484404d39
+
+    拓扑初始化类
+
     """
 
     def build(self):
@@ -72,27 +79,36 @@ class QbbTopo(Topo):
         self.addLink(h2, s1)
         self.addLink(s1, s3)
 
-        self.addLink(h3, s2) # 优化网卡顺序, 与s1 主机接口对应
+        self.addLink(h3, s2)  # 优化网卡顺序, 与s1 主机接口对应
         self.addLink(h4, s2)
         self.addLink(s2, s4)
 
-        """
-        # s3 <-> s4 查看 含延时链路状态 )
-        tc qdisc show dev s3-eth2
-        tc class show dev s3-eth2
-        """
-        self.addLink(s3, s4, delay='150ms', use_htb=True) # 最后连接 s3 s4 优化网卡顺序
+        # """
+        # # s3 <-> s4 查看 含延时链路状态 )
+        # tc qdisc show dev s3-eth2
+        # tc class show dev s4-eth2
+        # # 将延时设置为 0ms, netem延时链路调整到 s1-eth3 s2-eth3 上
+        # """
+        # self.addLink(s3, s4, delay='10ms', use_htb=True)  # 最后连接 s3 s4 优化网卡顺序
+
+        # 不再这里指定延时链路, 而通过 qdisc_helper.py 进行延时链路维护
+        # ./qdisc_helper.py netem 100 10ms ["s1-eth3 s2-eth3"]
+        # ./qdisc_helper.py netem 100 10ms "s3-eth2 s4-eth2"
+        self.addLink(s3, s4)
 
 
-def qbb_test():
+def qbb_qos_init():
     """
     :return:
     Create and test our QBB network standard"
+    初始化拓扑qos; 包括
+      四个存在带宽差异(big_link small_link)导致拥堵点的链路 qos 带宽 s1-eth3 s2-eth3 s3-eth3 s4-eth1
+      将 5002, h1, icmp 所有流量转移到队列2中, 便于测试
     """
 
     # LOG.setLogLevel("debug") #打开 debug 日志
 
-    qbb_topo = QbbTopo()
+    qbb_topo = QbbTopo()  #
     global net
     # MMininet 类 API 参考: http://mininet.org/api/classmininet_1_1net_1_1Mininet.html#a1ed0f0c8ba06a398e02f3952cc4c8393
     # 命令行参数对应 --mac => autoSetMacs
@@ -111,16 +127,18 @@ def qbb_test():
         os.popen("sudo ip link set txqueuelen %s dev %s" % (TX_QUEUE_LEN, port))
     print " 检查设置: ifconfig | grep txqueuelen"
 
-    print "使用 ovs-vsctl 创建 s2 s3  哑铃拓扑的流量策略, 主机接口带宽大 big_link, \n" \
+    print "使用 ovs-vsctl 创建各端口上的3个队列, 哑铃拓扑的流量策略, 主机接口带宽大 big_link, \n" \
           "   交换机接口流量带宽小 small_lin. QoS 策略 ( tc htb qdisc ), "
 
     os.popen("""sudo ovs-vsctl \
         -- set port s1-eth3 qos=@small_link \
         -- set port s2-eth3 qos=@small_link \
+        -- set port s3-eth2 qos=@small_link \
+        -- set port s4-eth2 qos=@small_link \
         -- --id=@small_link create qos type=linux-htb queues=0=@q0,1=@q1,2=@q2 \
-        -- --id=@q0 create queue other-config:min-rate=1000000 other-config:max-rate=1000000 \
-        -- --id=@q1 create queue other-config:min-rate=1000000 other-config:max-rate=1000000 \
-        -- --id=@q2 create queue other-config:min-rate=1000000 other-config:max-rate=1000000 \
+        -- --id=@q0 create queue other-config:min-rate=50000000 other-config:max-rate=1000000 \
+        -- --id=@q1 create queue other-config:min-rate=50000000 other-config:max-rate=1000000 \
+        -- --id=@q2 create queue other-config:min-rate=50000000 other-config:max-rate=1000000 \
         -- set port s1-eth1 qos=@big_link \
         -- set port s1-eth2 qos=@big_link \
         -- set port s2-eth1 qos=@big_link \
@@ -141,13 +159,12 @@ def qbb_test():
     #     pass  # 通过 ovs-vsctl 已配置
 
     # 设置 tc filter:  端口 5001 -> 队列 1:1, 5002 -> 1:2 , 5003 -> 1:3
-    LOG.info("在交换机接主机端口上设置 handle 和 filter 端口 5001 -> 队列 1:1, 5002 -> 1:2 , 5003 -> 1:3 \n" \
+    LOG.info("在各端口上设置 handle 和 filter 端口 5001 -> 队列 1:1, 5002 -> 1:2 , 5003 -> 1:3 \n"
              "  h1 -> 队列2, icmp -> 队列2... \n")
     for port in SW_HOST_PORTS.split():
         # 放置 class handle
         os.popen("tc qdisc add dev %s parent 1:1 handle 1: pfifo limit %s" % (port, TX_QUEUE_LEN))
-        # 队列2 采用RED队列, 支持 早期随机mark为ecn的方式
-        os.popen("tc qdisc add dev $NDEV parent 1:2 handle 2: red limit 200000 min 50000 max 150000 avpkt 1000 ecn")
+        os.popen("tc qdisc add dev %s parent 1:2 handle 2: pfifo limit %s" % (port, TX_QUEUE_LEN))
         os.popen("tc qdisc add dev %s parent 1:3 handle 3: pfifo limit %s" % (port, TX_QUEUE_LEN))
 
         # 放置 class filter
@@ -466,7 +483,9 @@ def ping_timer_three():
 if __name__ == '__main__':
     # Tell mininet to print useful information
     setLogLevel('info')
-    qbb_test()
+    qbb_qos_init()
+
+    # 这些 timer 暂时都注释不用
     # check = threading.Timer(8, checkTimer)
     # check.start()
     # killPing = threadTwo(2,5)

@@ -52,9 +52,22 @@ Mininet实验拓扑Node: 4个主机, 4个交换机的linear配置, s3-s4之间�
 
 实验拓扑图: https://www.processon.com/view/link/5752d7f1e4b0695484404d39
 
+qidisc维护助手 `./qdisc_helper.py` 使用助手维护延时, 带宽信息 (不必重启mn拓扑)
+```
+Usage: ./qdisc_helper.py help
+       ./qdisc_helper.py <all|handle|class|filter|netem> ["port1 port2 port3"] ...
+       ./qdisc_helper.py netem <TX_QUEUE_LEN> <delay> ["port1 port2 port3"]
+       ./qdisc_helper.py class host <rate>
+       ./qdisc_helper.py class switch <rate>
+       example: ./qdisc_helper.py netem 100 10.0ms ["s1-eth3 s2-eth3"] #设定默认链路队列/延时
+       example: ./qdisc_helper.py netem 100 10.0ms "s3-eth2 s4-eth2" #设定特定链路队列/延时
+       example: ./qdisc_helper.py class host 500mbit # 设定主机高速接口带宽
+       example: ./qdisc_helper.py class switch 5mbit # 设定交换低速接口带宽
+```
 
 拓扑代码
-- `hailong_local_qos.py`     
+- `hailong_local_qos.py` 
+     * 2016-07-08 改由 qidisc维护助手 `./qdisc_helper.py` 维护延时带宽, 取消内部延时链路, red 策略等, 
      * 本地 ovs controller 控制器, 有 qos 策略.  通过设置的 QoS 策略建立哑铃带宽拓扑 
      * 增加 red qdisc 策略, 支持 ecn mark 策略. 
 - `hailong_local_no_qos.py`  本地 ovs controller 控制器, 无 qos 策略, 便于作 tc qos 命令行设置
