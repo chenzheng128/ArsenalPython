@@ -40,7 +40,7 @@ def handle_change_prio(port, queue_len=100):
     handle_show(port)
 
 
-def handle_change_red(port, queue_len=100):
+def handle_change_red(port, queue_len=10000):
     # 队列2 采用RED队列, 支持 早期随机mark为ecn的方式
     handle_del(port)
     os.popen("tc qdisc add dev %s parent 1:2 handle 2: red limit %s min 50000 max 150000 avpkt 1000 ecn" % (
@@ -84,7 +84,7 @@ if __name__ == "__main__":
     if len(sys.argv) <= 2:
         print "Usage: %s help" % sys.argv[0]
         print "       %s <all|handle|class|filter|netem> [\"port1 port2 port3\"] ..." % sys.argv[0]
-        print "       %s netem <TX_QUEUE_LEN> <delay> [\"port1 port2 port3\"]" % sys.argv[0]
+        print "       %s netem <TX_QUEUE_LEN> <delay> [\"port1 port2 port3\"] #netem 队列延时并不稳定" % sys.argv[0]
         print "       %s class host <rate>" % sys.argv[0]
         print "       %s class switch <rate>" % sys.argv[0]
         print "       example: %s netem 100 10.0ms [\"s1-eth3 s2-eth3\"] #设定默认链路队列/延时" % sys.argv[0]
@@ -103,6 +103,9 @@ if __name__ == "__main__":
             target_ports = sys.argv[4]
         for devname in target_ports.split():
             handle_change_netem(devname, queue_len=sys.argv[2], delay=sys.argv[3])
+    elif sys.argv[1] == "red":
+        for devname in target_ports.split():
+            handle_change_red(devname, sys.argv[2])
     elif sys.argv[1] == "class":
         if sys.argv[2] == "host":
             class_change_hosts_port(sys.argv[3])

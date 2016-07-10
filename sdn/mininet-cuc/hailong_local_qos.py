@@ -112,7 +112,9 @@ def qbb_qos_init():
     global net
     # MMininet 类 API 参考: http://mininet.org/api/classmininet_1_1net_1_1Mininet.html#a1ed0f0c8ba06a398e02f3952cc4c8393
     # 命令行参数对应 --mac => autoSetMacs
-    net = Mininet(topo=qbb_topo, controller=None, link=TCLink, autoSetMacs=True, xterms=True)
+    # 命令行参数对应 --arp => autoStaticArp
+    # 命令行参数对应 -x => xterms
+    net = Mininet(topo=qbb_topo, controller=None, link=TCLink, autoSetMacs=True, xterms=True, autoStaticArp=True)
 
     c0 = Controller('c0', port=6633)
     # net.addController('c0', controller=RemoteController, ip='192.168.57.2', port=6653)
