@@ -7,7 +7,8 @@
 - requests: 爬虫例子（需要额外安装 lxml 库）
 - socket: 
     * pymotw:
-        - unix domain socket 服务与客户端: `python ./socket_echo_server_uds.py` `python ./socket_echo_client_uds.py [filepath.socket]` 
+        - unix domain socket 服务与客户端: `python ./socket_echo_server_uds.py` `python ./socket_echo_client_uds.py [filepath.socket]`
+    * simple_proxy.py 用简单代码实现 `python simple_proxy.py 10081 202.205.22.197 80` 代理功能, 可以用在不支持ssh转发的windows主机上.
 - unittest: using noise test all classes in this folder
 
 ## unittest 单元测试
