@@ -33,7 +33,12 @@ ln -sf /opt/sdn/mininet-cuc/ cuc
 
 ## 实验拓扑
 
-启动拓扑: `ssh -X mininet sudo python /opt/mininet/cuc/hailong_local_qos.py`
+启动拓扑: `ssh -Y mininet sudo python /opt/mininet/cuc/ecn_topo.py`
+
+此拓扑中设置了3个实验
+* `print_mininet_objs(net)`  # 打印 mininet 拓扑对象
+* `test_diff_bw(net)`        # 设置不同带宽条件qos, 并使用 iperf测试
+* `test_diff_latency(net)`   # 设置不同延时条件qos, 并使用 ping 测试
 
 增加xterm测试终端
 ```
@@ -66,6 +71,7 @@ Usage: ./qdisc_helper.py help
 ```
 
 拓扑代码
+- `ecn_topo.py` 将topo文件变更为新的ecn拓扑文件. 节点不变. 但是增加了数据收集, ssh, ECNInf 等类封装, 更易于使用
 - `hailong_local_qos.py` 
      * 2016-07-08 改由 qidisc维护助手 `./qdisc_helper.py` 维护延时带宽, 取消内部延时链路, red 策略等, 
      * 本地 ovs controller 控制器, 有 qos 策略.  通过设置的 QoS 策略建立哑铃带宽拓扑 
@@ -94,8 +100,8 @@ tc 默认在网卡出(out)的地方进行控制. 然而在ovs交换机内部传�
 
 如自编译ovs交换机, 应先启动自编译的ovs交换机服务
 ```
-cd /opt/mininet
+cd /opt/mininet/cuc
 sudo ./bin/ovsdb-rc.sh #(可选) 启动自安装 ovsdb 服务
 sudo ./bin/ovs-rc-vswitchd.sh #(可选) 启动自安装 ovs-vswitch服务
-sudo mn -c && sudo python cuc/hailong_topo_local_controller.py  #设置拓扑
+sudo mn -c && sudo python <your-topo>.py  #设置拓扑
 ```
