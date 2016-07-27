@@ -35,7 +35,13 @@ ln -sf /opt/sdn/mininet-cuc/ cuc
 
 启动拓扑: `ssh -Y mininet sudo python /opt/mininet/cuc/ecn_topo.py`
 
-此拓扑中设置了3个实验
+在此拓扑中可以运行在 `ecn_test_case.py` 中的多个实验评估
+* `test_diff_red()`          # red的参数测试, 可以看打开red参数后, min队列值越小, 带宽利用率稍微下降, avg平均延时越小, mdev分布越稳定 
+测试结果    |无red ecn| 有redmimmax条件1| 条件2  | 条件3
+-----------|-----|--------|-----
+bw:        |9.42M|9.29M| 9.24M  | 9.37M
+ping avg:  |587ms|129ms| 142ms  | 152ms
+ping mdev: | 99ms|7.4ms| 10.9ms | 13.6ms
 * `print_mininet_objs(net)`  # 打印 mininet 拓扑对象
 * `test_diff_bw(net)`        # 设置不同带宽条件qos, 并使用 iperf测试
 * `test_diff_latency(net)`   # 设置不同延时条件qos, 并使用 ping 测试
@@ -57,17 +63,19 @@ Mininet实验拓扑Node: 4个主机, 4个交换机的linear配置, s3-s4之间�
 
 实验拓扑图: https://www.processon.com/view/link/5752d7f1e4b0695484404d39
 
-qidisc维护助手 `./qdisc_helper.py` 使用助手维护延时, 带宽信息 (不必重启mn拓扑)
+qidisc维护助手 `./ecn_qdisc_helper.py` 使用助手维护延时, 带宽信息 (不必重启mn拓扑)
 ```
-Usage: ./qdisc_helper.py help
-       ./qdisc_helper.py <all|handle|class|filter|netem> ["port1 port2 port3"] ...
-       ./qdisc_helper.py netem <TX_QUEUE_LEN> <delay> ["port1 port2 port3"]
-       ./qdisc_helper.py class host <rate>
-       ./qdisc_helper.py class switch <rate>
-       example: ./qdisc_helper.py netem 100 10.0ms ["s1-eth3 s2-eth3"] #设定默认链路队列/延时
-       example: ./qdisc_helper.py netem 100 10.0ms "s3-eth2 s4-eth2" #设定特定链路队列/延时
-       example: ./qdisc_helper.py class host 500mbit # 设定主机高速接口带宽
-       example: ./qdisc_helper.py class switch 5mbit # 设定交换低速接口带宽
+Usage: ./ecn_qdisc_helper.py help
+       ./ecn_qdisc_helper.py <all|handle|class|filter|netem|red> ["port1 port2 port3"] ...
+       ./ecn_qdisc_helper.py netem <TX_QUEUE_LEN> <delay> ["port1 port2 port3"] #netem 队列延时并不稳定
+       ./ecn_qdisc_helper.py red [minmax] #red 队列策略
+       ./ecn_qdisc_helper.py class host <rate>
+       ./ecn_qdisc_helper.py class switch <rate>
+       example: ./ecn_qdisc_helper.py netem 100 10.0ms ["s1-eth3 s2-eth3"] #设定默认链路队列/延时
+       example: ./ecn_qdisc_helper.py netem 100 10.0ms "s3-eth2 s4-eth2" #设定特定链路队列/延时
+       example: ./ecn_qdisc_helper.py red "min 60000 max 75000 avpkt 1500" #快速设定red策略
+       example: ./ecn_qdisc_helper.py class host 500mbit # 设定主机高速接口带宽
+       example: ./ecn_qdisc_helper.py class switch 5mbit # 设定交换低速接口带宽
 ```
 
 拓扑代码

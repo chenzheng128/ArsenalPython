@@ -93,9 +93,9 @@ class QbbTopo(Topo):
         # """
         # self.addLink(s3, s4, delay='10ms', use_htb=True)  # 最后连接 s3 s4 优化网卡顺序
 
-        # 不再这里指定延时链路, 而通过 qdisc_helper.py 进行延时链路维护
-        # ./qdisc_helper.py netem 100 10ms ["s1-eth3 s2-eth3"]
-        # ./qdisc_helper.py netem 100 10ms "s3-eth2 s4-eth2"
+        # 不再这里指定延时链路, 而通过 ecn_qdisc_helper.py 进行延时链路维护
+        # ./ecn_qdisc_helper.py netem 100 10ms ["s1-eth3 s2-eth3"]
+        # ./ecn_qdisc_helper.py netem 100 10ms "s3-eth2 s4-eth2"
         self.addLink(s3, s4)
 
 

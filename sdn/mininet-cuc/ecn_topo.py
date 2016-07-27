@@ -3,27 +3,30 @@
 
 
 """
-origined from 海龙拓扑测试
-revised by zhchen
+ecn 实验拓扑类
+Origined from: 海龙拓扑测试
+Revised by:  zhchen@cuc.edu.cn
 
 Usage:
-sudo mn -c ; sudo python cuc/hailong_local_qos.py
-
+cd $MININET_HOME/cuc
+sudo mn -c ; sudo python ecn_topo.py
 
 
 """
 import os
 from time import sleep
-import qdisc_helper
+
 import sshd
-from mininet.link import TCLink, TCIntf, Link
-from mininet.log import setLogLevel, MininetLogger, error, info, debug, warn
-from mininet.net import Mininet, CLI
+import ecn_test_case
+import ecn_util
+import ecn_qdisc_helper
+
+from ecn_util import ECNLink, dump_result, setup_queue_and_filter
+from mininet.cli import CLI
+from mininet.log import setLogLevel, MininetLogger
+from mininet.net import Mininet
 from mininet.node import Controller
-from mininet.node import OVSSwitch
 from mininet.topo import Topo
-from mininet.util import pmonitor
-from qdisc_helper import os_popen
 
 TX_QUEUE_LEN = 100  # 网卡队列长度设置
 
@@ -40,40 +43,6 @@ SW_HOST_PORTS = "s1-eth1 s1-eth2 s1-eth3 s2-eth1 s2-eth2 s2-eth3 s3-eth2 s4-eth2
 ALL_PORTS = SW_HOST_PORTS + " s3-eth1 s3-eth2 s4-eth1 s4-eth2"
 
 LOG = MininetLogger()
-
-
-class ECNLink(TCLink):
-    def __init__(self, node1, node2, port1=None, port2=None,
-                 intf_name1=None, intf_name2=None,
-                 addr1=None, addr2=None, **params):
-        Link.__init__(self, node1, node2, port1=port1, port2=port2,
-                      intfName1=intf_name1, intfName2=intf_name2,
-                      cls1=ECNIntf,
-                      cls2=ECNIntf,
-                      addr1=addr1, addr2=addr2,
-                      params1=params,
-                      params2=params)
-
-
-class ECNIntf(TCIntf):
-    def change_queue_len(self, tx_queue_len=TX_QUEUE_LEN):
-        # LOG.debug("  调整 %s 网络 队列长度 txqueuelen " )
-        os_popen("sudo ip link set txqueuelen %s dev %s" % (tx_queue_len, self.name))
-        # print " 检查设置: ifconfig | grep txqueuelen"
-
-    def default_config(self, bw=50, queue_len=100):
-        self.change_queue_len()  # 设置默认队列大小
-        qdisc_helper.port_default_config(self.name, bw=bw, tx_queue_len=queue_len)
-
-    def change_latency(self, delay):
-        qdisc_helper.handle_change_netem(self.name, delay=delay)
-        pass
-
-        # pass
-        # def config(self, **params):
-        #    pass
-        # super(TCIntf, self).config(params)
-
 
 class ECNTopo(Topo, object):
     """
@@ -131,9 +100,9 @@ class ECNTopo(Topo, object):
         # """
         self.addLink(self.s3, self.s4, delay='0ms', use_htb=True)  # 最后连接 s3 s4 优化网卡顺序
 
-        # 如果不在这里指定延时链路, 而通过 qdisc_helper.py 进行延时链路维护
-        # ./qdisc_helper.py netem 100 10ms ["s1-eth3 s2-eth3"]
-        # ./qdisc_helper.py netem 100 10ms "s3-eth2 s4-eth2"
+        # 如果不在这里指定延时链路, 而通过 ecn_qdisc_helper.py 进行延时链路维护
+        # ./ecn_qdisc_helper.py netem 100 10ms ["s1-eth3 s2-eth3"]
+        # ./ecn_qdisc_helper.py netem 100 10ms "s3-eth2 s4-eth2"
         # self.addLink(s3, s4)
 
     @staticmethod
@@ -179,7 +148,8 @@ def ecn_qos_init():
     # net.addController('c0', controller=RemoteController, ip='192.168.57.2', port=6653)
     net.addController(c0)
 
-    enable_ssh = False  # 如果系统
+    enable_ssh = False  # 激活ssh如果系统
+    background = False  # 激活后台流量
     if enable_ssh:
         setup_ssh()
     else:
@@ -187,13 +157,21 @@ def ecn_qos_init():
 
     setup_server(net)
 
-    print_mininet_objs(net)  # 打印 mininet 拓扑对象
-    test_diff_bw(net)        # 设置不同带宽条件qos, 并使用 iperf测试
-    test_diff_latency(net)   # 设置不同延时条件qos, 并使用 ping 测试
+    if background:  # backgroud traffice,
+        net.get("h1").cmd("netperf -H h3 -l %s &" % 3600)
 
-    # CLI(net)  # 激活命令行交互
+    # ecn_util.print_mininet_objs(net)  # 打印 mininet 拓扑对象
+    # ecn_util.setup_queue_and_filter(net, latency=50)  # 初始化延时测试
+
+    # ecn_test_case.test_diff_bw(net)        # 设置不同带宽条件qos, 并使用 iperf测试
+    # ecn_test_case.test_diff_latency(net)   # 设置不同延时条件qos, 并使用 ping 测试
+
+    ecn_test_case.test_diff_ecn_red(net, duration=10)  #
+
+    CLI(net)  # 激活命令行交互
 
     net.stop()
+
 
 def test_diff_latency(network):
     """
@@ -203,12 +181,13 @@ def test_diff_latency(network):
     """
     # print_mininet_objs(net)
     result = {}
-    for latency in ["10ms", "50ms", "100ms"]:
+    for latency in [10, 50, 100]:
         setup_queue_and_filter(net, latency=latency, queue_len=200)
         # run_multi_bench()
         # result[latency] = network.ping([net.get("h1"), net.get("h3")] )
-        result[latency] = run_bench(net, background=False)
-    print result
+        result[latency] = ecn_test_case.test_ping_with_background_traffice(network, background=False)  # 禁止背后流量, 以查看准确延时
+    dump_result(result)
+
 
 def test_diff_bw(network):
     """
@@ -221,104 +200,8 @@ def test_diff_bw(network):
     for bw in [10, 50, 100]:
         setup_queue_and_filter(net, bw=bw, queue_len=200)
         # run_multi_bench()
-        result[bw] = network.iperf(hosts=[network.get("h1"), net.get("h2")])
-    print result
-
-
-def setup_queue_and_filter(network, bw=50, queue_len=TX_QUEUE_LEN, latency="50ms"):
-    LOG.info("* setup_queue_and_filter() ... \n")
-    for sw in network.switches:
-        assert isinstance(sw, OVSSwitch)
-        for p in sw.ports: # 修改所有的 ECNIntf
-            if isinstance(p, ECNIntf):
-                LOG.debug(type(p), p.name, p.bwParamMax, p.params, "\n")
-                # p.change_delay()
-                p.default_config(bw=bw, queue_len=queue_len)
-
-                # p.delayCmds()
-                # print queue_len
-
-                # break
-
-                # p.tc("%s class add dev %s parent 1: classid 1:fffe htb rate 10000mbit burst 1250b cburst 1250b")
-                # qdisc_helper.handle_change_netem()
-        for intf1, intf2 in network.topo.get_link_intfs(network, "s3", "s4"):
-            debug("change latency %s %s to %s" % (intf1, intf2, latency))
-            intf1.change_latency(latency);
-            intf2.change_latency(latency);
-
-
-def print_mininet_objs(network):
-    print "* mininet hosts"
-    for host in network.hosts:
-        print type(host)
-    # for host in net.intf: print type(host)
-    print "* mininet switchs"
-    for sw in network.switches:
-        assert isinstance(sw, OVSSwitch)
-        for p in sw.ports:
-            if isinstance(p, TCIntf):
-                print type(p), p.name, p.bwParamMax, p.params
-            else:
-                print type(p), p.name
-    print "* mininet links"
-    for li in network.links:
-        assert isinstance(li, TCLink)
-        # for p in [li.intf1 , li.intf2]:
-        print type(li.intf1), li.intf1.name, "<->", li.intf2.name
-
-    print "* gethostbyname"
-    print network.getNodeByName("h1").name
-
-    print "* config and get link status"
-    for srcIntf, dstIntf in network.topo.get_link_intfs(network, "s3", "s4"):
-        print srcIntf.name, "<->", dstIntf.name
-
-
-def run_multi_bench():
-    for var in [100, 200, 500]:
-        print ("* VAR %s" % var)
-
-        # 带流量测试
-        # run_bench(net, round_count=3, round_duration=20, ping_interval=0.2)
-        # 不带流量测试
-        run_bench(net, background=False)
-
-
-def run_bench(network, round_count=1, round_duration=5, ping_interval=1.0, background=True):
-    """
-
-    :param background:
-    :param network: mininet class
-    :param round_count:    循环次数
-    :param round_duration: 循环时间每轮
-    :param ping_interval:  ping包采样间隔
-    :return:
-    """
-    result = ""
-    h1 = network.getNodeByName("h1")
-    popens = {}
-    if background:  # backgroud traffice, 每轮增加10秒时延
-        h1.cmd("netperf -H h3 -l %s &" % (round_count * (round_duration + 10)))
-    sleep(3)  # wait 2 second to reach tcp max output
-    for r in range(round_count):
-        print ("*** ROUND %s" % r)
-        for h in [h1]:
-            ping_cmd = "ping -c%s -i%s h3 " % (int(round_duration / ping_interval), ping_interval)
-            LOG.info("<%s>: popen cmd: %s \n" % (h.name, ping_cmd))
-            popens[h] = h.popen(ping_cmd)
-
-        # Monitor them and print output
-        for host, line in pmonitor(popens):
-            if host:
-                if line.find("icmp_seq") != -1:
-                    LOG.debug("<%s>: %s\n" % (host.name, line.strip()))  # suppressed ping output to debug level
-                else:
-                    LOG.info("<%s>: %s\n" % (host.name, line.strip()))
-                    result += "<%s>: %s\n" % (host.name, line.strip())
-
-    print("".join(os.popen('tc -s -d qdisc show dev s1-eth3').readlines()))
-    return result
+        result[bw] = network.iperf(hosts=[network.get("h1"), net.get("h3")])
+    dump_result(result)
 
 
 def setup_server(network):

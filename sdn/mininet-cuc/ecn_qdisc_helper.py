@@ -2,17 +2,23 @@
 # --*-- coding:utf-8 --*--
 
 """
-端口修改的快捷脚本 ./port_policy_util.py
+ecn 端口cmd修改 tc qdisc 的快捷脚本
 使用方法
-  ./qdisc_helper.py help
-  ./qdisc_helper.py netem 100 30.0ms "s1-eth3 s2-eth3"
+  ./ecn_qdisc_helper.py help
+  ./ecn_qdisc_helper.py netem 100 30.0ms "s1-eth3 s2-eth3"
 """
 
 import os
 import sys
-from mininet.log import MininetLogger
+from mininet.log import MininetLogger, debug, info, warn, error
 
 LOG = MininetLogger()
+
+
+def os_popen(cmd):
+    debug(cmd + "\n")
+    return os.popen(cmd)
+
 
 def port_default_config(port, bw=50, tx_queue_len=100):
     os_popen("tc qdisc del dev %s root" % port)
@@ -53,12 +59,7 @@ def handle_del(port):
 
 def handle_show(port):
     # 查看 handle
-    print("".join(os_popen("tc -s qdisc show dev %s" % port).readlines()))
-
-
-def os_popen(cmd):
-    LOG.debug(cmd + "\n")
-    return os.popen(cmd)
+    debug("".join(os_popen("tc -s qdisc show dev %s" % port).readlines()))
 
 
 def handle_change_netem(port, queue_len=100, delay="10.0ms"):
@@ -74,11 +75,13 @@ def handle_change_prio(port, queue_len=100):
     handle_show(port)
 
 
-def handle_change_red(port, queue_len=10000):
+def handle_change_red(port, bw=10, minmax="min 30000 max 35000 avpkt 1500"):
     # 队列2 采用RED队列, 支持 早期随机mark为ecn的方式
     handle_del(port)
-    os_popen("tc qdisc add dev %s parent 1:2 handle 2: red limit %s min 50000 max 150000 avpkt 1000 ecn" % (
-        port, queue_len))
+    os_popen("tc qdisc add dev %s parent 1:2 handle 2: red limit 1000000 " % port +
+             ' %s ' % minmax +
+             # 'burst 20 ' +
+             'bandwidth %smbit probability 1' % bw)
     handle_show(port)
 
 
@@ -141,17 +144,24 @@ def qos_print_help():
           "tc qdisc add dev $NDEV parent 1:2 handle 2: red limit 200000 min 50000 max 150000 avpkt 1000 ecn"
 
 
+def print_usage(argv):
+    print "Usage: %s help" % argv[0]
+    print "       %s <all|handle|class|filter|netem|red> [\"port1 port2 port3\"] ..." % argv[0]
+    print "       %s netem <TX_QUEUE_LEN> <delay> [\"port1 port2 port3\"] #netem 队列延时并不稳定" % argv[0]
+    print "       %s red [minmax] #red 队列策略" % argv[0]
+    print "       %s class host <rate>" % argv[0]
+    print "       %s class switch <rate>" % argv[0]
+    print "       example: %s netem 100 10.0ms [\"s1-eth3 s2-eth3\"] #设定默认链路队列/延时" % argv[0]
+    print "       example: %s netem 100 10.0ms \"s3-eth2 s4-eth2\" #设定特定链路队列/延时" % argv[0]
+    print "       example: %s red \"min 60000 max 75000 avpkt 1500\" #快速设定red策略" % argv[0]
+    print "       example: %s class host 500mbit # 设定主机高速接口带宽" % argv[0]
+    print "       example: %s class switch 5mbit # 设定交换低速接口带宽" % argv[0]
+
 if __name__ == "__main__":
-    if len(sys.argv) <= 2:
-        print "Usage: %s help" % sys.argv[0]
-        print "       %s <all|handle|class|filter|netem> [\"port1 port2 port3\"] ..." % sys.argv[0]
-        print "       %s netem <TX_QUEUE_LEN> <delay> [\"port1 port2 port3\"] #netem 队列延时并不稳定" % sys.argv[0]
-        print "       %s class host <rate>" % sys.argv[0]
-        print "       %s class switch <rate>" % sys.argv[0]
-        print "       example: %s netem 100 10.0ms [\"s1-eth3 s2-eth3\"] #设定默认链路队列/延时" % sys.argv[0]
-        print "       example: %s netem 100 10.0ms \"s3-eth2 s4-eth2\" #设定特定链路队列/延时" % sys.argv[0]
-        print "       example: %s class host 500mbit # 设定主机高速接口带宽" % sys.argv[0]
-        print "       example: %s class switch 5mbit # 设定交换低速接口带宽" % sys.argv[0]
+    LOG.setLogLevel("debug")
+
+    if len(sys.argv) <= 1:
+        print_usage(sys.argv)
         exit(1)
 
     target_ports = "s1-eth3 s2-eth3"  # default ports
@@ -159,14 +169,24 @@ if __name__ == "__main__":
     if sys.argv[1] == "handle":
         for devname in sys.argv[2].split():
             handle_change(devname)
+        exit()
     elif sys.argv[1] == "netem":
+        if len(sys.argv) <= 2:
+            print_usage(sys.argv)
+            exit()
         if len(sys.argv) >= 5:
             target_ports = sys.argv[4]
         for devname in target_ports.split():
             handle_change_netem(devname, queue_len=sys.argv[2], delay=sys.argv[3])
+        exit()
     elif sys.argv[1] == "red":
-        for devname in target_ports.split():
-            handle_change_red(devname, sys.argv[2])
+        if len(sys.argv) >= 3:
+            for devname in target_ports.split():
+                handle_change_red(devname, minmax=sys.argv[2])
+        else:
+            for devname in target_ports.split():
+                handle_change_red(devname)
+        exit()
     elif sys.argv[1] == "class":
         if sys.argv[2] == "host":
             class_change_hosts_port(sys.argv[3])
