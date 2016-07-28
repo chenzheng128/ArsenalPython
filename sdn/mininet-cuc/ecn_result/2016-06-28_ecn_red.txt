@@ -1,0 +1,185 @@
+```
+测试代码
+ecn_test_case.test_diff_ecn_red_level2(net, duration=(60, 120, 180))  # 设置不同时长, 进行测试
+测试分析: 随着时间延长,
+  ping 延时变化不大(平均值), 60s 已经可以看出延时分布
+  而 netperf 带宽 在 120s 的时候参数1 (min 30000) 还不是非常稳定, 需要增长至 180s 才容易分析得更准确
+  从 netperf 180 参数3 (min 60000)的的实验结果来看, 长期的带宽利用率已经接近 no ecn, 而且延时控制得好很多.
+```
+
+** 测试时长 60 seconds
+*** 测试结果
+ result ***
+ECN:False qlen:200 bw:10Mbps lat:50ms redminmax:min 30000 max 35000 avpkt 1500
+<h1>: PING h3 (10.0.0.3) 56(84) bytes of data.
+<h1>:
+<h1>: --- h3 ping statistics ---
+<h1>: 600 packets transmitted, 580 received, 3% packet loss, time 60921ms
+<h1>: rtt min/avg/max/mdev = 100.230/360.738/597.605/105.504 ms, pipe 6
+<h2>: MIGRATED TCP STREAM TEST from 0.0.0.0 (0.0.0.0) port 0 AF_INET to h3 () port 0 AF_INET : demo
+<h2>: Recv   Send    Send
+<h2>: Socket Socket  Message  Elapsed
+<h2>: Size   Size    Size     Time     Throughput
+<h2>: bytes  bytes   bytes    secs.    10^6bits/sec
+<h2>:
+<h2>: 87380  87380  87380    62.45       9.46
+
+ECN:True qlen:200 bw:10Mbps lat:50ms redminmax:min 30000 max 35000 avpkt 1500
+<h1>: PING h3 (10.0.0.3) 56(84) bytes of data.
+<h2>: MIGRATED TCP STREAM TEST from 0.0.0.0 (0.0.0.0) port 0 AF_INET to h3 () port 0 AF_INET : demo
+<h2>: Recv   Send    Send
+<h2>: Socket Socket  Message  Elapsed
+<h2>: Size   Size    Size     Time     Throughput
+<h2>: bytes  bytes   bytes    secs.    10^6bits/sec
+<h2>:
+<h2>: 87380  87380  87380    60.41       9.10
+<h1>:
+<h1>: --- h3 ping statistics ---
+<h1>: 600 packets transmitted, 596 received, 0% packet loss, time 60769ms
+<h1>: rtt min/avg/max/mdev = 100.120/109.925/179.985/8.277 ms, pipe 2
+
+ECN:True qlen:200 bw:10Mbps lat:50ms redminmax:min 45000 max 50000 avpkt 1500
+<h1>: PING h3 (10.0.0.3) 56(84) bytes of data.
+<h1>:
+<h1>: --- h3 ping statistics ---
+<h1>: 600 packets transmitted, 598 received, 0% packet loss, time 60625ms
+<h1>: rtt min/avg/max/mdev = 100.081/114.948/140.627/11.153 ms, pipe 2
+<h2>: MIGRATED TCP STREAM TEST from 0.0.0.0 (0.0.0.0) port 0 AF_INET to h3 () port 0 AF_INET : demo
+<h2>: Recv   Send    Send
+<h2>: Socket Socket  Message  Elapsed
+<h2>: Size   Size    Size     Time     Throughput
+<h2>: bytes  bytes   bytes    secs.    10^6bits/sec
+<h2>:
+<h2>: 87380  87380  87380    60.79       9.08
+
+ECN:True qlen:200 bw:10Mbps lat:50ms redminmax:min 60000 max 65000 avpkt 1500
+<h1>: PING h3 (10.0.0.3) 56(84) bytes of data.
+<h1>:
+<h1>: --- h3 ping statistics ---
+<h1>: 600 packets transmitted, 597 received, 0% packet loss, time 60412ms
+<h1>: rtt min/avg/max/mdev = 100.118/126.964/152.951/13.743 ms, pipe 2
+<h2>: MIGRATED TCP STREAM TEST from 0.0.0.0 (0.0.0.0) port 0 AF_INET to h3 () port 0 AF_INET : demo
+<h2>: Recv   Send    Send
+<h2>: Socket Socket  Message  Elapsed
+<h2>: Size   Size    Size     Time     Throughput
+<h2>: bytes  bytes   bytes    secs.    10^6bits/sec
+<h2>:
+<h2>: 87380  87380  87380    60.81       9.38
+
+** 测试时长 120 seconds
+*** 测试结果
+ result ***
+ECN:False qlen:200 bw:10Mbps lat:50ms redminmax:min 30000 max 35000 avpkt 1500
+<h1>: PING h3 (10.0.0.3) 56(84) bytes of data.
+<h2>: MIGRATED TCP STREAM TEST from 0.0.0.0 (0.0.0.0) port 0 AF_INET to h3 () port 0 AF_INET : demo
+<h2>: Recv   Send    Send
+<h2>: Socket Socket  Message  Elapsed
+<h2>: Size   Size    Size     Time     Throughput
+<h2>: bytes  bytes   bytes    secs.    10^6bits/sec
+<h2>:
+<h2>: 87380  87380  87380    122.82      9.52 / 9.51 / 9.49
+<h1>:
+<h1>: --- h3 ping statistics ---
+<h1>: 1200 packets transmitted, 1138 received, 5% packet loss, time 122127ms
+<h1>: rtt min/avg/max/mdev = 100.183/392.770/585.811/72.398 ms, pipe 6
+
+ECN:True qlen:200 bw:10Mbps lat:50ms redminmax:min 30000 max 35000 avpkt 1500
+<h1>: PING h3 (10.0.0.3) 56(84) bytes of data.
+<h2>: MIGRATED TCP STREAM TEST from 0.0.0.0 (0.0.0.0) port 0 AF_INET to h3 () port 0 AF_INET : demo
+<h2>: Recv   Send    Send
+<h2>: Socket Socket  Message  Elapsed
+<h2>: Size   Size    Size     Time     Throughput
+<h2>: bytes  bytes   bytes    secs.    10^6bits/sec
+<h2>:
+<h2>: 87380  87380  87380    120.43      8.91 / 9.21 / 8.75  # 偏差较大补充记录其他测试值
+<h1>:
+<h1>: --- h3 ping statistics ---
+<h1>: 1200 packets transmitted, 1194 received, 0% packet loss, time 121404ms
+<h1>: rtt min/avg/max/mdev = 100.123/108.499/127.933/7.433 ms, pipe 2
+
+ECN:True qlen:200 bw:10Mbps lat:50ms redminmax:min 45000 max 50000 avpkt 1500
+<h1>: PING h3 (10.0.0.3) 56(84) bytes of data.
+<h2>: MIGRATED TCP STREAM TEST from 0.0.0.0 (0.0.0.0) port 0 AF_INET to h3 () port 0 AF_INET : demo
+<h2>: Recv   Send    Send
+<h2>: Socket Socket  Message  Elapsed
+<h2>: Size   Size    Size     Time     Throughput
+<h2>: bytes  bytes   bytes    secs.    10^6bits/sec
+<h2>:
+<h2>: 87380  87380  87380    120.65      9.34 / 9.42 / 9.47
+<h1>:
+<h1>: --- h3 ping statistics ---
+<h1>: 1200 packets transmitted, 1197 received, 0% packet loss, time 121271ms
+<h1>: rtt min/avg/max/mdev = 100.090/117.736/178.215/10.917 ms, pipe 2
+
+ECN:True qlen:200 bw:10Mbps lat:50ms redminmax:min 60000 max 65000 avpkt 1500
+<h1>: PING h3 (10.0.0.3) 56(84) bytes of data.
+<h2>: MIGRATED TCP STREAM TEST from 0.0.0.0 (0.0.0.0) port 0 AF_INET to h3 () port 0 AF_INET : demo
+<h2>: Recv   Send    Send
+<h2>: Socket Socket  Message  Elapsed
+<h2>: Size   Size    Size     Time     Throughput
+<h2>: bytes  bytes   bytes    secs.    10^6bits/sec
+<h2>:
+<h2>: 87380  87380  87380    118.61      9.63 / 9.40 / 9.41
+<h1>:
+<h1>: --- h3 ping statistics ---
+<h1>: 1200 packets transmitted, 1197 received, 0% packet loss, time 120866ms
+<h1>: rtt min/avg/max/mdev = 0.000/128.466/154.444/13.293 ms, pipe 2
+
+** 测试时长 180 seconds
+*** 测试结果
+ result ***
+ECN:False qlen:200 bw:10Mbps lat:50ms redminmax:min 30000 max 35000 avpkt 1500
+<h1>: PING h3 (10.0.0.3) 56(84) bytes of data.
+<h2>: MIGRATED TCP STREAM TEST from 0.0.0.0 (0.0.0.0) port 0 AF_INET to h3 () port 0 AF_INET : demo
+<h2>: Recv   Send    Send
+<h2>: Socket Socket  Message  Elapsed
+<h2>: Size   Size    Size     Time     Throughput
+<h2>: bytes  bytes   bytes    secs.    10^6bits/sec
+<h2>:
+<h2>: 87380  87380  87380    182.61      9.51 / 9.53 / 9.52
+<h1>:
+<h1>: --- h3 ping statistics ---
+<h1>: 1800 packets transmitted, 1735 received, 3% packet loss, time 182869ms
+<h1>: rtt min/avg/max/mdev = 100.232/390.419/603.986/83.781 ms, pipe 6
+
+ECN:True qlen:200 bw:10Mbps lat:50ms redminmax:min 30000 max 35000 avpkt 1500
+<h1>: PING h3 (10.0.0.3) 56(84) bytes of data.
+<h2>: MIGRATED TCP STREAM TEST from 0.0.0.0 (0.0.0.0) port 0 AF_INET to h3 () port 0 AF_INET : demo
+<h2>: Recv   Send    Send
+<h2>: Socket Socket  Message  Elapsed
+<h2>: Size   Size    Size     Time     Throughput
+<h2>: bytes  bytes   bytes    secs.    10^6bits/sec
+<h2>:
+<h2>: 87380  87380  87380    180.56      9.00 / 9.10 / 9.03
+<h1>:
+<h1>: --- h3 ping statistics ---
+<h1>: 1800 packets transmitted, 1794 received, 0% packet loss, time 182522ms
+<h1>: rtt min/avg/max/mdev = 100.122/108.951/138.100/7.400 ms, pipe 2
+
+ECN:True qlen:200 bw:10Mbps lat:50ms redminmax:min 45000 max 50000 avpkt 1500
+<h1>: PING h3 (10.0.0.3) 56(84) bytes of data.
+<h2>: MIGRATED TCP STREAM TEST from 0.0.0.0 (0.0.0.0) port 0 AF_INET to h3 () port 0 AF_INET : demo
+<h2>: Recv   Send    Send
+<h2>: Socket Socket  Message  Elapsed
+<h2>: Size   Size    Size     Time     Throughput
+<h2>: bytes  bytes   bytes    secs.    10^6bits/sec
+<h2>:
+<h2>: 87380  87380  87380    180.78      9.36 / 9.35 / 9.19
+<h1>:
+<h1>: --- h3 ping statistics ---
+<h1>: 1800 packets transmitted, 1793 received, 0% packet loss, time 181735ms
+<h1>: rtt min/avg/max/mdev = 100.131/118.476/186.866/11.059 ms, pipe 2
+
+ECN:True qlen:200 bw:10Mbps lat:50ms redminmax:min 60000 max 65000 avpkt 1500
+<h1>: PING h3 (10.0.0.3) 56(84) bytes of data.
+<h2>: MIGRATED TCP STREAM TEST from 0.0.0.0 (0.0.0.0) port 0 AF_INET to h3 () port 0 AF_INET : demo
+<h2>: Recv   Send    Send
+<h2>: Socket Socket  Message  Elapsed
+<h2>: Size   Size    Size     Time     Throughput
+<h2>: bytes  bytes   bytes    secs.    10^6bits/sec
+<h2>:
+<h2>: 87380  87380  87380    180.63      9.43 / 9.41 / 9.50
+<h1>:
+<h1>: --- h3 ping statistics ---
+<h1>: 1800 packets transmitted, 1789 received, 0% packet loss, time 181371ms
+<h1>: rtt min/avg/max/mdev = 100.085/131.155/180.351/14.607 ms, pipe 2

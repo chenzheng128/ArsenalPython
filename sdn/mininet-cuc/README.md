@@ -40,7 +40,7 @@ ln -sf /opt/sdn/mininet-cuc/ cuc
 测试结果    |无red ecn| 有redmimmax条件1| 条件2  | 条件3
 -----------|-----|--------|-----
 bw:        |9.42M|9.29M| 9.24M  | 9.37M
-ping avg:  |587ms|129ms| 142ms  | 152ms
+ping avg:  |375ms|110ms| 118ms  | 127ms
 ping mdev: | 99ms|7.4ms| 10.9ms | 13.6ms
 * `print_mininet_objs(net)`  # 打印 mininet 拓扑对象
 * `test_diff_bw(net)`        # 设置不同带宽条件qos, 并使用 iperf测试

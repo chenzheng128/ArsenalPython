@@ -13,6 +13,32 @@ from ecn_util import mesure_ping_and_netperf, setup_queue_and_filter, dump_resul
 """
 
 调用参数: ecn_test_case.test_diff_ecn_red(net, duration=60)
+ecn_test_case.test_diff_ecn_red_level2(net, duration=(1, 2, 3))  #
+
+"""
+
+
+def test_diff_ecn_red_2016_06_28(network, bw=10, latency=50, qlen=200, duration=(5, 10, 15)):
+    """
+    将 test_diff_ecn_red 封装入更上一级的测试中去, 支持不同时长 duration 的多轮测试
+    测试结果 ecn_result/2016-06-28_ecn_red.txt
+    :param network:
+    :param bw:
+    :param latency:
+    :param qlen:
+    :param duration:
+    :return:
+    """
+    results = {}
+    for param in duration:  # 时延测试
+        results[param] = test_diff_ecn_red(network, bw=bw, latency=latency, qlen=qlen, duration=param)
+    for key in sorted(results.keys()):
+        print "** 测试时长 %s seconds" % key
+        dump_result(results[key])
+
+"""
+
+调用参数: ecn_test_case.test_diff_ecn_red(net, duration=60)
 
 **** 测试结果 	 result ***
 ECN:False qlen:200 bw:10Mbps lat:50ms	<h1>: PING h3 (10.0.0.3) 56(84) bytes of data.
@@ -71,14 +97,14 @@ ECN:True qlen:200 bw:10Mbps lat:50ms redminmax:min 60000 max 65000 avpkt 1500
 <h2>:
 <h2>: 87380  87380  87380    60.53       9.37
 
-分析: 打开ECN前后Throughput 从 9.4 下降到 8.2 (burst 20), 但是 ping 的 /max/mdev 变化很大, mdev从 99 ms 下降到 7 ms
-
 测试结果    |无red ecn| 有redmimmax条件1| 条件2  | 条件3
 -----------|-----|--------|-----
 bw:        |9.42M|9.29M| 9.24M  | 9.37M
-ping avg:  |587ms|129ms| 142ms  | 152ms
+ping avg:  |375ms|110ms| 118ms  | 127ms
 ping mdev: | 99ms|7.4ms| 10.9ms | 13.6ms
 
+分析: 打开ECN前后Throughput 从 9.4 下降到 8.2 (burst 20), 但是 ping 的 /max/mdev 变化很大, mdev从 99 ms 下降到 7 ms
+而且在条件2测试时, red minmax 设置不当时, 可能会出现ping延时和throughput同时变差的情况.
 """
 
 
@@ -114,6 +140,7 @@ def test_diff_ecn_red(network, bw=10, latency=50, qlen=200, duration=10):
             "ECN:%s qlen:%s bw:%sMbps lat:%sms redminmax:%s" % (True, qlen, bw, latency, redminmax)] = run_this_bench()
 
     dump_result(result1)
+    return result1
 
 
 def test_ping_with_background_traffice(network, round_count=1, round_duration=5, ping_interval=1.0, background=True):

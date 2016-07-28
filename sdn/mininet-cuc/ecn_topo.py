@@ -166,7 +166,7 @@ def ecn_qos_init():
     # ecn_test_case.test_diff_bw(net)        # 设置不同带宽条件qos, 并使用 iperf测试
     # ecn_test_case.test_diff_latency(net)   # 设置不同延时条件qos, 并使用 ping 测试
 
-    ecn_test_case.test_diff_ecn_red(net, duration=10)  #
+    ecn_test_case.test_diff_ecn_red_2016_06_28(net, duration=(120, 180))  # 设置不同时长, 进行测试
 
     CLI(net)  # 激活命令行交互
 

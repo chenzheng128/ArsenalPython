@@ -51,6 +51,11 @@ def setup_queue_and_filter(network, bw=50, queue_len=200, latency=50, ecn=True,
                            redminmax="min 30000 max 35000 avpkt 1500"):
     """
     设置网卡的 queue 和filter 状态, 包括带宽, qlen, 延时, red ecn 策略等
+    检测 change_latency 接口的 netem 状态:
+      watch -n 0.1 tc -s -d qdisc show dev s3-eth2 / s4-eth2
+    检测 change_red 接口的 red 状态:
+      watch -n 0.2 tc -s qdisc show dev s1-eth3 / s2-eth3
+
     :param network:
     :param bw:
     :param queue_len:

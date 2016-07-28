@@ -20,7 +20,7 @@ def os_popen(cmd):
     return os.popen(cmd)
 
 
-def port_default_config(port, bw=50, tx_queue_len=100):
+def port_default_config(port, bw=50, tx_queue_len=100, filter=False):
     os_popen("tc qdisc del dev %s root" % port)
     os.popen("tc qdisc add dev %s root handle 1: htb default 2" % port)  # 将流量默认到 2 号接口上
     os_popen("tc class add dev %s parent 1: classid 1:fffe htb rate 10000mbit burst 1250b cburst 1250b" % port)
@@ -33,18 +33,18 @@ def port_default_config(port, bw=50, tx_queue_len=100):
     os_popen("tc qdisc add dev %s parent 1:2 handle 2: pfifo limit %s" % (port, tx_queue_len))
     os_popen("tc qdisc add dev %s parent 1:3 handle 3: pfifo limit %s" % (port, tx_queue_len))
 
-    # 放置 class filter
-    os_popen("tc filter del dev %s parent 1: protocol ip pref 1 u32" % port)
-    u32_filter_prefix = "tc filter add dev %s protocol ip parent 1:0 prio 1 u32" % port
-    os_popen('%s match ip dport 12856 0xffff flowid 1:1' % u32_filter_prefix)  # netperf 到队列2
-    os_popen('%s match ip dport 5001 0xffff flowid 1:2' % u32_filter_prefix)  # iperf 5001/5002 到队列2
-    os_popen('%s match ip dport 5002 0xffff flowid 1:2' % u32_filter_prefix)
-    os_popen('%s match ip dport 5003 0xffff flowid 1:3' % u32_filter_prefix)
-    os_popen('%s match ip dport 5003 0xffff flowid 1:3' % u32_filter_prefix)
-    os_popen('%s match ip src 10.0.0.1/32 flowid 1:2' % u32_filter_prefix)  # 把h1所有包 match 到队列2
-    os_popen('%s match ip protocol 1 0xff flowid 1:2' % u32_filter_prefix)  # 把icmp所有包 match 到队列2
-    LOG.debug("  设置端口 %s 完成 ...\n" % port)
-    LOG.debug(" 检查设置: tc filter show dev $NDEV parent 1:fffe\n")
+    if filter: # 使用 流量默认到 2 号接口上之后, 可以暂时不必设置filter, 减少设置复杂与日志输出
+        # 放置 class filter
+        os_popen("tc filter del dev %s parent 1: protocol ip pref 1 u32" % port)
+        u32_filter_prefix = "tc filter add dev %s protocol ip parent 1:0 prio 1 u32" % port
+        os_popen('%s match ip dport 12856 0xffff flowid 1:1' % u32_filter_prefix)  # netperf 到队列2
+        os_popen('%s match ip dport 5001 0xffff flowid 1:2' % u32_filter_prefix)  # iperf 5001/5002 到队列2
+        os_popen('%s match ip dport 5002 0xffff flowid 1:2' % u32_filter_prefix)
+        os_popen('%s match ip dport 5003 0xffff flowid 1:3' % u32_filter_prefix)
+        os_popen('%s match ip dport 5003 0xffff flowid 1:3' % u32_filter_prefix)
+        os_popen('%s match ip src 10.0.0.1/32 flowid 1:2' % u32_filter_prefix)  # 把h1所有包 match 到队列2
+        os_popen('%s match ip protocol 1 0xff flowid 1:2' % u32_filter_prefix)  # 把icmp所有包 match 到队列2
+    LOG.debug("  设置端口 %s 完成, 检查设置: tc filter show dev $NDEV parent 1:fffe ...\n" % port)
 
 
 def handle_change(port):
