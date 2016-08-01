@@ -1,0 +1,50 @@
+
+
+
+使用 openflow 控制 ecn 策略 (外部命令 使用 python ecn_ovs_helper.py 控制 )
+这里看到队列不小的情况下, 延时已经不太好, 而链路利用率不够提高
+说明是
+
+*** 测试结果
+ result ***
+py-25000
+<h1>: PING h3 (10.0.0.3) 56(84) bytes of data.
+<h2>: MIGRATED TCP STREAM TEST from 0.0.0.0 (0.0.0.0) port 0 AF_INET to h3 () port 0 AF_INET : demo
+<h2>: Recv   Send    Send
+<h2>: Socket Socket  Message  Elapsed
+<h2>: Size   Size    Size     Time     Throughput
+<h2>: bytes  bytes   bytes    secs.    10^6bits/sec
+<h2>:
+<h2>: 87380  87380  87380    180.97      8.53
+<h1>:
+<h1>: --- h3 ping statistics ---
+<h1>: 1800 packets transmitted, 1800 received, 0% packet loss, time 181671ms
+<h1>: rtt min/avg/max/mdev = 100.112/137.008/344.179/25.161 ms, pipe 4
+
+py-50000
+<h1>: PING h3 (10.0.0.3) 56(84) bytes of data.
+<h2>: MIGRATED TCP STREAM TEST from 0.0.0.0 (0.0.0.0) port 0 AF_INET to h3 () port 0 AF_INET : demo
+<h2>: Recv   Send    Send
+<h2>: Socket Socket  Message  Elapsed
+<h2>: Size   Size    Size     Time     Throughput
+<h2>: bytes  bytes   bytes    secs.    10^6bits/sec
+<h2>:
+<h2>: 87380  87380  87380    180.63      8.91
+<h1>:
+<h1>: --- h3 ping statistics ---
+<h1>: 1800 packets transmitted, 1800 received, 0% packet loss, time 181438ms
+<h1>: rtt min/avg/max/mdev = 100.128/139.084/227.173/19.244 ms, pipe 3
+
+py-75000
+<h1>: PING h3 (10.0.0.3) 56(84) bytes of data.
+<h2>: MIGRATED TCP STREAM TEST from 0.0.0.0 (0.0.0.0) port 0 AF_INET to h3 () port 0 AF_INET : demo
+<h2>: Recv   Send    Send
+<h2>: Socket Socket  Message  Elapsed
+<h2>: Size   Size    Size     Time     Throughput
+<h2>: bytes  bytes   bytes    secs.    10^6bits/sec
+<h2>:
+<h2>: 87380  87380  87380    180.75      9.13
+<h1>:
+<h1>: --- h3 ping statistics ---
+<h1>: 1800 packets transmitted, 1800 received, 0% packet loss, time 181467ms
+<h1>: rtt min/avg/max/mdev = 100.097/138.488/197.263/19.738 ms, pipe 2

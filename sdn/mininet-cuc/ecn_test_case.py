@@ -8,17 +8,22 @@ import os
 from time import sleep
 from mininet.log import info, debug, warn, error
 from mininet.util import pmonitor
-from ecn_util import mesure_ping_and_netperf, setup_queue_and_filter, dump_result
+import ecn_util
+import ecn_ovs_helper
+import ecn_qdisc_helper
 
 """
 
 调用参数: ecn_test_case.test_diff_ecn_red(net, duration=60)
 ecn_test_case.test_diff_ecn_red_level2(net, duration=(1, 2, 3))  #
 
+test01 无ecn测试
+test02 有ecn测试
+
 """
 
 
-def test_diff_ecn_red_2016_06_28(network, bw=10, latency=50, qlen=200, duration=(5, 10, 15)):
+def test01_04_ecn_red_diff_duration(network, bw=10, latency=50, qlen=200, duration=(5, 10, 15)):
     """
     将 test_diff_ecn_red 封装入更上一级的测试中去, 支持不同时长 duration 的多轮测试
     测试结果 ecn_result/2016-06-28_ecn_red.txt
@@ -31,85 +36,59 @@ def test_diff_ecn_red_2016_06_28(network, bw=10, latency=50, qlen=200, duration=
     """
     results = {}
     for param in duration:  # 时延测试
-        results[param] = test_diff_ecn_red(network, bw=bw, latency=latency, qlen=qlen, duration=param)
+        results[param] = test01_04_ecn_red(network, bw=bw, latency=latency, qlen=qlen, duration=param)
     for key in sorted(results.keys()):
         print "** 测试时长 %s seconds" % key
-        dump_result(results[key])
-
-"""
-
-调用参数: ecn_test_case.test_diff_ecn_red(net, duration=60)
-
-**** 测试结果 	 result ***
-ECN:False qlen:200 bw:10Mbps lat:50ms	<h1>: PING h3 (10.0.0.3) 56(84) bytes of data.
-<h1>:
-<h1>: --- h3 ping statistics ---
-<h1>: 600 packets transmitted, 580 received, 3% packet loss, time 61027ms
-<h1>: rtt min/avg/max/mdev = 100.216/375.909/587.119/99.584 ms, pipe 6
-<h2>: MIGRATED TCP STREAM TEST from 0.0.0.0 (0.0.0.0) port 0 AF_INET to h3 () port 0 AF_INET : demo
-<h2>: Recv   Send    Send
-<h2>: Socket Socket  Message  Elapsed
-<h2>: Size   Size    Size     Time     Throughput
-<h2>: bytes  bytes   bytes    secs.    10^6bits/sec
-<h2>:
-<h2>: 87380  87380  87380    62.96       9.42
-
-*** 测试结果 	 result ***
-ECN:True qlen:200 bw:10Mbps lat:50ms redminmax:min 30000 max 35000 avpkt 1500
-<h1>: PING h3 (10.0.0.3) 56(84) bytes of data.
-<h1>:
-<h1>: --- h3 ping statistics ---
-<h1>: 600 packets transmitted, 597 received, 0% packet loss, time 60600ms
-<h1>: rtt min/avg/max/mdev = 100.189/110.219/129.141/7.406 ms, pipe 2
-<h2>: MIGRATED TCP STREAM TEST from 0.0.0.0 (0.0.0.0) port 0 AF_INET to h3 () port 0 AF_INET : demo
-<h2>: Recv   Send    Send
-<h2>: Socket Socket  Message  Elapsed
-<h2>: Size   Size    Size     Time     Throughput
-<h2>: bytes  bytes   bytes    secs.    10^6bits/sec
-<h2>:
-<h2>: 87380  87380  87380    60.42       9.29
-
-ECN:True qlen:200 bw:10Mbps lat:50ms redminmax:min 45000 max 50000 avpkt 1500
-<h1>: PING h3 (10.0.0.3) 56(84) bytes of data.
-<h1>:
-<h1>: --- h3 ping statistics ---
-<h1>: 600 packets transmitted, 600 received, 0% packet loss, time 60494ms
-<h1>: rtt min/avg/max/mdev = 100.165/118.009/142.847/10.934 ms, pipe 2
-<h2>: MIGRATED TCP STREAM TEST from 0.0.0.0 (0.0.0.0) port 0 AF_INET to h3 () port 0 AF_INET : demo
-<h2>: Recv   Send    Send
-<h2>: Socket Socket  Message  Elapsed
-<h2>: Size   Size    Size     Time     Throughput
-<h2>: bytes  bytes   bytes    secs.    10^6bits/sec
-<h2>:
-<h2>: 87380  87380  87380    60.74       9.24
-
-ECN:True qlen:200 bw:10Mbps lat:50ms redminmax:min 60000 max 65000 avpkt 1500
-<h1>: PING h3 (10.0.0.3) 56(84) bytes of data.
-<h1>:
-<h1>: --- h3 ping statistics ---
-<h1>: 600 packets transmitted, 598 received, 0% packet loss, time 60407ms
-<h1>: rtt min/avg/max/mdev = 100.176/127.282/152.700/13.584 ms, pipe 2
-<h2>: MIGRATED TCP STREAM TEST from 0.0.0.0 (0.0.0.0) port 0 AF_INET to h3 () port 0 AF_INET : demo
-<h2>: Recv   Send    Send
-<h2>: Socket Socket  Message  Elapsed
-<h2>: Size   Size    Size     Time     Throughput
-<h2>: bytes  bytes   bytes    secs.    10^6bits/sec
-<h2>:
-<h2>: 87380  87380  87380    60.53       9.37
-
-测试结果    |无red ecn| 有redmimmax条件1| 条件2  | 条件3
------------|-----|--------|-----
-bw:        |9.42M|9.29M| 9.24M  | 9.37M
-ping avg:  |375ms|110ms| 118ms  | 127ms
-ping mdev: | 99ms|7.4ms| 10.9ms | 13.6ms
-
-分析: 打开ECN前后Throughput 从 9.4 下降到 8.2 (burst 20), 但是 ping 的 /max/mdev 变化很大, mdev从 99 ms 下降到 7 ms
-而且在条件2测试时, red minmax 设置不当时, 可能会出现ping延时和throughput同时变差的情况.
-"""
+        ecn_util.dump_result(results[key])
 
 
-def test_diff_ecn_red(network, bw=10, latency=50, qlen=200, duration=10):
+
+def test11_base(network, testname, bw=10, latency=50, qlen=100, duration=10):
     """
+    # 设置 使用 外部 ecn
+    :param testname:    # 测试名称
+    :param network:
+    :param bw:          # 10Mbps 带宽
+    :param latency:     # 50ms 延时
+    :param qlen:        # 队列长度
+    :param duration:    # 运行时间
+    :return:
+    """
+    # print_mininet_objs(net)
+    result_all = {}
+    red_ecn = False
+
+    def run_this_bench():
+        return ecn_util.mesure_ping_and_netperf(network, round_count=1, round_duration=duration, ping_interval=0.1)
+
+    # 无ecn测试 TEST01
+    default_minmax = ""
+    queue_setup_fullname = "%s ECN:%s qlen:%s bw:%sMbps lat:%sms no red:%s" % (
+        testname, red_ecn, qlen, bw, latency, "")
+    info("*** setup queue %s\n" % queue_setup_fullname)
+    test01_06_setup_queue_and_latency(network, ecn=red_ecn, bw=bw, queue_len=qlen, latency=latency,
+                                      redminmax=default_minmax)
+
+    for min in [50000]:
+        testfullname = "%s min:%s qlen:%s bw:%sMbps lat:%sms no red:%s" % (
+            testname+str(min), min, qlen, bw, latency, "")
+        info("*** setup ecn_ovs_helper (min= %s) for mod_ecn \n" % min)
+        ecn_ovs_helper.init_switch()
+        # ecn_ovs_helper.stop()
+        # ecn_ovs_helper.start(min)
+        # ecn_qdisc_helper.os_popen("/opt/mininet/cuc/ecn_ovs_helper.py new_red & " % min)
+        info("*** running %s ...\n" % testfullname)
+        result_all[min] = run_this_bench()
+
+    ecn_util.dump_result(result_all)
+    return result_all
+
+
+def test01_04_ecn_red(network, bw=10, latency=50, qlen=200, duration=10):
+    """
+
+    测试结果记录在 ecn_result/2016-06-28_ecn_red.txt
+
     # 设置 使用 red ecn 以及不使用, 并使用 mesure_delay_and_output() 测试
     :param network:
     :param bw:          # 10Mbps 带宽
@@ -119,28 +98,96 @@ def test_diff_ecn_red(network, bw=10, latency=50, qlen=200, duration=10):
     :return:
     """
     # print_mininet_objs(net)
-    result1 = {}
+    result_all = {}
+
+    # result_all dict 追加入01 结果
+    result_all.update(test01_base(network, "TEST01", bw=bw, latency=latency, qlen=qlen, duration=duration))
+
+    # result_all dict 追加入03 04 05 结果
+    for testname, redminmax in zip(["TEST02", "TEST03", "TEST04"],
+                                   ["min 70000  max  150000 avpkt 1500",
+                                    "min 75000  max  150000 avpkt 1500",
+                                    "min 80000  max  150000 avpkt 1500"
+                                    ]):
+        # result_all = result1.copy()
+        # if testname == "TEST02": continue
+        result_all.update(
+            test02_04_base_ecn_red(network, testname, redminmax, bw=bw, latency=latency, qlen=qlen, duration=duration))
+
+    info("\n\n\n*** all result here ***\n\n\b")
+    ecn_util.dump_result(result_all)
+    return result_all
+
+
+def test01_base(network, testname, bw=10, latency=50, qlen=200, duration=10):
+    """
+    # 设置 使用 red ecn 以及不使用, 并使用 mesure_delay_and_output() 测试
+    :param testname:    # 测试名称
+    :param network:
+    :param bw:          # 10Mbps 带宽
+    :param latency:     # 50ms 延时
+    :param qlen:        # 队列长度
+    :param duration:    # 运行时间
+    :return:
+    """
+    # print_mininet_objs(net)
+    result = {}
+    red_ecn = False
 
     def run_this_bench():
-        return mesure_ping_and_netperf(network, round_count=1, round_duration=duration, ping_interval=0.1)
+        return ecn_util.mesure_ping_and_netperf(network, round_count=1, round_duration=duration, ping_interval=0.1)
 
-    # 有无ecn测试
-    for ecn in [True, False]:
-        default_minmax = "min 30000 max 35000 avpkt 1500"
-        setup_queue_and_filter(network, ecn=ecn, bw=bw, latency=latency, queue_len=qlen, redminmax=default_minmax)
-        result1["ECN:%s qlen:%s bw:%sMbps lat:%sms redminmax:%s" % (
-            ecn, qlen, bw, latency, default_minmax)] = run_this_bench()
-        if ecn:
-            print
+    # 无ecn测试 TEST01
+    default_minmax = ""
+    testfullname = "%s ECN:%s qlen:%s bw:%sMbps lat:%sms no red:%s" % (
+        testname, red_ecn, qlen, bw, latency, "")
+    info("*** setup %s\n" % testfullname)
+    test01_06_setup_queue_and_latency(network, ecn=red_ecn, bw=bw, queue_len=qlen, latency=latency,
+                                      redminmax=default_minmax)
+    info("*** running %s ...\n" % testfullname)
+    result[testfullname] = run_this_bench()
 
-    # ecn 参数变化测试
-    for redminmax in ["min 45000 max 50000 avpkt 1500", "min 60000 max 65000 avpkt 1500"]:
-        setup_queue_and_filter(network, ecn=True, bw=bw, latency=latency, queue_len=qlen, redminmax=redminmax)
-        result1[
-            "ECN:%s qlen:%s bw:%sMbps lat:%sms redminmax:%s" % (True, qlen, bw, latency, redminmax)] = run_this_bench()
+    ecn_util.dump_result(result)
+    return result
 
-    dump_result(result1)
-    return result1
+
+def test02_04_base_ecn_red(network, testname, redminmax, bw=10, latency=50, qlen=200, duration=10):
+    """
+    独立复制出的 03 04 实验, 用于enc抓包测试
+    :param redminmax:      # red参数设置
+    :param testname:       # 测试名称
+    :param network:
+    :param bw:
+    :param latency:
+    :param qlen:
+    :param duration:
+    :return:
+    """
+
+    result = {}
+
+    def run_this_bench():
+        return ecn_util.mesure_ping_and_netperf(network, round_count=1, round_duration=duration, ping_interval=0.1)
+
+    # ecn 参数变化测试 02 03 04
+    testfullname = "%s ECN:%s qlen:%s bw:%sMbps lat:%sms redminmax:%s" % (
+        testname, True, qlen, bw, latency, redminmax)
+    info("*** setup %s \n" % testfullname)
+    test01_06_setup_queue_and_latency(network, ecn=True, bw=bw, queue_len=qlen, latency=latency,
+                                      redminmax=redminmax)
+    info("*** running %s ...\n" % testfullname)
+    result[testfullname] = run_this_bench()
+
+    ecn_util.dump_result(result)
+    return result
+
+
+def test01_06_setup_queue_and_latency(network, ecn=True, bw=10, queue_len=200, latency=50,
+                                      redminmax="min 30000 max 35000 avpkt 1500"):
+    # 从 base 中扩展出的实验拓扑设置; 采用 bw=10, qlen=200, latency=50 固定参数进行测试,
+
+    ecn_util.base_setup_queue_and_latency(network, bw=bw, queue_len=queue_len, latency=latency, ecn=ecn,
+                                          redminmax=redminmax)
 
 
 def test_ping_with_background_traffice(network, round_count=1, round_duration=5, ping_interval=1.0, background=True):

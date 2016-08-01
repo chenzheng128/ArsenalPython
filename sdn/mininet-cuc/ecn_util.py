@@ -47,10 +47,11 @@ class ECNIntf(TCIntf):
         # super(TCIntf, self).config(params)
 
 
-def setup_queue_and_filter(network, bw=50, queue_len=200, latency=50, ecn=True,
-                           redminmax="min 30000 max 35000 avpkt 1500"):
+def base_setup_queue_and_latency(network, bw=50, queue_len=200, latency=50, ecn=True,
+                                 redminmax="min 30000 max 35000 avpkt 1500"):
     """
-    设置网卡的 queue 和filter 状态, 包括带宽, qlen, 延时, red ecn 策略等
+    队列和延时的基础设置
+    设置网卡的 queue 和 filter 状态, 包括带宽, qlen, 延时, red ecn 策略等
     检测 change_latency 接口的 netem 状态:
       watch -n 0.1 tc -s -d qdisc show dev s3-eth2 / s4-eth2
     检测 change_red 接口的 red 状态:
@@ -134,11 +135,15 @@ def mesure_ping_and_netperf(network, round_count=1, round_duration=5, ping_inter
                 info("<%s>: popen cmd: %s \n" % (h.name, netperf_cmd))
                 popens[h] = h.popen(netperf_cmd)
 
+        log_line_count=0
         # Monitor them and print output
         for host, line in pmonitor(popens):
             if host:
+                log_line_count+=1
                 if line.find("icmp_seq") != -1:
                     debug("<%s>: %s\n" % (host.name, line.strip()))  # suppressed ping output to debug level
+                    if (log_line_count % (3/ping_interval)) == 0:   # every 3 second print line 便于在 info 模式下观察
+                        info("<%s>: %s\n" % (host.name, line.strip()))
                 else:
                     info("<%s>: %s\n" % (host.name, line.strip()))
                     result += "<%s>: %s\n" % (host.name, line.strip())

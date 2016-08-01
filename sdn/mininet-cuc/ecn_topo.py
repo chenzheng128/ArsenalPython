@@ -15,17 +15,14 @@ sudo mn -c ; sudo python ecn_topo.py
 """
 import os
 from time import sleep
-
 import sshd
 import ecn_test_case
 import ecn_util
 import ecn_qdisc_helper
-
-from ecn_util import ECNLink, dump_result, setup_queue_and_filter
 from mininet.cli import CLI
 from mininet.log import setLogLevel, MininetLogger
 from mininet.net import Mininet
-from mininet.node import Controller
+from mininet.node import Controller, RemoteController
 from mininet.topo import Topo
 
 TX_QUEUE_LEN = 100  # 网卡队列长度设置
@@ -43,6 +40,7 @@ SW_HOST_PORTS = "s1-eth1 s1-eth2 s1-eth3 s2-eth1 s2-eth2 s2-eth3 s3-eth2 s4-eth2
 ALL_PORTS = SW_HOST_PORTS + " s3-eth1 s3-eth2 s4-eth1 s4-eth2"
 
 LOG = MininetLogger()
+
 
 class ECNTopo(Topo, object):
     """
@@ -126,13 +124,15 @@ class ECNTopo(Topo, object):
             #    func(srcIntf.name), "<->", dstIntf.name
 
 
-def ecn_qos_init():
+def ecn_qos_init(remote_controller=False):
     """
+    :param remote_controller 是否使用外部控制器
     :return:
     Create and test our QBB network standard"
     初始化拓扑qos; 包括
       四个存在带宽差异(big_link small_link)导致拥堵点的链路 qos 带宽 s1-eth3 s2-eth3 s3-eth3 s4-eth1
       将 5002, h1, icmp 所有流量转移到队列2中, 便于测试
+
     """
 
     topo = ECNTopo()  #
@@ -141,32 +141,46 @@ def ecn_qos_init():
     # 命令行参数对应 --mac => autoSetMacs
     # 命令行参数对应 --arp => autoStaticArp
     # 命令行参数对应 -x => xterms
-    net = Mininet(topo=topo, controller=None, link=ECNLink, autoSetMacs=True, xterms=False,
+    net = Mininet(topo=topo, controller=None, link=ecn_util.ECNLink, autoSetMacs=True, xterms=False,
                   autoStaticArp=True)
 
-    c0 = Controller('c0', port=6633)
-    # net.addController('c0', controller=RemoteController, ip='192.168.57.2', port=6653)
-    net.addController(c0)
+    if remote_controller:
+        # ecn_qdisc_helper.os_popen("PYTHONPATH=/opt/ryu/ /opt/ryu/bin/ryu-manager
+        # ryu.app.rest_qos cuc.book.qos_simple_switch_13 ryu.app.rest_conf_switch & ")
+        net.addController('c0', controller=RemoteController, ip='127.0.0.1', port=6653)
+    else:
+        c0 = Controller('c0', port=6633)  # buildin-controller
+        net.addController(c0)
 
-    enable_ssh = False  # 激活ssh如果系统
-    background = False  # 激活后台流量
+    enable_ssh = False  # 激活ssh如果系统 - 暂时不用
     if enable_ssh:
         setup_ssh()
     else:
         net.start()
 
-    setup_server(net)
+    if remote_controller:
+        print "*** run this command for remote ryu controller"
+        print "cd /opt/ryu; PYTHONPATH=/opt/ryu/ /opt/ryu/bin/ryu-manager " \
+              "ryu.app.rest_qos cuc.book.qos_simple_switch_13 ryu.app.rest_conf_switch "
 
+    setup_server(net)
+    background = False  # 激活后台流量 - 暂时不用
     if background:  # backgroud traffice,
         net.get("h1").cmd("netperf -H h3 -l %s &" % 3600)
 
     # ecn_util.print_mininet_objs(net)  # 打印 mininet 拓扑对象
-    # ecn_util.setup_queue_and_filter(net, latency=50)  # 初始化延时测试
-
     # ecn_test_case.test_diff_bw(net)        # 设置不同带宽条件qos, 并使用 iperf测试
     # ecn_test_case.test_diff_latency(net)   # 设置不同延时条件qos, 并使用 ping 测试
 
-    ecn_test_case.test_diff_ecn_red_2016_06_28(net, duration=(120, 180))  # 设置不同时长, 进行测试
+    # ecn_test_case.test01_06_setup_queue_and_latency(net) # 初始化 TEST01_06 拓扑 qos
+
+    # ecn_test_case.test01_04_ecn_red_duration(net, duration=(1, 180))  # 设置不同时长, 进行TEST01-04测试
+    # ecn_test_case.test01_04_ecn_red(net, duration=180)  # 进行TEST01-04测试
+    # ecn_test_case.test01_base(net, "TEST01", duration=18000)  # 独立测试TEST 01
+    ecn_test_case.test11_base(net, "TEST11-py-", duration=8)  # 独立测试TEST 11
+    # ecn_test_case.test03_04_ecn_red(net, duration=180, test_only_name="TEST04")  # 进行TEST03-04测试 ecn抓包
+
+    # ecn_test_case.TEST05_openflow_ecn(net, duration=1800) # 进行  TEST05 测试
 
     CLI(net)  # 激活命令行交互
 
@@ -182,11 +196,11 @@ def test_diff_latency(network):
     # print_mininet_objs(net)
     result = {}
     for latency in [10, 50, 100]:
-        setup_queue_and_filter(net, latency=latency, queue_len=200)
+        ecn_util.base_setup_queue_and_latency(net, latency=latency, queue_len=200)
         # run_multi_bench()
         # result[latency] = network.ping([net.get("h1"), net.get("h3")] )
         result[latency] = ecn_test_case.test_ping_with_background_traffice(network, background=False)  # 禁止背后流量, 以查看准确延时
-    dump_result(result)
+    ecn_util.dump_result(result)
 
 
 def test_diff_bw(network):
@@ -198,10 +212,10 @@ def test_diff_bw(network):
     # print_mininet_objs(net)
     result = {}
     for bw in [10, 50, 100]:
-        setup_queue_and_filter(net, bw=bw, queue_len=200)
+        ecn_util.base_setup_queue_and_latency(net, bw=bw, queue_len=200)
         # run_multi_bench()
         result[bw] = network.iperf(hosts=[network.get("h1"), net.get("h3")])
-    dump_result(result)
+    ecn_util.ump_result(result)
 
 
 def setup_server(network):
@@ -210,6 +224,8 @@ def setup_server(network):
     :return:
     设置 host 上的测速 iperf/netperf 服务
     """
+    for h in network.hosts:
+        h.cmd("echo 1 > /proc/sys/net/ipv4/tcp_ecn #设置为 ecn 主动发起")
     h3 = network.getNodeByName('h3')
     h3.cmd("iperf -s -p 5002 &")
     for host in net.hosts:
@@ -229,6 +245,6 @@ def setup_ssh():
 
 if __name__ == '__main__':
     # Tell mininet to print useful information
-    setLogLevel('info')
+    # setLogLevel('info')
     setLogLevel("debug")  # 打开 debug 日志
-    ecn_qos_init()
+    ecn_qos_init(remote_controller=True)  # 使用外部 ryu 控制器, 支持openflow13,  qos_ecn_table=0, fw_table=1

@@ -33,10 +33,13 @@ ln -sf /opt/sdn/mininet-cuc/ cuc
 
 ## 实验拓扑
 
-启动拓扑: `ssh -Y mininet sudo python /opt/mininet/cuc/ecn_topo.py`
+启动拓扑: `ssh -Y mininet; cd /opt/mininet/cuc;  sudo python ecn_topo.py`
 
-在此拓扑中可以运行在 `ecn_test_case.py` 中的多个实验评估
-* `test_diff_red()`          # red的参数测试, 可以看打开red参数后, min队列值越小, 带宽利用率稍微下降, avg平均延时越小, mdev分布越稳定 
+在 `ecn_topo.py` 拓扑中可以运行在 `ecn_test_case.py` 中的多个实验评估
+
+* `ecn_test_case.test11_base()` 需要使用ryu remote控制器, 测试结果记录在ecn_result/2016-06-01_ecn_openflow.txt 中, openflow的ecn参数测试, 不同队列大小. 用外部命令`ecn_ovs_helper.py start`来控制ecn标志修改.
+  TODO ecn_ovs_helper.py 的控制颗粒度有些粗, 待改进
+* `ecn_test_case.test01_04_ecn_red()` # 测试结果记录 ecn_result/2016-06-28_ecn_red.txt 中, red的ecn参数测试, 4组实验. 可以看打开red参数后, min队列值越小, 带宽利用率稍微下降, avg平均延时越小, mdev分布越稳定, 测试结果记录 
 测试结果    |无red ecn| 有redmimmax条件1| 条件2  | 条件3
 -----------|-----|--------|-----
 bw:        |9.42M|9.29M| 9.24M  | 9.37M
@@ -46,17 +49,18 @@ ping mdev: | 99ms|7.4ms| 10.9ms | 13.6ms
 * `test_diff_bw(net)`        # 设置不同带宽条件qos, 并使用 iperf测试
 * `test_diff_latency(net)`   # 设置不同延时条件qos, 并使用 ping 测试
 
+
+`ecn_topo.py` 拓扑中一些可修改的参数
+```
+setLogLevel("debug")  # 打开 debug 日志
+ecn_qos_init(remote_controller=True)  # 使用外部 ryu remote 控制器, 支持openflow13,  qos_ecn_table=0, fw_table=1
+ecn_qos_init(remote_controller=False) # 使用内置控制器 
+```
+
 增加xterm测试终端
 ```
 mininet>
-xterm h1
-xterm h1
-xterm h1
-xterm h3
-xterm h3
-xterm h2
-xterm h4
-xterm s2
+xterm h1 h2 h3 
 ```
 
 Mininet实验拓扑Node: 4个主机, 4个交换机的linear配置, s3-s4之间存在(10ms)延时链路.

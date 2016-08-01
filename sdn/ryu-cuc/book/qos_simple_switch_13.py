@@ -1,3 +1,4 @@
+#coding:utf-8
 #source: https://osrg.github.io/ryu-book/en/html/rest_qos.html
 
 # Copyright (C) 2011 Nippon Telegraph and Telephone Corporation.
@@ -14,6 +15,42 @@
 # implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+"""
+REF:
+https://osrg.github.io/ryu-book/en/html/rest_qos.html
+
+启动 app
+cd $RYU_HOME
+PYTHONPATH=/opt/ryu/ /opt/ryu/bin/ryu-manager ryu.app.rest_qos cuc.book.qos_simple_switch_13 ryu.app.rest_conf_switch
+
+
+# set ovsdb_addr in order to access OVSDB.
+curl -X PUT -d '"tcp:127.0.0.1:6632"' http://localhost:8080/v1.0/conf/switches/0000000000000001/ovsdb_addr
+# 设置 qos;
+#  用tc查看设置效果 tc -s class show dev s1-eth1
+curl -X POST -d '{"port_name": "s1-eth1", "type": "linux-htb", "max_rate": "1000000000", "queues": [{"max_rate": "500000000"}, {"min_rate": "80000000"}]}' http://localhost:8080/qos/queue/0000000000000001
+# 插入 enqueue flow
+curl -X POST -d '{"match": {"nw_dst": "10.0.0.1", "nw_proto": "UDP", "tp_dst": "5002"}, "actions":{"queue": "1"}}' http://localhost:8080/qos/rules/0000000000000001
+# 查询 qos
+curl -X GET http://localhost:8080/qos/rules/0000000000000001
+
+
+最后流表项的效果如下:
+NXST_FLOW reply (xid=0x4):
+# 插入的 enqueue flow
+ cookie=0x1, duration=47.641s, table=0, n_packets=0, n_bytes=0, idle_age=47, priority=1,udp,nw_dst=1
+0.0.0.1,tp_dst=5002 actions=set_queue:1,resubmit(,1)
+# 默认的流表项, 转发至 table=1
+ cookie=0x0, duration=278.922s, table=0, n_packets=344716, n_bytes=482253688, idle_age=0, priority=0
+ actions=resubmit(,1)
+# 此app将所有的流转放在 table=1 中处理
+ cookie=0x0, duration=1185.738s, table=1, n_packets=11501, n_bytes=1127098, idle_age=0, priority=1,i
+n_port=1,dl_dst=00:00:00:00:00:03 actions=output:3
+...
+
+
+"""
 
 from ryu.base import app_manager
 from ryu.controller import ofp_event

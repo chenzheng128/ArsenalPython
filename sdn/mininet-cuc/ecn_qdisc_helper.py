@@ -20,7 +20,7 @@ def os_popen(cmd):
     return os.popen(cmd)
 
 
-def port_default_config(port, bw=50, tx_queue_len=100, filter=False):
+def port_default_config(port, bw=50, tx_queue_len=100, use_filter=False):
     os_popen("tc qdisc del dev %s root" % port)
     os.popen("tc qdisc add dev %s root handle 1: htb default 2" % port)  # 将流量默认到 2 号接口上
     os_popen("tc class add dev %s parent 1: classid 1:fffe htb rate 10000mbit burst 1250b cburst 1250b" % port)
@@ -33,7 +33,7 @@ def port_default_config(port, bw=50, tx_queue_len=100, filter=False):
     os_popen("tc qdisc add dev %s parent 1:2 handle 2: pfifo limit %s" % (port, tx_queue_len))
     os_popen("tc qdisc add dev %s parent 1:3 handle 3: pfifo limit %s" % (port, tx_queue_len))
 
-    if filter: # 使用 流量默认到 2 号接口上之后, 可以暂时不必设置filter, 减少设置复杂与日志输出
+    if use_filter:  # 使用 流量默认到 2 号接口上之后, 可以暂时不必设置filter, 减少设置复杂与日志输出
         # 放置 class filter
         os_popen("tc filter del dev %s parent 1: protocol ip pref 1 u32" % port)
         u32_filter_prefix = "tc filter add dev %s protocol ip parent 1:0 prio 1 u32" % port
@@ -59,7 +59,12 @@ def handle_del(port):
 
 def handle_show(port):
     # 查看 handle
-    debug("".join(os_popen("tc -s qdisc show dev %s" % port).readlines()))
+    info(handle_get(port))
+
+
+def handle_get(port):
+    # 查看 handle
+    return "".join(os.popen("tc -s qdisc show dev %s" % port).readlines())
 
 
 def handle_change_netem(port, queue_len=100, delay="10.0ms"):
@@ -81,7 +86,7 @@ def handle_change_red(port, bw=10, minmax="min 30000 max 35000 avpkt 1500"):
     os_popen("tc qdisc add dev %s parent 1:2 handle 2: red limit 1000000 " % port +
              ' %s ' % minmax +
              # 'burst 20 ' +
-             'bandwidth %smbit probability 1' % bw)
+             'bandwidth %smbit probability 1 ecn' % bw)
     handle_show(port)
 
 
@@ -114,7 +119,14 @@ def class_change(port, rate):
 
 
 def class_show(port):
-    print("".join(os_popen("tc class show dev %s" % port).readlines()))
+    print("".join(os_popen("tc -s class show dev %s" % port).readlines()))
+
+
+def class_get(port, classid=""):
+    if classid == "":
+        return "".join(os_popen("tc -s class show dev %s" % port).readlines())
+    else:
+        return "".join(os_popen("tc -s class show dev %s classid %s" % (port, classid)).readlines())
 
 
 def qos_print_help():
@@ -156,6 +168,7 @@ def print_usage(argv):
     print "       example: %s red \"min 60000 max 75000 avpkt 1500\" #快速设定red策略" % argv[0]
     print "       example: %s class host 500mbit # 设定主机高速接口带宽" % argv[0]
     print "       example: %s class switch 5mbit # 设定交换低速接口带宽" % argv[0]
+
 
 if __name__ == "__main__":
     LOG.setLogLevel("debug")
