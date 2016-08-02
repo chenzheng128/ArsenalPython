@@ -177,8 +177,7 @@ def ecn_qos_init(remote_controller=False):
     # ecn_test_case.test01_04_ecn_red_duration(net, duration=(1, 180))  # 设置不同时长, 进行TEST01-04测试
     # ecn_test_case.test01_04_ecn_red(net, duration=180)  # 进行TEST01-04测试
     # ecn_test_case.test01_base(net, "TEST01", duration=18000)  # 独立测试TEST 01
-    ecn_test_case.test11_base(net, "TEST11-py-", duration=8)  # 独立测试TEST 11
-    # ecn_test_case.test03_04_ecn_red(net, duration=180, test_only_name="TEST04")  # 进行TEST03-04测试 ecn抓包
+    ecn_test_case.test11_base(net, "TEST11-py-", duration=120)  # 独立测试TEST 11
 
     # ecn_test_case.TEST05_openflow_ecn(net, duration=1800) # 进行  TEST05 测试
 

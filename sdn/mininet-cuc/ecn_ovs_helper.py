@@ -21,6 +21,12 @@ ecn codepoints
 1 01 – ECN Capable Transport, ECT(1)
 3 11 – Congestion Encountered, CE.
 
+*** start drop
+/opt/coding/ovs/utilities/ovs-ofctl -O Openflow13 add-flow s1 "tcp,nw_dst=10.0.0.3, actions=drop"
+/opt/coding/ovs/utilities/ovs-ofctl -O Openflow13 del-flows s1 "tcp,nw_dst=10.0.0.3"
+*** start ecn
+/opt/coding/ovs/utilities/ovs-ofctl -O Openflow13 add-flow s1 "tcp,nw_dst=10.0.0.3, actions=mod_nw_ecn:3, resubmit(,1)"
+/opt/coding/ovs/utilities/ovs-ofctl -O Openflow13 del-flows s1 "tcp,nw_dst=10.0.0.3"
 """
 
 import os
@@ -53,7 +59,8 @@ def switch_ecn_add():
     :return:
     """
     os_popen('%s add-flow s1 "%s,nw_dst=10.0.0.3, actions=mod_nw_ecn:3, resubmit(,1)"' % (OFCTL_CMD, "tcp"))
-    # os_popen('%s del-flows s1 "%s,nw_dst=10.0.0.3"' % (OFCTL_CMD, "tcp"))
+    # 不去除mod_ecn策略的话, 带宽始终上不来, 维持在 0.5Mbps 左右
+    os_popen('%s del-flows s1 "%s,nw_dst=10.0.0.3"' % (OFCTL_CMD, "tcp"))
 
 
 def switch_drop():
@@ -99,13 +106,10 @@ def stop():
     pass
 
 
-def start(min_queue_size=75000, query_interval=0.1):
-    new_red(min_queue_size, query_interval)
-
-
-def new_red(queue_min, sleep_interval):
+def start_opeflow_ecn(queue_min, sleep_interval, ecn_policy=True):
     """
     自定义的 red 函数, 通过监控队列, 对ecnjixn
+    :param ecn_policy:            使用 ecn 或是 drop 策略
     :param queue_min:      触发策略的最小队列
     :param sleep_interval: 查询间隔
     :return:
@@ -113,7 +117,7 @@ def new_red(queue_min, sleep_interval):
     init_switch()
 
     pattern = re.compile(r"backlog (\d\d+)b (\d\d+)p")  # 匹配两位数字
-    match_count=0
+    match_count = 0
     while True:
         # class_status = (ecn_qdisc_helper.class_get("s1-eth3", "1:2"))
         queue_status = ecn_qdisc_helper.handle_get("s1-eth3")
@@ -121,16 +125,21 @@ def new_red(queue_min, sleep_interval):
         # match = re.search(r'hello', 'i am 1hello world!')
         match = pattern.search(queue_status)
         if match:
-            match_count+=1
+            match_count += 1
             # print ("%sp" % match.group(2))
             qsize = int(match.group(1))
             qlen = int(match.group(2))
-            if (match_count * sleep_interval) % 1 == 0: #supressing to 1 output / per 1 seconds
+            if (match_count * sleep_interval) % 1 == 0:  # supressing to 1 output / per 1 seconds
                 debug(" %sb %sp " % (qsize, qlen))
             if qsize > queue_min:
                 # pass
-                switch_ecn_add()
+                if ecn_policy:
+                    switch_ecn_add()
+                    # pass
+                else:
+                    switch_drop()
                 # mod_ecn(3)
+                sleep(2)  # 每次修改后至少休息一下, 避免重复提交
         else:
             # print "not maching"
             pass
@@ -144,6 +153,7 @@ def print_usage(argv):
     print "       %s switch  #切换ecn策略" % argv[0]
     print "       %s init  #初始化交换机为 openflow13, 加入初始 mod_nw_ecn 流" % argv[0]
     print "       %s dump  #显示流" % argv[0]
+    print "       %s start [ ecn | drop ]  # 启动 ecn 或 drop 策略  " % argv[0]
 
     print "       example: %s mod_ecn [1|2|3]" % argv[0]
 
@@ -163,7 +173,13 @@ if __name__ == "__main__":
     elif sys.argv[1] == "dump":
         dump_flows()
     elif sys.argv[1] == "start":
-        start(query_interval=0.0025)
+        ecn = True
+        if len(sys.argv)>=3 and sys.argv[2] == "drop":
+            ecn = False
+            print "start drop policy ... "
+        else:
+            print "start ecn policy ..."
+        start_opeflow_ecn(queue_min=75000, sleep_interval=0.0025, ecn_policy=ecn)
     elif sys.argv[1] == "mod":
         code = 1
         if len(sys.argv) >= 3:

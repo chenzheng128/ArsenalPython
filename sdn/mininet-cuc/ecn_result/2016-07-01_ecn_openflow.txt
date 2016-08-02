@@ -2,6 +2,51 @@
 
 
 使用 openflow 控制 ecn 策略 (外部命令 使用 python ecn_ovs_helper.py 控制 )
+
+*** 结果分析
+
+openflow ecn 策略比 drop 策略的效率更好. (TODO: red ecn 的策略没有 drop 好. Why? )
+
+*** 测试函数
+python ecn_topy.py
+  ecn_test_case.test11_base(net, "TEST11-py-", duration=120)  # 独立测试TEST 11
+python ecn_ovs_helper.py start [ecn | drop]
+    start_opeflow_ecn(queue_min=75000, sleep_interval=0.0025, ecn_policy=ecn)
+
+*** 测试结果
+ result ***
+py-75000-ecn 外部参数: start_opeflow_ecn(queue_min=75000, sleep_interval=0.0025, ecn_policy=True) # ecn
+<h1>: PING h3 (10.0.0.3) 56(84) bytes of data.
+<h1>:
+<h1>: --- h3 ping statistics ---
+<h1>: 1200 packets transmitted, 1200 received, 0% packet loss, time 121258ms
+<h1>: rtt min/avg/max/mdev = 100.070/110.550/406.463/27.224 ms, pipe 4
+<h2>: MIGRATED TCP STREAM TEST from 0.0.0.0 (0.0.0.0) port 0 AF_INET to h3 () port 0 AF_INET : demo
+<h2>: Recv   Send    Send
+<h2>: Socket Socket  Message  Elapsed
+<h2>: Size   Size    Size     Time     Throughput
+<h2>: bytes  bytes   bytes    secs.    10^6bits/sec
+<h2>:
+<h2>: 87380  87380  87380    122.34      6.31
+
+*** 测试结果
+ result ***
+py-75000-drop 外部参数: start_opeflow_ecn(queue_min=75000, sleep_interval=0.0025, ecn_policy=False) # Drop
+<h1>: PING h3 (10.0.0.3) 56(84) bytes of data.
+<h1>:
+<h1>: --- h3 ping statistics ---
+<h1>: 1200 packets transmitted, 1200 received, 0% packet loss, time 121367ms
+<h1>: rtt min/avg/max/mdev = 100.077/120.032/309.755/25.285 ms, pipe 4
+<h2>: MIGRATED TCP STREAM TEST from 0.0.0.0 (0.0.0.0) port 0 AF_INET to h3 () port 0 AF_INET : demo
+<h2>: Recv   Send    Send
+<h2>: Socket Socket  Message  Elapsed
+<h2>: Size   Size    Size     Time     Throughput
+<h2>: bytes  bytes   bytes    secs.    10^6bits/sec
+<h2>:
+<h2>: 87380  87380  87380    124.00      4.60
+
+
+*** 结果分析
 这里看到队列不小的情况下, 延时已经不太好, 而链路利用率不够提高
 说明是
 

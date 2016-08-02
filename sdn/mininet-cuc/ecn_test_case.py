@@ -43,7 +43,7 @@ def test01_04_ecn_red_diff_duration(network, bw=10, latency=50, qlen=200, durati
 
 
 
-def test11_base(network, testname, bw=10, latency=50, qlen=100, duration=10):
+def test11_base(network, testname, bw=10, latency=50, qlen=200, duration=10):
     """
     # 设置 使用 外部 ecn
     :param testname:    # 测试名称
@@ -69,7 +69,7 @@ def test11_base(network, testname, bw=10, latency=50, qlen=100, duration=10):
     test01_06_setup_queue_and_latency(network, ecn=red_ecn, bw=bw, queue_len=qlen, latency=latency,
                                       redminmax=default_minmax)
 
-    for min in [50000]:
+    for min in [75000]:
         testfullname = "%s min:%s qlen:%s bw:%sMbps lat:%sms no red:%s" % (
             testname+str(min), min, qlen, bw, latency, "")
         info("*** setup ecn_ovs_helper (min= %s) for mod_ecn \n" % min)
@@ -105,9 +105,9 @@ def test01_04_ecn_red(network, bw=10, latency=50, qlen=200, duration=10):
 
     # result_all dict 追加入03 04 05 结果
     for testname, redminmax in zip(["TEST02", "TEST03", "TEST04"],
-                                   ["min 70000  max  150000 avpkt 1500",
-                                    "min 75000  max  150000 avpkt 1500",
-                                    "min 80000  max  150000 avpkt 1500"
+                                   ["min 50000  max  150000 avpkt 1500",
+                                    "min 65000  max  150000 avpkt 1500",
+                                    "min 75000  max  150000 avpkt 1500"
                                     ]):
         # result_all = result1.copy()
         # if testname == "TEST02": continue
