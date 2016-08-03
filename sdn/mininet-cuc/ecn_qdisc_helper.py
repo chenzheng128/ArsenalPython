@@ -6,6 +6,8 @@ ecn 端口cmd修改 tc qdisc 的快捷脚本
 使用方法
   ./ecn_qdisc_helper.py help
   ./ecn_qdisc_helper.py netem 100 30.0ms "s1-eth3 s2-eth3"
+
+TODO: 这里的 popen().readlines() 由于没有执行 fd.close() 存在内存泄露问题, 不宜大量调用.
 """
 
 import os
@@ -17,8 +19,8 @@ LOG = MininetLogger()
 
 def os_popen(cmd):
     debug(cmd + "\n")
-    return os.popen(cmd)
-
+    fd = os.popen(cmd)
+    fd.close()
 
 def port_default_config(port, bw=50, tx_queue_len=100, use_filter=False):
     os_popen("tc qdisc del dev %s root" % port)
@@ -63,8 +65,11 @@ def handle_show(port):
 
 
 def handle_get(port):
-    # 查看 handle
-    return "".join(os.popen("tc -s qdisc show dev %s" % port).readlines())
+    # TODO: os.popen to remove "Cannot find device "s1-eth3"" error message
+    fd = os.popen("tc -s qdisc show dev %s" % port)
+    result = "".join(fd.readlines())
+    fd.close()
+    return result
 
 
 def handle_change_netem(port, queue_len=100, delay="10.0ms"):
@@ -119,29 +124,29 @@ def class_change(port, rate):
 
 
 def class_show(port):
-    print("".join(os_popen("tc -s class show dev %s" % port).readlines()))
+    print("".join(os.popen("tc -s class show dev %s" % port).readlines()))
 
 
 def class_get(port, classid=""):
     if classid == "":
-        return "".join(os_popen("tc -s class show dev %s" % port).readlines())
+        return "".join(os.popen("tc -s class show dev %s" % port).readlines())
     else:
-        return "".join(os_popen("tc -s class show dev %s classid %s" % (port, classid)).readlines())
+        return "".join(os.popen("tc -s class show dev %s classid %s" % (port, classid)).readlines())
 
 
 def qos_print_help():
     LOG.info("查看 tc qdisc")
     LOG.info("  普通 pfifo_fast 接口 s3-eth1 状态为:  tc qdisc show dev s3-eth1\n")
-    LOG.debug("\n".join(os_popen('tc qdisc show dev s3-eth1').readlines()))
+    LOG.debug("\n".join(os.popen('tc qdisc show dev s3-eth1').readlines()))
     print "  查看 netem 延时链路 s3-eth2 <->s4-eth1 接口状态为:  tc qdisc show dev s3-eth2 / s4-eth1"
-    LOG.debug("\n".join(os_popen('tc qdisc show dev s3-eth2').readlines()))
-    LOG.debug("\n".join(os_popen('tc qdisc show dev s4-eth1').readlines()))
+    LOG.debug("\n".join(os.popen('tc qdisc show dev s3-eth2').readlines()))
+    LOG.debug("\n".join(os.popen('tc qdisc show dev s4-eth1').readlines()))
     print "  查看 htb qdisc 队列接口 s1-eth3, tc qdisc show dev $NDEV (采用的应是 htb, 而不是 pfifo_fast(普通) 或 netem(延时) )"
-    LOG.debug("\n".join(os_popen('tc qdisc show dev s1-eth3').readlines()))
+    LOG.debug("\n".join(os.popen('tc qdisc show dev s1-eth3').readlines()))
     print "  查看 htb class 队列接口 s1-eth3,  tc class show dev $NDEV"
-    LOG.debug("\n".join(os_popen('tc class show dev s1-eth3').readlines()))
+    LOG.debug("\n".join(os.popen('tc class show dev s1-eth3').readlines()))
     print "  查看 htb filter 队列接口 s1-eth3,  tc filter show dev $NDEV parent 1:0"
-    LOG.debug("\n".join(os_popen('tc filter show dev s1-eth3 parent 1:0').readlines()))
+    LOG.debug("\n".join(os.popen('tc filter show dev s1-eth3 parent 1:0').readlines()))
 
     print "拥塞测试方法:"
     print " 设置 iperf server 测速: h3(xterm)>  iperf -s -p 5002 -m # 监听在5002端口, 会被 tc filter 匹配到队列2中 "

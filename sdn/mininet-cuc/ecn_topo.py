@@ -14,6 +14,7 @@ sudo mn -c ; sudo python ecn_topo.py
 
 """
 import os
+import sys
 from time import sleep
 import sshd
 import ecn_test_case
@@ -124,9 +125,9 @@ class ECNTopo(Topo, object):
             #    func(srcIntf.name), "<->", dstIntf.name
 
 
-def ecn_qos_init(remote_controller=False):
+def ecn_qos_init(remote=False):
     """
-    :param remote_controller 是否使用外部控制器
+    :param remote 是否使用外部控制器
     :return:
     Create and test our QBB network standard"
     初始化拓扑qos; 包括
@@ -144,7 +145,7 @@ def ecn_qos_init(remote_controller=False):
     net = Mininet(topo=topo, controller=None, link=ecn_util.ECNLink, autoSetMacs=True, xterms=False,
                   autoStaticArp=True)
 
-    if remote_controller:
+    if remote:
         # ecn_qdisc_helper.os_popen("PYTHONPATH=/opt/ryu/ /opt/ryu/bin/ryu-manager
         # ryu.app.rest_qos cuc.book.qos_simple_switch_13 ryu.app.rest_conf_switch & ")
         net.addController('c0', controller=RemoteController, ip='127.0.0.1', port=6653)
@@ -158,7 +159,7 @@ def ecn_qos_init(remote_controller=False):
     else:
         net.start()
 
-    if remote_controller:
+    if remote:
         print "*** run this command for remote ryu controller"
         print "cd /opt/ryu; PYTHONPATH=/opt/ryu/ /opt/ryu/bin/ryu-manager " \
               "ryu.app.rest_qos cuc.book.qos_simple_switch_13 ryu.app.rest_conf_switch "
@@ -175,9 +176,9 @@ def ecn_qos_init(remote_controller=False):
     # ecn_test_case.test01_06_setup_queue_and_latency(net) # 初始化 TEST01_06 拓扑 qos
 
     # ecn_test_case.test01_04_ecn_red_duration(net, duration=(1, 180))  # 设置不同时长, 进行TEST01-04测试
-    # ecn_test_case.test01_04_ecn_red(net, duration=180)  # 进行TEST01-04测试
+    ecn_test_case.test01_04_ecn_red(net, duration=180)  # 进行TEST01-04测试
     # ecn_test_case.test01_base(net, "TEST01", duration=18000)  # 独立测试TEST 01
-    ecn_test_case.test11_base(net, "TEST11-py-", duration=120)  # 独立测试TEST 11
+    # ecn_test_case.test11_base(net, "TEST11-py-", duration=120)  # 独立测试TEST 11
 
     # ecn_test_case.TEST05_openflow_ecn(net, duration=1800) # 进行  TEST05 测试
 
@@ -214,7 +215,7 @@ def test_diff_bw(network):
         ecn_util.base_setup_queue_and_latency(net, bw=bw, queue_len=200)
         # run_multi_bench()
         result[bw] = network.iperf(hosts=[network.get("h1"), net.get("h3")])
-    ecn_util.ump_result(result)
+    ecn_util.dump_result(result)
 
 
 def setup_server(network):
@@ -238,12 +239,15 @@ def setup_ssh():
     argvopts = '-D -o UseDNS=no -u0'
     sshd.sshd(net, opts=argvopts, ip="10.0.0.254", routes=["10.0.0.0/24"])
     sleep(3)
-    os.popen('ifconfig root-eth0 10.0.0.254 netmask 255.255.255.0')  # 上面的设置路由接口会丢失, 改为ip设置
-    os.popen('route add -net 10.0.0.0/24 gw 10.0.0.254')
+    ecn_qdisc_helper.os_popen('ifconfig root-eth0 10.0.0.254 netmask 255.255.255.0')  # 上面的设置路由接口会丢失, 改为ip设置
+    ecn_qdisc_helper.os_popen('route add -net 10.0.0.0/24 gw 10.0.0.254')
 
 
 if __name__ == '__main__':
     # Tell mininet to print useful information
     # setLogLevel('info')
     setLogLevel("debug")  # 打开 debug 日志
-    ecn_qos_init(remote_controller=True)  # 使用外部 ryu 控制器, 支持openflow13,  qos_ecn_table=0, fw_table=1
+    remote_controller = False
+    if len(sys.argv) >= 2 and sys.argv[1] == "remote":
+        remote_controller = True
+    ecn_qos_init(remote=remote_controller)  # 使用外部 ryu 控制器, 支持openflow13,  qos_ecn_table=0, fw_table=1

@@ -1,17 +1,60 @@
-
-
-
 使用 openflow 控制 ecn 策略 (外部命令 使用 python ecn_ovs_helper.py 控制 )
+
 
 *** 结果分析
 
+
 openflow ecn 策略比 drop 策略的效率更好. (TODO: red ecn 的策略没有 drop 好. Why? )
 
-*** 测试函数
+
+*** 测试函数 ( 这里使用我们自定义的的ovs-ofclt 进行控制 quick=True)
 python ecn_topy.py
   ecn_test_case.test11_base(net, "TEST11-py-", duration=120)  # 独立测试TEST 11
 python ecn_ovs_helper.py start [ecn | drop]
-    start_opeflow_ecn(queue_min=75000, sleep_interval=0.0025, ecn_policy=ecn)
+    start_opeflow_ecn(queue_min=?????, sleep_interval=0.0025, ecn_policy=ecn, quick=True)
+
+*** 测试结果
+ result ***
+50000: 134.247 NO. 754 queue_min 50000 exceeded  (51476b 17p)
+<h1>: PING h3 (10.0.0.3) 56(84) bytes of data.
+<h2>: MIGRATED TCP STREAM TEST from 0.0.0.0 (0.0.0.0) port 0 AF_INET to h3 () port 0 AF_INET : demo
+<h2>: Recv   Send    Send
+<h2>: Socket Socket  Message  Elapsed
+<h2>: Size   Size    Size     Time     Throughput
+<h2>: bytes  bytes   bytes    secs.    10^6bits/sec
+<h2>:
+<h2>: 87380  87380  87380    120.56      8.48 / 7.07 / 7.37
+<h1>:
+<h1>: --- h3 ping statistics ---
+<h1>: 1200 packets transmitted, 1200 received, 0% packet loss, time 121197ms
+<h1>: rtt min/avg/max/mdev = 100.104/120.340/231.523/16.593 ms, pipe 3
+
+6000: 122.778 NO. 329 queue_min 60000 exceeded  (60560b 20p)
+(ecn_ovs_helper.py)
+<h1>: PING h3 (10.0.0.3) 56(84) bytes of data.
+<h1>:
+<h1>: --- h3 ping statistics ---
+<h1>: 1200 packets transmitted, 1200 received, 0% packet loss, time 121893ms
+<h1>: rtt min/avg/max/mdev = 100.071/122.460/579.230/43.018 ms, pipe 6
+<h2>: MIGRATED TCP STREAM TEST from 0.0.0.0 (0.0.0.0) port 0 AF_INET to h3 () port 0 AF_INET : demo
+<h2>: Recv   Send    Send
+<h2>: Socket Socket  Message  Elapsed
+<h2>: Size   Size    Size     Time     Throughput
+<h2>: bytes  bytes   bytes    secs.    10^6bits/sec
+<h2>:
+<h2>: 87380  87380  87380    129.82      6.95
+
+*** 结果分析
+
+
+openflow ecn 策略比 drop 策略的效率更好. (TODO: red ecn 的策略没有 drop 好. Why? )
+
+
+*** 测试函数 ( 这里使用标准的ovs-ofclt 进行控制 quick=False)
+python ecn_topy.py
+  ecn_test_case.test11_base(net, "TEST11-py-", duration=120)  # 独立测试TEST 11
+python ecn_ovs_helper.py start [ecn | drop]
+    start_opeflow_ecn(queue_min=75000, sleep_interval=0.0025, ecn_policy=ecn, quick=False)
 
 *** 测试结果
  result ***

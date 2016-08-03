@@ -31,16 +31,18 @@ ecn codepoints
 
 import os
 import sys
-from time import sleep
+import time
 import re
 from mininet.log import MininetLogger, debug, info, warn, error
 from ecn_qdisc_helper import os_popen
 import ecn_qdisc_helper
 
 LOG = MininetLogger()
-OFCTL_BIN = "/opt/coding/ovs/utilities/ovs-ofctl"
+OFCTL_BIN = "/usr/local/bin/ovs-ofctl"
+OFCTL_BIN_MY = "/opt/coding/ovs/utilities/ovs-ofctl"
 OFCTL_OPT = "-O Openflow13"
 OFCTL_CMD = "%s %s" % (OFCTL_BIN, OFCTL_OPT)
+OFCTL_CMD_MY = "%s %s" % (OFCTL_BIN_MY, OFCTL_OPT)
 
 
 def switch_ecn_mod():
@@ -51,6 +53,14 @@ def switch_ecn_mod():
     """
     mod_ecn_ce()
     mod_ecn_ect()
+
+
+def switch_ecn_quick():
+    """
+    用我们自己修改的 OFCTL_CMD_MY, 更加快速
+    :return:
+    """
+    os_popen("%s once and del" % OFCTL_CMD_MY)
 
 
 def switch_ecn_add():
@@ -87,14 +97,14 @@ def mod_ecn(value):
 
 def dump_flows():
     info("*** dump-flows \n")
-    debug("".join(os_popen('%s dump-flows s1 %s'
+    debug("".join(os.popen('%s dump-flows s1 %s'
                            % (OFCTL_CMD, "")).readlines()))
 
 
 def init_switch():
     info("*** 初始化交换机 OpenFlow13 协议支持 \n")
     os_popen("ovs-vsctl set bridge s1 protocols=OpenFlow10,OpenFlow13 # 设置s1 交换机 openflow 13 协议支持")
-    debug("".join(os_popen("ovs-vsctl list bridge s1 # | grep protocols #查看s1交换机现有协议").readlines()))
+    debug("".join(os.popen("ovs-vsctl list bridge s1 # | grep protocols #查看s1交换机现有协议").readlines()))
 
     # 初始化 table=0 中的 ip/tcp ecn mod 流 mod之后提交到table=1转发;
     # info("*** add 2 flow in table=0 for ecn ip/tcp #  这里 add-flow之后, 将来作 mod-flows 操作即可 \n")
@@ -106,44 +116,62 @@ def stop():
     pass
 
 
-def start_opeflow_ecn(queue_min, sleep_interval, ecn_policy=True):
+def start_opeflow_ecn(queue_min, sleep_interval, ecn_policy=True, quick=True, duration=10):
     """
     自定义的 red 函数, 通过监控队列, 对ecnjixn
-    :param ecn_policy:            使用 ecn 或是 drop 策略
     :param queue_min:      触发策略的最小队列
     :param sleep_interval: 查询间隔
+    :param ecn_policy:            使用 ecn 或是 drop 策略
+    :param quick 使用自编译的 ovs-ofctl 作高效控制
+    :param duration 运行秒数
     :return:
     """
     init_switch()
 
     pattern = re.compile(r"backlog (\d\d+)b (\d\d+)p")  # 匹配两位数字
-    match_count = 0
+    search_count = 0
+    queue_exceed_count = 1
+    start_second = time.time()
     while True:
         # class_status = (ecn_qdisc_helper.class_get("s1-eth3", "1:2"))
+        # TODO 怀疑这里的 popen有内存泄露
         queue_status = ecn_qdisc_helper.handle_get("s1-eth3")
+        # debug("%s\n", queue_status)
+        # queue_status = ""
         # debug("type:%s, %s" % (type(class_status), class_status))
         # match = re.search(r'hello', 'i am 1hello world!')
         match = pattern.search(queue_status)
+        search_count += 1
+        if (time.time() - start_second) > duration:
+            info("到达结束时间 %s s, bybye. \n" % duration)
+            break
         if match:
-            match_count += 1
             # print ("%sp" % match.group(2))
             qsize = int(match.group(1))
             qlen = int(match.group(2))
-            if (match_count * sleep_interval) % 1 == 0:  # supressing to 1 output / per 1 seconds
-                debug(" %sb %sp " % (qsize, qlen))
+            # if (search_count * sleep_interval) % 3 == 0:  # supressing to 1 output / per 1 seconds
+            # debug(" %sb %sp " % (qsize, qlen))
             if qsize > queue_min:
                 # pass
+                queue_exceed_count += 1
+                exceed_second = time.time() - start_second
+                info("%3.3fs NO.%4s queue_min %s exceeded  (%sb %sp) \n" % (
+                    exceed_second, queue_exceed_count, queue_min, qsize, qlen))
                 if ecn_policy:
-                    switch_ecn_add()
-                    # pass
+                    if quick:
+                        switch_ecn_quick()
+                    else:
+                        switch_ecn_add()
+                        # pass
                 else:
                     switch_drop()
                 # mod_ecn(3)
-                sleep(2)  # 每次修改后至少休息一下, 避免重复提交
+                # sleep(sleep_interval)  # 每次修改后至少休息一下, 避免重复提交
+                continue
         else:
             # print "not maching"
             pass
-        sleep(sleep_interval)
+        time.sleep(sleep_interval)
 
 
 def print_usage(argv):
@@ -160,6 +188,7 @@ def print_usage(argv):
 
 if __name__ == "__main__":
     LOG.setLogLevel("debug")
+    # LOG.setLogLevel("info")
 
     if len(sys.argv) <= 1:
         print_usage(sys.argv)
@@ -174,12 +203,14 @@ if __name__ == "__main__":
         dump_flows()
     elif sys.argv[1] == "start":
         ecn = True
-        if len(sys.argv)>=3 and sys.argv[2] == "drop":
-            ecn = False
-            print "start drop policy ... "
+        duration = 10
+        if len(sys.argv) >= 3:  # and sys.argv[2] == "drop":
+            # ecn = False
+            # print "start drop policy ... "
+            duration = int(sys.argv[2])
         else:
             print "start ecn policy ..."
-        start_opeflow_ecn(queue_min=75000, sleep_interval=0.0025, ecn_policy=ecn)
+        start_opeflow_ecn(queue_min=50000, sleep_interval=0.0025, ecn_policy=ecn, duration=duration)
     elif sys.argv[1] == "mod":
         code = 1
         if len(sys.argv) >= 3:

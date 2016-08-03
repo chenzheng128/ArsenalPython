@@ -69,7 +69,7 @@ def test11_base(network, testname, bw=10, latency=50, qlen=200, duration=10):
     test01_06_setup_queue_and_latency(network, ecn=red_ecn, bw=bw, queue_len=qlen, latency=latency,
                                       redminmax=default_minmax)
 
-    for min in [75000]:
+    for min in ["(ecn_ovs_helper.py)"]:
         testfullname = "%s min:%s qlen:%s bw:%sMbps lat:%sms no red:%s" % (
             testname+str(min), min, qlen, bw, latency, "")
         info("*** setup ecn_ovs_helper (min= %s) for mod_ecn \n" % min)
