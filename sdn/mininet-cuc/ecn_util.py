@@ -101,7 +101,7 @@ def dump_result(results):
         print(fmt % (param, entries))
 
 
-def mesure_ping_and_netperf(network, round_count=1, round_duration=5, ping_interval=1.0, ping=True, netperf=True):
+def mesure_ping_and_netperf(network, round_count=1, round_duration=5, ping_interval=1.0, ping=True, netperf=True, ovs_openflow=False, qmin=50000):
     """
     h1 执行 ping 测试延时
     h2 执行 netperf 测试带宽利用率
@@ -116,10 +116,12 @@ def mesure_ping_and_netperf(network, round_count=1, round_duration=5, ping_inter
     result = ""
     h1 = network.get("h1")
     h2 = network.get("h2")
+    s1 = network.get("s1")
     popens = {}
 
     ping_cmd = "ping -c%s -i%s h3 " % (int(round_duration / ping_interval), ping_interval)
     netperf_cmd = "netperf -H h3 -l %s " % round_duration
+    ovs_openflow_cmd = "/opt/mininet/cuc/ecn_ovs_helper.py start %s %s" % (qmin, round_duration + 15) # 附加15秒时延
     # rr_cmd = "netperf -H h3 -l %s -t TCPRR " % round_duration
     # cmds = "%s;\n%s;\n%s" % (output_cmd, rr_cmd, ping_cmd)
 
@@ -134,6 +136,10 @@ def mesure_ping_and_netperf(network, round_count=1, round_duration=5, ping_inter
             for h in [h2]:
                 info("<%s>: popen cmd: %s \n" % (h.name, netperf_cmd))
                 popens[h] = h.popen(netperf_cmd)
+        if ovs_openflow:
+            for h in [s1]:
+                info("<%s>: popen cmd: %s \n" % (h.name, ovs_openflow_cmd))
+                popens[h] = h.popen(ovs_openflow_cmd)
 
         log_line_count=0
         # Monitor them and print output
@@ -148,7 +154,6 @@ def mesure_ping_and_netperf(network, round_count=1, round_duration=5, ping_inter
                     info("<%s>: %s\n" % (host.name, line.strip()))
                     result += "<%s>: %s\n" % (host.name, line.strip())
 
-    debug("\n".join(os.popen('tc -s -d qdisc show dev s1-eth3').readlines()))
     return result
 
 

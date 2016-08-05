@@ -3,46 +3,111 @@
 
 *** 结果分析
 
-
-openflow ecn 策略比 drop 策略的效率更好. (TODO: red ecn 的策略没有 drop 好. Why? )
-
+三个队列的测试结果 [50000, 60000, 70000], 吞吐带宽不是非常稳定.
 
 *** 测试函数 ( 这里使用我们自定义的的ovs-ofclt 进行控制 quick=True)
 python ecn_topy.py
-  ecn_test_case.test11_base(net, "TEST11-py-", duration=120)  # 独立测试TEST 11
-python ecn_ovs_helper.py start [ecn | drop]
-    start_opeflow_ecn(queue_min=?????, sleep_interval=0.0025, ecn_policy=ecn, quick=True)
+  ecn_test_case.ovs_openflow_ecn(net, "py-", duration=120, qmins=[50000, 60000, 70000])  # 测试三组队列)
 
 *** 测试结果
  result ***
-50000: 134.247 NO. 754 queue_min 50000 exceeded  (51476b 17p)
-<h1>: PING h3 (10.0.0.3) 56(84) bytes of data.
-<h2>: MIGRATED TCP STREAM TEST from 0.0.0.0 (0.0.0.0) port 0 AF_INET to h3 () port 0 AF_INET : demo
-<h2>: Recv   Send    Send
-<h2>: Socket Socket  Message  Elapsed
-<h2>: Size   Size    Size     Time     Throughput
-<h2>: bytes  bytes   bytes    secs.    10^6bits/sec
-<h2>:
-<h2>: 87380  87380  87380    120.56      8.48 / 7.07 / 7.37
-<h1>:
-<h1>: --- h3 ping statistics ---
-<h1>: 1200 packets transmitted, 1200 received, 0% packet loss, time 121197ms
-<h1>: rtt min/avg/max/mdev = 100.104/120.340/231.523/16.593 ms, pipe 3
 
-6000: 122.778 NO. 329 queue_min 60000 exceeded  (60560b 20p)
-(ecn_ovs_helper.py)
+过滤时延固定
+filter_duration_fix = 2ms
+ovs_openflow_ecn openflow-ecn-py-70000 min:70000 qlen:200 bw:10Mbps lat:50ms no red:
 <h1>: PING h3 (10.0.0.3) 56(84) bytes of data.
+<s1>: start ecn policy qmin 70000 duration 120(s)...
 <h1>:
 <h1>: --- h3 ping statistics ---
-<h1>: 1200 packets transmitted, 1200 received, 0% packet loss, time 121893ms
-<h1>: rtt min/avg/max/mdev = 100.071/122.460/579.230/43.018 ms, pipe 6
+<h1>: 1200 packets transmitted, 1200 received, 0% packet loss, time 122078ms
+<h1>: rtt min/avg/max/mdev = 100.078/129.104/576.736/52.160 ms, pipe 6
 <h2>: MIGRATED TCP STREAM TEST from 0.0.0.0 (0.0.0.0) port 0 AF_INET to h3 () port 0 AF_INET : demo
 <h2>: Recv   Send    Send
 <h2>: Socket Socket  Message  Elapsed
 <h2>: Size   Size    Size     Time     Throughput
 <h2>: bytes  bytes   bytes    secs.    10^6bits/sec
 <h2>:
-<h2>: 87380  87380  87380    129.82      6.95
+<h2>: 87380  87380  87380    125.81     6.88 /  7.19 / 7.70
+
+
+
+
+ovs_openflow_ecn py-50000 min:50000 qlen:200 bw:10Mbps lat:50ms no red:
+<h1>: PING h3 (10.0.0.3) 56(84) bytes of data.
+<s1>: start ecn policy qmin 50000 duration 120(s)...
+<h1>:
+<h1>: --- h3 ping statistics ---
+<h1>: 1200 packets transmitted, 1200 received, 0% packet loss, time 121083ms
+<h1>: rtt min/avg/max/mdev = 100.080/115.433/290.496/17.157 ms, pipe 3
+<h2>: MIGRATED TCP STREAM TEST from 0.0.0.0 (0.0.0.0) port 0 AF_INET to h3 () port 0 AF_INET : demo
+<h2>: Recv   Send    Send
+<h2>: Socket Socket  Message  Elapsed
+<h2>: Size   Size    Size     Time     Throughput
+<h2>: bytes  bytes   bytes    secs.    10^6bits/sec
+<h2>:
+<h2>: 87380  87380  87380    120.95      7.72
+
+ovs_openflow_ecn py-60000 min:60000 qlen:200 bw:10Mbps lat:50ms no red:
+<h1>: PING h3 (10.0.0.3) 56(84) bytes of data.
+<s1>: start ecn policy qmin 60000 duration 120(s)...
+<h2>: MIGRATED TCP STREAM TEST from 0.0.0.0 (0.0.0.0) port 0 AF_INET to h3 () port 0 AF_INET : demo
+<h2>: Recv   Send    Send
+<h2>: Socket Socket  Message  Elapsed
+<h2>: Size   Size    Size     Time     Throughput
+<h2>: bytes  bytes   bytes    secs.    10^6bits/sec
+<h2>:
+<h2>: 87380  87380  87380    120.66      8.60 / 8.16
+<h1>:
+<h1>: --- h3 ping statistics ---
+<h1>: 1200 packets transmitted, 1200 received, 0% packet loss, time 121106ms
+<h1>: rtt min/avg/max/mdev = 100.090/121.475/163.448/17.315 ms, pipe 2
+
+
+ovs_openflow_ecn py-65000 min:65000 qlen:200 bw:10Mbps lat:50ms no red:
+<h1>: PING h3 (10.0.0.3) 56(84) bytes of data.
+<s1>: start ecn policy qmin 65000 duration 120(s)...
+<h1>:
+<h1>: --- h3 ping statistics ---
+<h1>: 1200 packets transmitted, 1200 received, 0% packet loss, time 120977ms
+<h1>: rtt min/avg/max/mdev = 100.053/116.314/174.225/18.549 ms, pipe 2
+<h2>: MIGRATED TCP STREAM TEST from 0.0.0.0 (0.0.0.0) port 0 AF_INET to h3 () port 0 AF_INET : demo
+<h2>: Recv   Send    Send
+<h2>: Socket Socket  Message  Elapsed
+<h2>: Size   Size    Size     Time     Throughput
+<h2>: bytes  bytes   bytes    secs.    10^6bits/sec
+<h2>:
+<h2>: 87380  87380  87380    120.78      7.88 / 8.27
+
+ovs_openflow_ecn py-70000 min:70000 qlen:200 bw:10Mbps lat:50ms no red:
+<h1>: PING h3 (10.0.0.3) 56(84) bytes of data.
+<s1>: start ecn policy qmin 70000 duration 120(s)...
+<h2>: MIGRATED TCP STREAM TEST from 0.0.0.0 (0.0.0.0) port 0 AF_INET to h3 () port 0 AF_INET : demo
+<h2>: Recv   Send    Send
+<h2>: Socket Socket  Message  Elapsed
+<h2>: Size   Size    Size     Time     Throughput
+<h2>: bytes  bytes   bytes    secs.    10^6bits/sec
+<h2>:
+<h2>: 87380  87380  87380    120.77       7.57 / 8.52 (8M 的结果无法再恢复出了, 奇怪)
+<h1>:
+<h1>: --- h3 ping statistics ---
+<h1>: 1200 packets transmitted, 1200 received, 0% packet loss, time 121224ms
+<h1>: rtt min/avg/max/mdev = 100.073/117.019/174.362/19.760 ms, pipe 2
+
+ovs_openflow_ecn py-75000 min:75000 qlen:200 bw:10Mbps lat:50ms no red:
+<h1>: PING h3 (10.0.0.3) 56(84) bytes of data.
+<s1>: start ecn policy qmin 75000 duration 120(s)...
+<h1>:
+<h1>: --- h3 ping statistics ---
+<h1>: 1200 packets transmitted, 1200 received, 0% packet loss, time 120924ms
+<h1>: rtt min/avg/max/mdev = 100.076/128.965/170.435/20.059 ms, pipe 2
+<h2>: MIGRATED TCP STREAM TEST from 0.0.0.0 (0.0.0.0) port 0 AF_INET to h3 () port 0 AF_INET : demo
+<h2>: Recv   Send    Send
+<h2>: Socket Socket  Message  Elapsed
+<h2>: Size   Size    Size     Time     Throughput
+<h2>: bytes  bytes   bytes    secs.    10^6bits/sec
+<h2>:
+<h2>: 87380  87380  87380    120.69      9.03
+
 
 *** 结果分析
 

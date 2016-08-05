@@ -33,7 +33,24 @@ ln -sf /opt/sdn/mininet-cuc/ cuc
 
 ## 实验拓扑
 
-启动拓扑: `ssh -Y mininet; cd /opt/mininet/cuc;  sudo python ecn_topo.py`
+
+不同终端terminal下的相关启动命令
+```
+# 启动拓扑: 
+ ssh -Y mininet; cd /opt/mininet/cuc;  sudo python ecn_topo.py [remote] # 是否使用remote控制器
+# 启动 ryu remote 控制器
+ cd /opt/ryu; PYTHONPATH=/opt/ryu/ /opt/ryu/bin/ryu-manager ryu.app.rest_qos cuc.book.qos_simple_switch_13 ryu.app.rest_conf_switch
+# 监控带宽 与 flow表
+ watch -n 0.2 tc -s qdisc show dev s1-eth3
+ watch -n 1  ovs-ofctl dump-flows s1
+# 打开wireshark 分析抓包  
+ export DISPLAY="127.0.0.1:10.0" ; wireshark &
+# 手工运行外部 openflow ecn, 而不是使用 ovs_openflow=False 开关, 便于观察日志
+  /usr/bin/python /opt/mininet/cuc/ecn_ovs_helper.py start 70000 200
+
+# 清除多次运行后的余留 netserver 进程
+ for x in `ps -ef | grep netserver | awk {'print $2'}`; do kill $x; done
+```
 
 在 `ecn_topo.py` 拓扑中可以运行在 `ecn_test_case.py` 中的多个实验评估
 

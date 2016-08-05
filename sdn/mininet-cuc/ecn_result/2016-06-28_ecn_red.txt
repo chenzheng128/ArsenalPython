@@ -53,7 +53,7 @@ TEST01 ECN:False qlen:200 bw:10Mbps lat:50ms no red:
 <h2>: Size   Size    Size     Time     Throughput
 <h2>: bytes  bytes   bytes    secs.    10^6bits/sec
 <h2>:
-<h2>: 87380  87380  87380    180.73      9.34 / 9.36
+<h2>: 87380  87380  87380    180.73      9.34 / 9.36 / 9.32
 <h1>:
 <h1>: --- h3 ping statistics ---
 <h1>: 1800 packets transmitted, 1785 received, 0% packet loss, time 182600ms

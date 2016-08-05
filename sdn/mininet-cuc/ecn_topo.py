@@ -176,9 +176,15 @@ def ecn_qos_init(remote=False):
     # ecn_test_case.test01_06_setup_queue_and_latency(net) # 初始化 TEST01_06 拓扑 qos
 
     # ecn_test_case.test01_04_ecn_red_duration(net, duration=(1, 180))  # 设置不同时长, 进行TEST01-04测试
-    ecn_test_case.test01_04_ecn_red(net, duration=180)  # 进行TEST01-04测试
-    # ecn_test_case.test01_base(net, "TEST01", duration=18000)  # 独立测试TEST 01
-    # ecn_test_case.test11_base(net, "TEST11-py-", duration=120)  # 独立测试TEST 11
+    # red ecn 进行TEST01-04测试
+    # ecn_test_case.test01_04_ecn_red(net, duration=180)
+
+    # red ecn 70000 with 9.3 Mbps
+    # ecn_test_case.test02_04_base_ecn_red(net, "red-ecn-70000", redminmax="min 70000  max  150000 avpkt 1500", duration=120)
+    # no ecn
+    # ecn_test_case.test01_base(net, "TEST01", duration=120)  # 独立测试TEST 01
+    # openflow ecn
+    ecn_test_case.ovs_openflow_ecn(net, "openflow-ecn-py-", duration=120, qmins=[70000])  # 测试三组队列
 
     # ecn_test_case.TEST05_openflow_ecn(net, duration=1800) # 进行  TEST05 测试
 

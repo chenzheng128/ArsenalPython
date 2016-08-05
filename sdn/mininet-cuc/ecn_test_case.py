@@ -42,8 +42,7 @@ def test01_04_ecn_red_diff_duration(network, bw=10, latency=50, qlen=200, durati
         ecn_util.dump_result(results[key])
 
 
-
-def test11_base(network, testname, bw=10, latency=50, qlen=200, duration=10):
+def ovs_openflow_ecn(network, testname, bw=10, latency=50, qlen=200, duration=10, qmins=[50000]):
     """
     # 设置 使用 外部 ecn
     :param testname:    # 测试名称
@@ -58,9 +57,6 @@ def test11_base(network, testname, bw=10, latency=50, qlen=200, duration=10):
     result_all = {}
     red_ecn = False
 
-    def run_this_bench():
-        return ecn_util.mesure_ping_and_netperf(network, round_count=1, round_duration=duration, ping_interval=0.1)
-
     # 无ecn测试 TEST01
     default_minmax = ""
     queue_setup_fullname = "%s ECN:%s qlen:%s bw:%sMbps lat:%sms no red:%s" % (
@@ -69,16 +65,15 @@ def test11_base(network, testname, bw=10, latency=50, qlen=200, duration=10):
     test01_06_setup_queue_and_latency(network, ecn=red_ecn, bw=bw, queue_len=qlen, latency=latency,
                                       redminmax=default_minmax)
 
-    for min in ["(ecn_ovs_helper.py)"]:
-        testfullname = "%s min:%s qlen:%s bw:%sMbps lat:%sms no red:%s" % (
-            testname+str(min), min, qlen, bw, latency, "")
-        info("*** setup ecn_ovs_helper (min= %s) for mod_ecn \n" % min)
+    for min_queue in qmins:
+        testfullname = "ovs_openflow_ecn %s min:%s qlen:%s bw:%sMbps lat:%sms no red:%s" % (
+            testname + str(min_queue), min_queue, qlen, bw, latency, "")
+        info("*** setup ecn_ovs_helper (min= %s) for mod_ecn \n" % min_queue)
         ecn_ovs_helper.init_switch()
-        # ecn_ovs_helper.stop()
-        # ecn_ovs_helper.start(min)
-        # ecn_qdisc_helper.os_popen("/opt/mininet/cuc/ecn_ovs_helper.py new_red & " % min)
         info("*** running %s ...\n" % testfullname)
-        result_all[min] = run_this_bench()
+        result_all[testfullname] = ecn_util.mesure_ping_and_netperf(network, round_count=1, round_duration=duration,
+                                                                    ping_interval=0.1, ovs_openflow=True,
+                                                                    qmin=min_queue)
 
     ecn_util.dump_result(result_all)
     return result_all
