@@ -50,6 +50,8 @@ ln -sf /opt/sdn/mininet-cuc/ cuc
 
 # 清除多次运行后的余留 netserver 进程
  for x in `ps -ef | grep netserver | awk {'print $2'}`; do kill $x; done
+# 启动自编译的 ovs 交换机
+ ovs-rc-vswitchd.sh restart && ovsdb-rc.sh restart
 ```
 
 在 `ecn_topo.py` 拓扑中可以运行在 `ecn_test_case.py` 中的多个实验评估
@@ -134,3 +136,13 @@ sudo ./bin/ovsdb-rc.sh #(可选) 启动自安装 ovsdb 服务
 sudo ./bin/ovs-rc-vswitchd.sh #(可选) 启动自安装 ovs-vswitch服务
 sudo mn -c && sudo python <your-topo>.py  #设置拓扑
 ```
+
+## ovs 内核编译
+cd /opt/coding/ovs
+# 配置当前内核头文件
+./configure --with-linux='/lib/modules/`uname -r`/build' # 3.13.0-86-generic
+cd datapath/linux
+# 编译并安装内核 
+make && cp /opt/coding/ovs/datapath/linux/openvswitch.ko /lib/modules/`uname -r/updates/dkms/openvswitch.ko && rmmod openvswitch && modprobe -v openvswitch && modinfo openvswitch
+# 重启ovs交换机使新内核生效
+ovs-rc-vswitchd.sh restart && ovsdb-rc.sh restart

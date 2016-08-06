@@ -193,6 +193,7 @@ def ecn_qos_init(remote=False):
     # openflow ecn
 
     # ecn_test_case.ovs_openflow_ecn(net, "openflow-ecn-py-", duration=120, qmins=[200000, 250000])  # 测试多组队列
+    ecn_test_case.ovs_openflow_ecn(net, "openflow-ecn-py-", duration=5, qmins=[250000])  # 测试多组队列
 
     # ecn_test_case.TEST05_openflow_ecn(net, duration=1800) # 进行  TEST05 测试
 
