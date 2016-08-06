@@ -2,15 +2,67 @@
 
 
 *** 结果分析
+qmin=250000 的带宽效果较为理想
 
 三个队列的测试结果 [50000, 60000, 70000], 吞吐带宽不是非常稳定.
+增长到 [200000, 250000] 进行测试. 注意需要关闭 ryu 避免cpu利用率过高
+这里固定 filter 间隔 filter_ms = 3.5 毫秒
 
 *** 测试函数 ( 这里使用我们自定义的的ovs-ofclt 进行控制 quick=True)
 python ecn_topy.py
-  ecn_test_case.ovs_openflow_ecn(net, "py-", duration=120, qmins=[50000, 60000, 70000])  # 测试三组队列)
+  ecn_test_case.ovs_openflow_ecn(net, "py-", duration=120, qmins=[200000, 250000])  # 测试多组队列)
 
 *** 测试结果
+
  result ***
+ovs_openflow_ecn openflow-ecn-py-200000 min:200000 qlen:200 bw:10Mbps lat:50ms no red:
+<h1>: PING h3 (10.0.0.3) 56(84) bytes of data.
+<h1>:
+<h1>: --- h3 ping statistics ---
+<h1>: 1200 packets transmitted, 1200 received, 0% packet loss, time 121211ms
+<h1>: rtt min/avg/max/mdev = 100.093/166.324/418.949/50.748 ms, pipe 4
+<h2>: MIGRATED TCP STREAM TEST from 0.0.0.0 (0.0.0.0) port 0 AF_INET to h3 () port 0 AF_INET : demo
+<h2>: Recv   Send    Send
+<h2>: Socket Socket  Message  Elapsed
+<h2>: Size   Size    Size     Time     Throughput
+<h2>: bytes  bytes   bytes    secs.    10^6bits/sec
+<h2>:
+<h2>: 87380  87380  87380    121.57      9.09
+<s1>: start ecn policy qmin 200000 duration 135(s)...
+
+ result ***  250000
+ovs_openflow_ecn openflow-ecn-py-250000 min:250000 qlen:200 bw:10Mbps lat:50ms no red:
+<h1>: PING h3 (10.0.0.3) 56(84) bytes of data.
+<h1>:
+<h1>: --- h3 ping statistics ---
+<h1>: 1200 packets transmitted, 1200 received, 0% packet loss, time 121885ms
+<h1>: rtt min/avg/max/mdev = 100.087/197.408/421.842/59.268 ms, pipe 5
+<h2>: MIGRATED TCP STREAM TEST from 0.0.0.0 (0.0.0.0) port 0 AF_INET to h3 () port 0 AF_INET : demo
+<h2>: Recv   Send    Send
+<h2>: Socket Socket  Message  Elapsed
+<h2>: Size   Size    Size     Time     Throughput
+<h2>: bytes  bytes   bytes    secs.    10^6bits/sec
+<h2>:
+<h2>: 87380  87380  87380    121.58      9.41 / 9.42
+<s1>: start ecn policy qmin 250000 duration 135(s)...
+
+
+ result *** 0.0025
+ovs_openflow_ecn openflow-ecn-py-150000 min:150000 qlen:200 bw:10Mbps lat:50ms no red:
+<h1>: PING h3 (10.0.0.3) 56(84) bytes of data.
+<h1>:
+<h1>: --- h3 ping statistics ---
+<h1>: 1200 packets transmitted, 1200 received, 0% packet loss, time 122515ms
+<h1>: rtt min/avg/max/mdev = 100.066/125.199/513.275/45.224 ms, pipe 5
+<h2>: MIGRATED TCP STREAM TEST from 0.0.0.0 (0.0.0.0) port 0 AF_INET to h3 () port 0 AF_INET : demo
+<h2>: Recv   Send    Send
+<h2>: Socket Socket  Message  Elapsed
+<h2>: Size   Size    Size     Time     Throughput
+<h2>: bytes  bytes   bytes    secs.    10^6bits/sec
+<h2>:
+<h2>: 87380  87380  87380    129.76      6.69
+<s1>: start ecn policy qmin 150000 duration 135(s)...
+
 
 过滤时延固定
 filter_duration_fix = 2ms
