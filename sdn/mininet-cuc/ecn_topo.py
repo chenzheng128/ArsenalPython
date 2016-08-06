@@ -159,6 +159,12 @@ def ecn_qos_init(remote=False):
     else:
         net.start()
 
+    # 手工添加给 dpctl 使用的 s1 交换机的 6634 监听端口 (Why? 为什么用命令行增加的交换机不用手工加这个参数? )
+    ecn_qdisc_helper.os_popen(
+        'ovs-vsctl  --id=@s1c0 create Controller target="tcp\:127.0.0.1\:6633" max_backoff=1000 '
+        '-- --id=@s1-listen create Controller target="ptcp\:6634" max_backoff=1000 '
+        '-- set bridge s1 controller=[@s1c0,@s1-listen] ')
+
     if remote:
         print "*** run this command for remote ryu controller"
         print "cd /opt/ryu; PYTHONPATH=/opt/ryu/ /opt/ryu/bin/ryu-manager " \
@@ -180,7 +186,8 @@ def ecn_qos_init(remote=False):
     # ecn_test_case.test01_04_ecn_red(net, duration=180)
 
     # red ecn 70000 with 9.3 Mbps
-    # ecn_test_case.test02_04_base_ecn_red(net, "red-ecn-70000", redminmax="min 70000  max  150000 avpkt 1500", duration=120)
+    # ecn_test_case.test02_04_base_ecn_red(net, "red-ecn-70000",
+    #  redminmax="min 70000  max  150000 avpkt 1500", duration=120)
     # no ecn
     # ecn_test_case.test01_base(net, "TEST01", duration=120)  # 独立测试TEST 01
     # openflow ecn
