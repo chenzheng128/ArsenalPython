@@ -137,12 +137,15 @@ sudo ./bin/ovs-rc-vswitchd.sh #(可选) 启动自安装 ovs-vswitch服务
 sudo mn -c && sudo python <your-topo>.py  #设置拓扑
 ```
 
-## ovs 内核编译
-cd /opt/coding/ovs
-# 配置当前内核头文件
-./configure --with-linux='/lib/modules/`uname -r`/build' # 3.13.0-86-generic
-cd datapath/linux
-# 编译并安装内核 
-make && cp /opt/coding/ovs/datapath/linux/openvswitch.ko /lib/modules/`uname -r/updates/dkms/openvswitch.ko && rmmod openvswitch && modprobe -v openvswitch && modinfo openvswitch
-# 重启ovs交换机使新内核生效
-ovs-rc-vswitchd.sh restart && ovsdb-rc.sh restart
+## ovs (for ecn_tcp) 内核编译
+
+* 参考: https://github.com/chenzheng128/ovs/tree/ecn240
+* linux 内核头文件
+```
+ # 进入内核头文件路径 
+ cd /usr/src/linux-headers-`uname -r` # 3.13.0-86-generic
+ # 在目录下查找相关的头文件, 复制到上级目录便于查看并添加注释
+ grep "some_code" * -R
+ cp <some_file>.h ../linux-header/
+ 
+```
