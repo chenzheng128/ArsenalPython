@@ -101,10 +101,17 @@ def dump_result(results):
         print(fmt % (param, entries))
 
 
-def mesure_ping_and_netperf(network, round_count=1, round_duration=5, ping_interval=1.0, ping=True, netperf=True, ovs_openflow=False, qmin=50000):
+def mesure_ping_and_netperf(network, round_count=1, round_duration=5,
+                            ping_interval=1.0, ping=True, netperf=True,
+                            ovs_openflow=False, qmin=50000,
+                            ecn_tcp_flag=False
+                            ):
     """
     h1 执行 ping 测试延时
     h2 执行 netperf 测试带宽利用率
+    :param qmin:          queue min 监控大小
+    :param ovs_openflow:  使用 openflow ovs 控制 ecn
+    :param ecn_tcp_flag : 使用ecn tcp 或 ip 控制
     :param network: mininet class
     :param round_count:    循环次数
     :param round_duration: 循环时间每轮
@@ -121,7 +128,12 @@ def mesure_ping_and_netperf(network, round_count=1, round_duration=5, ping_inter
 
     ping_cmd = "ping -c%s -i%s h3 " % (int(round_duration / ping_interval), ping_interval)
     netperf_cmd = "netperf -H h3 -l %s " % round_duration
-    ovs_openflow_cmd = "/opt/mininet/cuc/ecn_ovs_helper.py start %s %s" % (qmin, round_duration + 15) # 附加15秒时延
+    if ecn_tcp_flag:
+        ecn_sub_cmd = "ecn_tcp"
+    else:
+        ecn_sub_cmd = "ecn_ip"
+    ovs_openflow_cmd = "/opt/mininet/cuc/ecn_ovs_helper.py start %s %s %s" \
+                       % (ecn_sub_cmd, qmin, round_duration + 15)  # 附加15秒时延
     # rr_cmd = "netperf -H h3 -l %s -t TCPRR " % round_duration
     # cmds = "%s;\n%s;\n%s" % (output_cmd, rr_cmd, ping_cmd)
 
@@ -141,14 +153,14 @@ def mesure_ping_and_netperf(network, round_count=1, round_duration=5, ping_inter
                 info("<%s>: popen cmd: %s \n" % (h.name, ovs_openflow_cmd))
                 popens[h] = h.popen(ovs_openflow_cmd)
 
-        log_line_count=0
+        log_line_count = 0
         # Monitor them and print output
         for host, line in pmonitor(popens):
             if host:
-                log_line_count+=1
+                log_line_count += 1
                 if line.find("icmp_seq") != -1:
                     debug("<%s>: %s\n" % (host.name, line.strip()))  # suppressed ping output to debug level
-                    if (log_line_count % (3/ping_interval)) == 0:   # every 3 second print line 便于在 info 模式下观察
+                    if (log_line_count % (3 / ping_interval)) == 0:  # every 3 second print line 便于在 info 模式下观察
                         info("<%s>: %s\n" % (host.name, line.strip()))
                 else:
                     info("<%s>: %s\n" % (host.name, line.strip()))

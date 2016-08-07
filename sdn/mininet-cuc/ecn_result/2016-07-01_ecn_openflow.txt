@@ -1,7 +1,47 @@
 使用 openflow 控制 ecn 策略 (外部命令 使用 python ecn_ovs_helper.py 控制 )
 
+*** ecn_tcp 结果分析
+qmin=200000 的 ecn_tcp (9.46M) 带宽效果明显优于 ecn_ip (9.09M), 接近red, 延时效果也好 (137/44, 166/50)
+qmin=250000 的 ecn_tcp (9.52M) 带宽效果优于 ecn_ip (9.41M), 延时效果中 mdev 也更好
 
-*** 结果分析
+
+*** 测试结果 使用ecn_tcp
+ result ***
+
+sdn_ecn ecn-tcp-py-200000 min:200000 qlen:200 bw:10Mbps lat:50ms no red:
+<h1>: PING h3 (10.0.0.3) 56(84) bytes of data.
+<h1>:
+<h1>: --- h3 ping statistics ---
+<h1>: 1200 packets transmitted, 1200 received, 0% packet loss, time 121397ms
+<h1>: rtt min/avg/max/mdev = 100.079/137.785/272.874/44.021 ms, pipe 3
+<h2>: MIGRATED TCP STREAM TEST from 0.0.0.0 (0.0.0.0) port 0 AF_INET to h3 () port 0 AF_INET : demo
+<h2>: Recv   Send    Send
+<h2>: Socket Socket  Message  Elapsed
+<h2>: Size   Size    Size     Time     Throughput
+<h2>: bytes  bytes   bytes    secs.    10^6bits/sec
+<h2>:
+<h2>: 87380  87380  87380    121.20      9.46 / 9.48
+<s1>: start ecn_ip policy ...
+<s1>: monitor_queue_mininal=200000 duration=135(s) sleep_interval_ms=0.0025.
+
+ecn_tcp ecn-tcp-py-250000 min:250000 qlen:200 bw:10Mbps lat:50ms no red:
+<h1>: PING h3 (10.0.0.3) 56(84) bytes of data.
+<h2>: MIGRATED TCP STREAM TEST from 0.0.0.0 (0.0.0.0) port 0 AF_INET to h3 () port 0 AF_INET : demo
+<h2>: Recv   Send    Send
+<h2>: Socket Socket  Message  Elapsed
+<h2>: Size   Size    Size     Time     Throughput
+<h2>: bytes  bytes   bytes    secs.    10^6bits/sec
+<h2>:
+<h2>: 87380  87380  87380    121.00      9.52
+<h1>:
+<h1>: --- h3 ping statistics ---
+<h1>: 1200 packets transmitted, 1200 received, 0% packet loss, time 121679ms
+<h1>: rtt min/avg/max/mdev = 100.127/209.195/343.882/42.001 ms, pipe 4
+<s1>: start ecn_ip policy ...
+<s1>: monitor_queue_mininal=250000 duration=135(s) sleep_interval_ms=0.0025...
+
+
+*** ecn_ip 结果分析
 qmin=250000 的带宽效果较为理想
 
 三个队列的测试结果 [50000, 60000, 70000], 吞吐带宽不是非常稳定.
@@ -10,12 +50,12 @@ qmin=250000 的带宽效果较为理想
 
 *** 测试函数 ( 这里使用我们自定义的的ovs-ofclt 进行控制 quick=True)
 python ecn_topy.py
-  ecn_test_case.ovs_openflow_ecn(net, "py-", duration=120, qmins=[200000, 250000])  # 测试多组队列)
+  ecn_test_case.sdn_ecn(net, "py-", duration=120, qmins=[200000, 250000])  # 测试多组队列)
 
-*** 测试结果
+*** 测试结果 ecn_ip
 
  result ***
-ovs_openflow_ecn openflow-ecn-py-200000 min:200000 qlen:200 bw:10Mbps lat:50ms no red:
+sdn_ecn ecn-ip-py-200000 min:200000 qlen:200 bw:10Mbps lat:50ms no red:
 <h1>: PING h3 (10.0.0.3) 56(84) bytes of data.
 <h1>:
 <h1>: --- h3 ping statistics ---
@@ -31,7 +71,7 @@ ovs_openflow_ecn openflow-ecn-py-200000 min:200000 qlen:200 bw:10Mbps lat:50ms n
 <s1>: start ecn policy qmin 200000 duration 135(s)...
 
  result ***  250000
-ovs_openflow_ecn openflow-ecn-py-250000 min:250000 qlen:200 bw:10Mbps lat:50ms no red:
+sdn_ecn ecn-ip-py-250000 min:250000 qlen:200 bw:10Mbps lat:50ms no red:
 <h1>: PING h3 (10.0.0.3) 56(84) bytes of data.
 <h1>:
 <h1>: --- h3 ping statistics ---
@@ -48,7 +88,7 @@ ovs_openflow_ecn openflow-ecn-py-250000 min:250000 qlen:200 bw:10Mbps lat:50ms n
 
 
  result *** 0.0025
-ovs_openflow_ecn openflow-ecn-py-150000 min:150000 qlen:200 bw:10Mbps lat:50ms no red:
+sdn_ecn ecn-ip-py-150000 min:150000 qlen:200 bw:10Mbps lat:50ms no red:
 <h1>: PING h3 (10.0.0.3) 56(84) bytes of data.
 <h1>:
 <h1>: --- h3 ping statistics ---
@@ -66,7 +106,7 @@ ovs_openflow_ecn openflow-ecn-py-150000 min:150000 qlen:200 bw:10Mbps lat:50ms n
 
 过滤时延固定
 filter_duration_fix = 2ms
-ovs_openflow_ecn openflow-ecn-py-70000 min:70000 qlen:200 bw:10Mbps lat:50ms no red:
+sdn_ecn ecn-py-70000 min:70000 qlen:200 bw:10Mbps lat:50ms no red:
 <h1>: PING h3 (10.0.0.3) 56(84) bytes of data.
 <s1>: start ecn policy qmin 70000 duration 120(s)...
 <h1>:
@@ -84,7 +124,7 @@ ovs_openflow_ecn openflow-ecn-py-70000 min:70000 qlen:200 bw:10Mbps lat:50ms no 
 
 
 
-ovs_openflow_ecn py-50000 min:50000 qlen:200 bw:10Mbps lat:50ms no red:
+sdn_ecn py-50000 min:50000 qlen:200 bw:10Mbps lat:50ms no red:
 <h1>: PING h3 (10.0.0.3) 56(84) bytes of data.
 <s1>: start ecn policy qmin 50000 duration 120(s)...
 <h1>:
@@ -99,7 +139,7 @@ ovs_openflow_ecn py-50000 min:50000 qlen:200 bw:10Mbps lat:50ms no red:
 <h2>:
 <h2>: 87380  87380  87380    120.95      7.72
 
-ovs_openflow_ecn py-60000 min:60000 qlen:200 bw:10Mbps lat:50ms no red:
+sdn_ecn py-60000 min:60000 qlen:200 bw:10Mbps lat:50ms no red:
 <h1>: PING h3 (10.0.0.3) 56(84) bytes of data.
 <s1>: start ecn policy qmin 60000 duration 120(s)...
 <h2>: MIGRATED TCP STREAM TEST from 0.0.0.0 (0.0.0.0) port 0 AF_INET to h3 () port 0 AF_INET : demo
@@ -115,7 +155,7 @@ ovs_openflow_ecn py-60000 min:60000 qlen:200 bw:10Mbps lat:50ms no red:
 <h1>: rtt min/avg/max/mdev = 100.090/121.475/163.448/17.315 ms, pipe 2
 
 
-ovs_openflow_ecn py-65000 min:65000 qlen:200 bw:10Mbps lat:50ms no red:
+sdn_ecn py-65000 min:65000 qlen:200 bw:10Mbps lat:50ms no red:
 <h1>: PING h3 (10.0.0.3) 56(84) bytes of data.
 <s1>: start ecn policy qmin 65000 duration 120(s)...
 <h1>:
@@ -130,7 +170,7 @@ ovs_openflow_ecn py-65000 min:65000 qlen:200 bw:10Mbps lat:50ms no red:
 <h2>:
 <h2>: 87380  87380  87380    120.78      7.88 / 8.27
 
-ovs_openflow_ecn py-70000 min:70000 qlen:200 bw:10Mbps lat:50ms no red:
+sdn_ecn py-70000 min:70000 qlen:200 bw:10Mbps lat:50ms no red:
 <h1>: PING h3 (10.0.0.3) 56(84) bytes of data.
 <s1>: start ecn policy qmin 70000 duration 120(s)...
 <h2>: MIGRATED TCP STREAM TEST from 0.0.0.0 (0.0.0.0) port 0 AF_INET to h3 () port 0 AF_INET : demo
@@ -145,7 +185,7 @@ ovs_openflow_ecn py-70000 min:70000 qlen:200 bw:10Mbps lat:50ms no red:
 <h1>: 1200 packets transmitted, 1200 received, 0% packet loss, time 121224ms
 <h1>: rtt min/avg/max/mdev = 100.073/117.019/174.362/19.760 ms, pipe 2
 
-ovs_openflow_ecn py-75000 min:75000 qlen:200 bw:10Mbps lat:50ms no red:
+sdn_ecn py-75000 min:75000 qlen:200 bw:10Mbps lat:50ms no red:
 <h1>: PING h3 (10.0.0.3) 56(84) bytes of data.
 <s1>: start ecn policy qmin 75000 duration 120(s)...
 <h1>:

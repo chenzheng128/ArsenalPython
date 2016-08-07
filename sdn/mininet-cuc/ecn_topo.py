@@ -160,6 +160,7 @@ def ecn_qos_init(remote=False):
         net.start()
 
     # 手工添加给 dpctl 使用的 s1 交换机的 6634 监听端口 (Why? 为什么用命令行增加的交换机不用手工加这个参数? )
+    # 这样可以使用命令 dpctl dump-flows tcp:127.0.0.1:6634 查询内核流表
     ecn_qdisc_helper.os_popen(
         'ovs-vsctl  --id=@s1c0 create Controller target="tcp\:127.0.0.1\:6633" max_backoff=1000 '
         '-- --id=@s1-listen create Controller target="ptcp\:6634" max_backoff=1000 '
@@ -193,7 +194,9 @@ def ecn_qos_init(remote=False):
     # openflow ecn
 
     # ecn_test_case.ovs_openflow_ecn(net, "openflow-ecn-py-", duration=120, qmins=[200000, 250000])  # 测试多组队列
-    ecn_test_case.ovs_openflow_ecn(net, "openflow-ecn-py-", duration=5, qmins=[250000])  # 测试多组队列
+    # ecn_test_case.ovs_openflow_ecn(net, "openflow-ecn-py-", duration=60, qmins=[250000])  # 测试多组队列
+    # ecn_test_case.ovs_openflow_ecn(net, "openflow-ecn-ip-py-", duration=60, qmins=[250000])  # 测试多组队列
+    ecn_test_case.ovs_openflow_ecn(net, "openflow-ecn-tcp-py-", duration=120, qmins=[200000], ecn_tcp_flag=True)  # 测试多组队列
 
     # ecn_test_case.TEST05_openflow_ecn(net, duration=1800) # 进行  TEST05 测试
 

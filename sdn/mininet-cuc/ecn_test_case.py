@@ -42,9 +42,11 @@ def test01_04_ecn_red_diff_duration(network, bw=10, latency=50, qlen=200, durati
         ecn_util.dump_result(results[key])
 
 
-def ovs_openflow_ecn(network, testname, bw=10, latency=50, qlen=200, duration=10, qmins=[50000]):
+def ovs_openflow_ecn(network, testname, bw=10, latency=50, qlen=200, duration=10, qmins=[50000], ecn_tcp_flag=False):
     """
     # 设置 使用 外部 ecn
+    :param qmins:          queue min 监控大小
+    :param ecn_tcp_flag : 使用ecn tcp 或 ip 控制
     :param testname:    # 测试名称
     :param network:
     :param bw:          # 10Mbps 带宽
@@ -66,14 +68,14 @@ def ovs_openflow_ecn(network, testname, bw=10, latency=50, qlen=200, duration=10
                                       redminmax=default_minmax)
 
     for min_queue in qmins:
-        testfullname = "ovs_openflow_ecn %s min:%s qlen:%s bw:%sMbps lat:%sms no red:%s" % (
+        testfullname = "sdn_ecn %s min:%s qlen:%s bw:%sMbps lat:%sms no red:%s" % (
             testname + str(min_queue), min_queue, qlen, bw, latency, "")
         info("*** setup ecn_ovs_helper (min= %s) for mod_ecn \n" % min_queue)
         ecn_ovs_helper.init_switch()
         info("*** running %s ...\n" % testfullname)
         result_all[testfullname] = ecn_util.mesure_ping_and_netperf(network, round_count=1, round_duration=duration,
                                                                     ping_interval=0.1, ovs_openflow=True,
-                                                                    qmin=min_queue)
+                                                                    qmin=min_queue, ecn_tcp_flag=ecn_tcp_flag)
 
     ecn_util.dump_result(result_all)
     return result_all
