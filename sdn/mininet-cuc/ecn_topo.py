@@ -184,25 +184,30 @@ def ecn_qos_init(remote=False):
 
     # ecn_test_case.test01_04_ecn_red_duration(net, duration=(1, 180))  # 设置不同时长, 进行TEST01-04测试
     # red ecn 进行TEST01-04测试
-    # ecn_test_case.test01_04_ecn_red(net, duration=180)
+    # ecn_test_case.test01_04_ecn_red(net, duration=10)
 
-    # red ecn 70000 with 9.3 Mbps
-    # ecn_test_case.test02_04_base_ecn_red(net, "red-ecn-70000",
-    #  redminmax="min 70000  max  150000 avpkt 1500", duration=120)
+    # -- ecn_red red ecn 70000 with 9.3 Mbps
+    # ecn_test_case.test02_04_base_ecn_red(net, "red-ecn-200000",
+    #    redminmax="min 200000  max  300000 avpkt 1500", duration=120)
     # no ecn
-    # ecn_test_case.test01_base(net, "TEST01", duration=120)  # 独立测试TEST 01
-    # openflow ecn
+    # ecn_test_case.test01_base(net, "TEST01", duration=60)  # 独立测试TEST 01
 
-    # ecn_test_case.ovs_openflow_ecn(net, "openflow-ecn-py-", duration=120, qmins=[200000, 250000])  # 测试多组队列
-    # ecn_test_case.ovs_openflow_ecn(net, "openflow-ecn-py-", duration=60, qmins=[250000])  # 测试多组队列
-    # ecn_test_case.ovs_openflow_ecn(net, "openflow-ecn-ip-py-", duration=60, qmins=[250000])  # 测试多组队列
-    ecn_test_case.ovs_openflow_ecn(net, "openflow-ecn-tcp-py-", duration=120, qmins=[200000], ecn_tcp_flag=True)  # 测试多组队列
-
-    # ecn_test_case.TEST05_openflow_ecn(net, duration=1800) # 进行  TEST05 测试
+    # - openflow ecn
+    # -- ecn_ip 多组测试
+    # queue_mins = range(80000, 80001) # only 1 test
+    # queue_mins = range(80000, 80002) # 2 test
+    queue_mins = range(80000, 80003)  # 3 test
+    ecn_test_case.ovs_openflow_ecn(net, "openflow-ecn_ip-", duration=120,
+                                    qmins=queue_mins, wait_seconds=10, ecn_tcp_flag=False)
+    # -- ecn_tcp 多组测试
+    # ecn_test_case.ovs_openflow_ecn(net, "openflow-ecn_tcp-", duration=120,
+    #                                qmins=queue_mins, wait_seconds=1, ecn_tcp_flag=True)
 
     CLI(net)  # 激活命令行交互
 
     net.stop()
+
+    clean_server(net)  # 清楚所有残留服务
 
 
 def test_diff_latency(network):
@@ -250,6 +255,16 @@ def setup_server(network):
         host.cmd("/usr/bin/netserver")  # 启动 netperf daemon
 
 
+def clean_server(network):
+    """
+    :param network: mininet network
+    :return:
+    设置 host 上的测速 iperf/netperf 服务
+    """
+    s1 = network.getNodeByName('s1')
+    s1.cmd("/opt/mininet/bin/ecn_kill_all.sh")
+
+
 def setup_ssh():
     # net.start()
 
@@ -263,9 +278,11 @@ def setup_ssh():
 
 if __name__ == '__main__':
     # Tell mininet to print useful information
-    # setLogLevel('info')
-    setLogLevel("debug")  # 打开 debug 日志
+    setLogLevel('info')
     remote_controller = False
-    if len(sys.argv) >= 2 and sys.argv[1] == "remote":
-        remote_controller = True
+    if len(sys.argv) >= 2:
+        if sys.argv[1] == "remote":
+            remote_controller = True
+        if sys.argv[-1] == "debug":
+            setLogLevel("debug")  # 打开 debug 日志
     ecn_qos_init(remote=remote_controller)  # 使用外部 ryu 控制器, 支持openflow13,  qos_ecn_table=0, fw_table=1

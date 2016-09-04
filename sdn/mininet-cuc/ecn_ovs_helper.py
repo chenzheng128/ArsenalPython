@@ -23,9 +23,9 @@ ecn codepoints
 
 ** new cmd
 # add and del
-/opt/coding/ovs/utilities/ovs-ofctl -O Openflow13 once 0 del
+/opt/coding/ovs/utilities/ovs-ofctl -O Openflow13 ecn_ip 0 del
 # add only
-/opt/coding/ovs/utilities/ovs-ofctl -O Openflow13 once 0 nodel
+/opt/coding/ovs/utilities/ovs-ofctl -O Openflow13 ecn_tcp 0 del
 
 ** original cmd
 *** start drop
@@ -51,6 +51,8 @@ OFCTL_OPT = "-O Openflow13"
 OFCTL_CMD = "%s %s" % (OFCTL_BIN, OFCTL_OPT)
 OFCTL_CMD_MY = "%s %s" % (OFCTL_BIN_MY, OFCTL_OPT)
 
+DPCTL_CMD_MY = "%s %s" % ("/opt/coding/ovs/utilities/ovs-dpctl", "")
+
 
 def filter_ecn_ip(interval_ms=0.0):
     """
@@ -62,6 +64,15 @@ def filter_ecn_ip(interval_ms=0.0):
 
 
 def filter_ecn_tcp(interval_ms=0.0):
+    """
+    :param interval_ms : 用于 filter 的interval, 时间越长, 修改包的数量越多
+    用我们自己修改的 OFCTL_CMD_MY, 更加快速
+    :return:
+    """
+    os_popen("%s ecn_tcp %s del" % (OFCTL_CMD_MY, interval_ms * 1000))
+
+
+def filter_ecn_tcp_dpctl(interval_ms=0.0):
     """
     :param interval_ms : 用于 filter 的interval, 时间越长, 修改包的数量越多
     用我们自己修改的 OFCTL_CMD_MY, 更加快速
@@ -134,7 +145,7 @@ def stop():
 
 
 def start_opeflow_ecn(queue_min, sleep_interval, ecn_policy=True,
-                      quick=True, filter_interval = 3.5, run_duration=10, ecn_tcp=False):
+                      quick=True, filter_interval=3.5, run_duration=10, ecn_tcp=False):
     """
     自定义的 red 函数, 通过监控队列, 对ecnjixn
     :rtype: object
@@ -143,6 +154,7 @@ def start_opeflow_ecn(queue_min, sleep_interval, ecn_policy=True,
     :param sleep_interval: 查询间隔
     :param ecn_policy:            使用 ecn 或是 drop 策略
     :param quick 使用自编译的 ovs-ofctl 作高效控制
+    :param filter_interval 提交至 ovs 命令的 过滤间隔时间
     :param run_duration 运行秒数
     :return:
     """
@@ -152,7 +164,14 @@ def start_opeflow_ecn(queue_min, sleep_interval, ecn_policy=True,
     search_count = 0
     queue_exceed_count = 1
     start_second = time.time()
+    adaptive_filter_interval = filter_interval
+
+    last_exceed_second = 0
+    last_qlen = 0
     while True:
+        if False and (search_count % (1 * 1000 / sleep_interval)) == 0:  # every 1 second print line 便于在 debug 模式下观察
+            print("ecn_ovs_helper %s\n" % " is working ...")
+
         # class_status = (ecn_qdisc_helper.class_get("s1-eth3", "1:2"))
         queue_status = ecn_qdisc_helper.handle_get("s1-eth3")
         # debug("%s\n", queue_status)
@@ -162,7 +181,7 @@ def start_opeflow_ecn(queue_min, sleep_interval, ecn_policy=True,
         match = pattern.search(queue_status)
         search_count += 1
         if (time.time() - start_second) > run_duration:
-            info("到达结束时间 %s s, bybye. \n" % run_duration)
+            print("ecn_ovs_helper 到达结束时间 %s s, bybye. " % run_duration)
             break
         if match:
             # print ("%sp" % match.group(2))
@@ -175,29 +194,38 @@ def start_opeflow_ecn(queue_min, sleep_interval, ecn_policy=True,
                 queue_exceed_count += 1
                 exceed_second = time.time() - start_second
 
+                # print "debug ", (last_qlen , qlen )
+                # print "debug ", (exceed_second - last_exceed_second )
+                # print "debug ", (sleep_interval / 1000 * 20)
+
+                # if last_qlen > qlen or (exceed_second - last_exceed_second) < (sleep_interval / 1000 * 20):
+                #    adaptive_filter_interval *= 2  # 如果频繁超过记录时间, 加大filter 间隔
+                #else:
+                #    adaptive_filter_interval = adaptive_filter_interval / 2  # 恢复原始过滤间隔
+
                 if ecn_policy:
-                    if quick:
-                        # filter_ms =  min( int( (qsize - queue_min) / float(queue_min) *  filter_ms_base), 3)
-                        # 固定 filter 间隔
-                        info("%3.3fs NO.%4s queue_min %s filter %sms exceeded  (%sb %sp) \n" % (
-                            exceed_second, queue_exceed_count, queue_min, filter_interval, qsize, qlen))
-                        if ecn_tcp:
-                            filter_ecn_tcp(interval_ms=filter_interval)
-                        else:
-                            filter_ecn_ip(interval_ms=filter_interval)
+                    # filter_ms =  min( int( (qsize - queue_min) / float(queue_min) *  filter_ms_base), 3)
+                    # 固定 filter 间隔
+                    print("debug %3.3fs NO.%4s queue_min %s filter %sms exceeded  (%sb %sp) " % (
+                        exceed_second, queue_exceed_count, queue_min, adaptive_filter_interval, qsize, qlen))
+                    if ecn_tcp:
+                        filter_ecn_tcp(interval_ms=adaptive_filter_interval)
                     else:
-                        switch_ecn_add()
-                        # pass
+                        filter_ecn_ip(interval_ms=adaptive_filter_interval)
                 else:
                     switch_drop()
                     # mod_ecn(3)
                     # if (qsize - queue_min) / float(queue_min) < 0.1:  # 如果超出的队列不多, 考虑减少发包控制
                     #    time.sleep(sleep_interval)  # 每次修改后至少休息一下, 避免重复提交
                     # continue
+                last_exceed_second = exceed_second  # 记录上一次的 exceed_second
+                last_qlen = qlen
         else:
             # print "not maching"
             pass
-        time.sleep(sleep_interval)
+
+
+        time.sleep(sleep_interval / 1000)
 
 
 def print_usage(argv):
@@ -214,7 +242,7 @@ def print_usage(argv):
 
 if __name__ == "__main__":
 
-    LOG.setLogLevel("info")
+    # LOG.setLogLevel("info")
     LOG.setLogLevel("debug")
 
     if len(sys.argv) <= 1:
@@ -231,7 +259,7 @@ if __name__ == "__main__":
     elif sys.argv[1] == "start":
         ecn_policy_flag = True
         duration = 10
-        sleep_interval_ms = 0.0025
+        sleep_interval_ms = 2.5
         # sleep_interval_ms = 0
         if len(sys.argv) != 5:  # and sys.argv[2] == "drop":
             print_usage(sys.argv)
@@ -240,18 +268,18 @@ if __name__ == "__main__":
             # print "start drop policy ... "
         if sys.argv[2] == "ecn_ip":
             ecn_tcp_flag = False
-            filter_interval_ms = 3.5
-            print "start ecn_tcp policy ..."
-        else: # "ecn_tcp":
-            ecn_tcp_flag = True
-            filter_interval_ms = 3.5
+            filter_interval_ms = 1 # 2 #3.5
             print "start ecn_ip policy ..."
+        else:  # "ecn_tcp":
+            ecn_tcp_flag = True
+            filter_interval_ms = 0.00001  # 2 #
+            print "ecn_ovs_helper start ecn_tcp policy ..."
 
         qmin = int(sys.argv[3])
         duration = int(sys.argv[4])
 
-        print " monitor_queue_mininal=%s duration=%s(s) sleep_interval_ms=%s..." \
-              % (qmin, duration, sleep_interval_ms)
+        print "ecn_ovs_helper duration=%s(s) qmin=%s filter_interval=%sms sleep_interval=%sms ..." \
+              % (duration, qmin, filter_interval_ms, sleep_interval_ms)
         start_opeflow_ecn(queue_min=qmin, sleep_interval=sleep_interval_ms, ecn_policy=ecn_policy_flag,
                           run_duration=duration, filter_interval=filter_interval_ms, ecn_tcp=ecn_tcp_flag)
     elif sys.argv[1] == "mod":

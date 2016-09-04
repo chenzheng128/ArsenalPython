@@ -1,6 +1,7 @@
 # encoding: UTF-8
 """
 ref: Python正则表达式指南 http://www.cnblogs.com/huxi/archive/2010/07/04/1771073.html
+python regexp online help : http://www.pyregex.com/
 """
 import re
 

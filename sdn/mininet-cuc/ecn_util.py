@@ -4,6 +4,7 @@
 ecn 实验常用工具类
 """
 import os
+import re
 from time import sleep
 from mininet.log import info, debug
 from mininet.link import Link, TCLink, TCIntf
@@ -91,26 +92,27 @@ def dump_result(results):
     :param results:
     :return:
     """
-    fmt = '%s\n%s'
+    fmt = '%s \n%s\n!!!'
 
-    print(fmt % ('*** 测试结果 ', ' result ***'))
+    print(fmt % ('-测试name ', ' 测试result-'))
 
     for param in sorted(results.keys()):
         entries = results[param]
         # for e in entries:
         print(fmt % (param, entries))
+        # print("!!!")  # 分割符
 
 
 def mesure_ping_and_netperf(network, round_count=1, round_duration=5,
                             ping_interval=1.0, ping=True, netperf=True,
-                            ovs_openflow=False, qmin=50000,
-                            ecn_tcp_flag=False
+                            ovs_helper=False, qmin=50000,
+                            ecn_tcp_flag=False, ovs_helper_wait=10
                             ):
     """
     h1 执行 ping 测试延时
     h2 执行 netperf 测试带宽利用率
     :param qmin:          queue min 监控大小
-    :param ovs_openflow:  使用 openflow ovs 控制 ecn
+    :param ovs_helper:  使用 ovs_helper.py 控制 ecn
     :param ecn_tcp_flag : 使用ecn tcp 或 ip 控制
     :param network: mininet class
     :param round_count:    循环次数
@@ -118,6 +120,7 @@ def mesure_ping_and_netperf(network, round_count=1, round_duration=5,
     :param ping_interval:  ping包采样间隔
     :param ping:        ping测试开关
     :param netperf:     netperf测试开关
+    :param ovs_helper_wait:       ovs_helper_wait 时延, 让helper / netperf 的启动时间覆盖整个实验运行
     :return:
     """
     result = ""
@@ -126,42 +129,55 @@ def mesure_ping_and_netperf(network, round_count=1, round_duration=5,
     s1 = network.get("s1")
     popens = {}
 
+    # 运行时间 ovs_helper > netperf > ping
     ping_cmd = "ping -c%s -i%s h3 " % (int(round_duration / ping_interval), ping_interval)
-    netperf_cmd = "netperf -H h3 -l %s " % round_duration
+    netperf_cmd = "netperf -H h3 -l %s " % str(round_duration + ovs_helper_wait / 2)  # 附加wait秒时延, 考虑大于 ping 时延
     if ecn_tcp_flag:
         ecn_sub_cmd = "ecn_tcp"
     else:
         ecn_sub_cmd = "ecn_ip"
     ovs_openflow_cmd = "/opt/mininet/cuc/ecn_ovs_helper.py start %s %s %s" \
-                       % (ecn_sub_cmd, qmin, round_duration + 15)  # 附加15秒时延
+                       % (ecn_sub_cmd, qmin, round_duration + ovs_helper_wait)  # 附加wait秒时延, 考虑 netperf 启动
     # rr_cmd = "netperf -H h3 -l %s -t TCPRR " % round_duration
     # cmds = "%s;\n%s;\n%s" % (output_cmd, rr_cmd, ping_cmd)
 
     sleep(3)  # wait 2 second to reach tcp max output
+
+    # 启动顺序 ovs_helper > netperf > ping
     for r in range(round_count):
         print ("*** ROUND %s" % r)
-        if ping:
-            for h in [h1]:
-                info("<%s>: popen cmd: %s \n" % (h.name, ping_cmd))
-                popens[h] = h.popen(ping_cmd)
-        if netperf:
-            for h in [h2]:
-                info("<%s>: popen cmd: %s \n" % (h.name, netperf_cmd))
-                popens[h] = h.popen(netperf_cmd)
-        if ovs_openflow:
+        if ovs_helper:  # ovs helper 优先
             for h in [s1]:
-                info("<%s>: popen cmd: %s \n" % (h.name, ovs_openflow_cmd))
+                this_cmd = "<%s>: popen cmd: %s \n" % (h.name, ovs_openflow_cmd)
+                info(this_cmd)
+                result += this_cmd
                 popens[h] = h.popen(ovs_openflow_cmd)
+        if netperf:
+            for h in [h2]:  # 背景流量优先
+                this_cmd = "<%s>: popen cmd: %s \n" % (h.name, netperf_cmd)
+                info(this_cmd)
+                result += this_cmd
+                popens[h] = h.popen(netperf_cmd)
+        if ping:
+            for h in [h1]:  # 最后运行ping
+                this_cmd = "<%s>: popen cmd: %s \n" % (h.name, ping_cmd)
+                info(this_cmd)
+                result += this_cmd
+                popens[h] = h.popen(ping_cmd)
 
         log_line_count = 0
         # Monitor them and print output
+        # 在 pmoniter中运行的程序,  print 结果会直接回显在屏幕上
+        #    而 info / debug 结果则需要在 result 中得到回显
         for host, line in pmonitor(popens):
             if host:
                 log_line_count += 1
-                if line.find("icmp_seq") != -1:
+                if line.find("icmp_seq") != -1:  # debug ping output
                     debug("<%s>: %s\n" % (host.name, line.strip()))  # suppressed ping output to debug level
-                    if (log_line_count % (3 / ping_interval)) == 0:  # every 3 second print line 便于在 info 模式下观察
+                    if (log_line_count % (5 / ping_interval)) == 0:  # every 5 second print line 便于在 info 模式下观察
                         info("<%s>: %s\n" % (host.name, line.strip()))
+                elif line.find("debug") != -1:  # debug ecn helper output
+                    debug("<%s>: %s\n" % (host.name, line.strip()))
                 else:
                     info("<%s>: %s\n" % (host.name, line.strip()))
                     result += "<%s>: %s\n" % (host.name, line.strip())

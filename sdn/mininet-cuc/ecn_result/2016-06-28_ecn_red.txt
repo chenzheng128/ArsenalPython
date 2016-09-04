@@ -145,6 +145,21 @@ TEST01 ECN:False qlen:200 bw:10Mbps lat:50ms no red:
 <h1>: 1800 packets transmitted, 1784 received, 0% packet loss, time 181608ms
 <h1>: rtt min/avg/max/mdev = 100.210/129.444/198.642/22.014 ms, pipe 2
 
+
+red-ecn-200000 ECN:True qlen:200 bw:10Mbps lat:50ms redminmax:min 200000  max  300000 avpkt 1500
+<h1>: PING h3 (10.0.0.3) 56(84) bytes of data.
+<h1>:
+<h1>: --- h3 ping statistics ---
+<h1>: 1200 packets transmitted, 1187 received, 1% packet loss, time 121376ms
+<h1>: rtt min/avg/max/mdev = 100.203/188.935/294.935/33.863 ms, pipe 3
+<h2>: MIGRATED TCP STREAM TEST from 0.0.0.0 (0.0.0.0) port 0 AF_INET to h3 () port 0 AF_INET : demo
+<h2>: Recv   Send    Send
+<h2>: Socket Socket  Message  Elapsed
+<h2>: Size   Size    Size     Time     Throughput
+<h2>: bytes  bytes   bytes    secs.    10^6bits/sec
+<h2>:
+<h2>: 87380  87380  87380    121.60      9.51
+
 *** Starting CLI:
 
 

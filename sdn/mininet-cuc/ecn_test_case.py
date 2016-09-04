@@ -11,6 +11,7 @@ from mininet.util import pmonitor
 import ecn_util
 import ecn_ovs_helper
 import ecn_qdisc_helper
+import ecn_result
 
 """
 
@@ -42,7 +43,8 @@ def test01_04_ecn_red_diff_duration(network, bw=10, latency=50, qlen=200, durati
         ecn_util.dump_result(results[key])
 
 
-def ovs_openflow_ecn(network, testname, bw=10, latency=50, qlen=200, duration=10, qmins=[50000], ecn_tcp_flag=False):
+def ovs_openflow_ecn(network, testname, bw=10, latency=50, qlen=200,
+                     duration=10, qmins={50000}, ecn_tcp_flag=False, wait_seconds=10):
     """
     # 设置 使用 外部 ecn
     :param qmins:          queue min 监控大小
@@ -53,6 +55,7 @@ def ovs_openflow_ecn(network, testname, bw=10, latency=50, qlen=200, duration=10
     :param latency:     # 50ms 延时
     :param qlen:        # 队列长度
     :param duration:    # 运行时间
+    :param wait_seconds: 附加等候时间, 等候进程结束 或是延 长helper程序运行
     :return:
     """
     # print_mininet_objs(net)
@@ -61,23 +64,29 @@ def ovs_openflow_ecn(network, testname, bw=10, latency=50, qlen=200, duration=10
 
     # 无ecn测试 TEST01
     default_minmax = ""
-    queue_setup_fullname = "%s ECN:%s qlen:%s bw:%sMbps lat:%sms no red:%s" % (
-        testname, red_ecn, qlen, bw, latency, "")
+    queue_setup_fullname = "%s ECN:%s qlen:%s bw:%sMbps lat:%sms duraion:%s" % (
+        testname, red_ecn, qlen, bw, latency, duration)
     info("*** setup queue %s\n" % queue_setup_fullname)
     test01_06_setup_queue_and_latency(network, ecn=red_ecn, bw=bw, queue_len=qlen, latency=latency,
                                       redminmax=default_minmax)
 
     for min_queue in qmins:
-        testfullname = "sdn_ecn %s min:%s qlen:%s bw:%sMbps lat:%sms no red:%s" % (
-            testname + str(min_queue), min_queue, qlen, bw, latency, "")
+        testfullname = "sdn_ecn %s min:%s qlen:%s bw:%sMbps lat:%sms duraion:%s" % (
+            testname + str(min_queue), min_queue, qlen, bw, latency, duration)
         info("*** setup ecn_ovs_helper (min= %s) for mod_ecn \n" % min_queue)
         ecn_ovs_helper.init_switch()
         info("*** running %s ...\n" % testfullname)
-        result_all[testfullname] = ecn_util.mesure_ping_and_netperf(network, round_count=1, round_duration=duration,
-                                                                    ping_interval=0.1, ovs_openflow=True,
-                                                                    qmin=min_queue, ecn_tcp_flag=ecn_tcp_flag)
+        result_all[testfullname] = \
+            ecn_util.mesure_ping_and_netperf(network, round_count=1,
+                                             round_duration=duration, ping_interval=0.1, ovs_helper=True,
+                                             qmin=min_queue, ecn_tcp_flag=ecn_tcp_flag, ovs_helper_wait=wait_seconds)
+
+        info("*** waiting %s seconds for all processes finished ...\n" % wait_seconds)
+        sleep(wait_seconds)  # 每轮间隔一些时间, 等候所有进程结束
 
     ecn_util.dump_result(result_all)
+    ecn_result.average_result(result_all.values())
+    debug("%s\n" % str(result_all.keys()))
     return result_all
 
 
