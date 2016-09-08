@@ -1,4 +1,9 @@
+
+
 使用 openflow 控制 ecn 策略 (外部命令 使用 python ecn_ovs_helper.py 控制 )
+
+ecn_ip 与 ecn_tcp 的运行结果
+
 使用固定时延的filter_ms, 导致qmin较低时, ecn_tcp 效果反而不如 ecn_ip
 
 *** ecn_tcp 结果分析 (在 s1-eth2 上抓包可以看到 tcp.flags.ecn == 1)

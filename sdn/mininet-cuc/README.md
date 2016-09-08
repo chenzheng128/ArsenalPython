@@ -32,6 +32,18 @@ ln -sf /opt/sdn/mininet-cuc/ cuc
 ```
 
 ## 实验拓扑
+Mininet实验拓扑Node: 4个主机, 4个交换机的linear配置, s3-s4之间存在(10ms)延时链路.
+
+实验拓扑图: https://www.processon.com/view/link/5752d7f1e4b0695484404d39
+
+
+## 实验文件与操作命令
+
+拓扑代码
+- `ecn_topo.py` 将topo文件变更为新的ecn拓扑文件. 节点不变. 但是增加了数据收集, ssh, ECNInf 等类封装, 更易于使用
+- `ecn_ovs_helper.py`   队列状态监控与Openflow ecn_ip ecn_tcp 控制
+- `ecn_qdisc_helper.py` 队列维护的快捷代码
+- `ecn_result/` 结果日志
 
 
 不同终端terminal下的相关启动命令
@@ -45,8 +57,8 @@ ln -sf /opt/sdn/mininet-cuc/ cuc
  watch -n 1  ovs-ofctl dump-flows s1
 # 打开wireshark 分析抓包  
  export DISPLAY="127.0.0.1:10.0" ; wireshark &
-# 手工运行外部 openflow ecn, 而不是使用 ovs_openflow=False 开关, 便于观察日志
-  /usr/bin/python /opt/mininet/cuc/ecn_ovs_helper.py start 70000 200
+# 手工运行外部 openflow ecn_ip ecn_tcp, 而不是使用 ovs_openflow=False 开关, 便于观察日志
+  /usr/bin/python /opt/mininet/cuc/ecn_ovs_helper.py ecn_ip 70000 200
 
 # 清除多次运行后的余留 netserver 进程
  for x in `ps -ef | grep netserver | awk {'print $2'}`; do kill $x; done
@@ -55,6 +67,8 @@ ln -sf /opt/sdn/mininet-cuc/ cuc
 ```
 
 在 `ecn_topo.py` 拓扑中可以运行在 `ecn_test_case.py` 中的多个实验评估
+
+## 实验结果
 
 * `ecn_test_case.test11_base()` 需要使用ryu remote控制器, 测试结果记录在ecn_result/2016-06-01_ecn_openflow.txt 中, openflow的ecn参数测试, 不同队列大小. 用外部命令`ecn_ovs_helper.py start`来控制ecn标志修改.
   TODO ecn_ovs_helper.py 的控制颗粒度有些粗, 待改进
@@ -69,6 +83,8 @@ ping mdev: | 99ms|7.4ms| 10.9ms | 13.6ms
 * `test_diff_latency(net)`   # 设置不同延时条件qos, 并使用 ping 测试
 
 
+## 补充备忘
+
 `ecn_topo.py` 拓扑中一些可修改的参数
 ```
 setLogLevel("debug")  # 打开 debug 日志
@@ -76,15 +92,23 @@ ecn_qos_init(remote_controller=True)  # 使用外部 ryu remote 控制器, 支�
 ecn_qos_init(remote_controller=False) # 使用内置控制器 
 ```
 
+旧的拓扑代码
+- `hailong_local_qos.py` 
+     * 2016-07-08 改由 qidisc维护助手 `./qdisc_helper.py` 维护延时带宽, 取消内部延时链路, red 策略等, 
+     * 本地 ovs controller 控制器, 有 qos 策略.  通过设置的 QoS 策略建立哑铃带宽拓扑 
+     * 增加 red qdisc 策略, 支持 ecn mark 策略. 
+- `hailong_local_no_qos.py`  本地 ovs controller 控制器, 无 qos 策略, 便于作 tc qos 命令行设置
+- `hailong_remote.orignial.py` 最初的 远程 controller 拓扑
+当使用 iperf 在 h1和h3直接进行传输时应能看到拥塞情况. 具体测试方法运行 `sudo python cuc/hailong_local_qos.py` 后可查看.
+
+
 增加xterm测试终端
 ```
 mininet>
 xterm h1 h2 h3 
 ```
 
-Mininet实验拓扑Node: 4个主机, 4个交换机的linear配置, s3-s4之间存在(10ms)延时链路.
 
-实验拓扑图: https://www.processon.com/view/link/5752d7f1e4b0695484404d39
 
 qidisc维护助手 `./ecn_qdisc_helper.py` 使用助手维护延时, 带宽信息 (不必重启mn拓扑)
 ```
@@ -101,15 +125,6 @@ Usage: ./ecn_qdisc_helper.py help
        example: ./ecn_qdisc_helper.py class switch 5mbit # 设定交换低速接口带宽
 ```
 
-拓扑代码
-- `ecn_topo.py` 将topo文件变更为新的ecn拓扑文件. 节点不变. 但是增加了数据收集, ssh, ECNInf 等类封装, 更易于使用
-- `hailong_local_qos.py` 
-     * 2016-07-08 改由 qidisc维护助手 `./qdisc_helper.py` 维护延时带宽, 取消内部延时链路, red 策略等, 
-     * 本地 ovs controller 控制器, 有 qos 策略.  通过设置的 QoS 策略建立哑铃带宽拓扑 
-     * 增加 red qdisc 策略, 支持 ecn mark 策略. 
-- `hailong_local_no_qos.py`  本地 ovs controller 控制器, 无 qos 策略, 便于作 tc qos 命令行设置
-- `hailong_remote.orignial.py` 最初的 远程 controller 拓扑
-当使用 iperf 在 h1和h3直接进行传输时应能看到拥塞情况. 具体测试方法运行 `sudo python cuc/hailong_local_qos.py` 后可查看.
 
 ## qos 策略
 tc 默认在网卡出(out)的地方进行控制. 然而在ovs交换机内部传输流量时(即使是out, 如 s1-eth1/s2-eth1 流量经过 s2-eth1 到 s2-eth2), 
