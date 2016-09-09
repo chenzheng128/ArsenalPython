@@ -1,17 +1,16 @@
 # CUC Mininet 实验
 
-建立一个 QoS / tc 队列拥塞控制的实验拓扑, 用于评估测试我们的队列拥塞级联自适应控制算法.   
+建立一个 QoS / tc 队列拥塞控制的实验拓扑, 用于评估测试我们的队列拥塞级联自适应控制算法. 目前完成的实验包括
+- 基于 red AQM 队列的实验效果评估( 带宽时延)
+- 基于 SDN 的队列管理
+  + ecn_ip: 在队列拥塞时, 使用 openflow (自定义ovs-ofctl)修改 ip tos ecn 标记
+  + ecn_tcp: 在队列拥塞时, 使用 openflow (自定义ovs-ofctl + 修改协议与ovs内核模块) 修改 tcp ecn flag 标记
 
-算法TODO
-- 5m 链路下的队列大小设置, 计算方法?
-- 依据评估出的tc控制算法效率/延时级别(us? ms?), 考虑拥塞级联自适应控制算法的基本框架. 
+## 实验拓扑
 
-实现TODO 
-- Python: 目前仅在交换机端口上作了 tc 策略. 需要在 host 主机 eth0 网卡上启动后自动配置 tc 策略. 考虑用 h1.sendCmd() 或 ssh 命令完成.
-- C: 测试 tc 效率(命令行/直接访问), 测试 unix socket C/S效率, 控制tc队列时的延时级别(us? ms?).
-- C: 编译 tc 命令, 研究 tc 命令获取 queue (p) 等大小方法
-- C: tc控制短发效率评估, 建立 Host/Switch unix socket server, 监控节点(外部/ovs交换机内部)可向上级网卡通告拥塞状况, 或调节上级发送效率.
- 
+Mininet实验拓扑Node: 4个主机, 4个交换机的linear配置, s3-s4之间存在(50ms)延时链路.
+
+实验拓扑图: https://www.processon.com/view/link/5752d7f1e4b0695484404d39
 
 ## 准备
 
@@ -31,13 +30,11 @@ cd $MININET_HOME
 ln -sf /opt/sdn/mininet-cuc/ cuc
 ```
 
-## 实验拓扑
 
-
-不同终端terminal下的相关启动命令
+## 实验命令
 ```
 # 启动拓扑: 
- ssh -Y mininet; cd /opt/mininet/cuc;  sudo python ecn_topo.py [remote] # 是否使用remote控制器
+ ssh -Y mininet; cd /opt/mininet/cuc;  sudo python ecn_topo.py [remote] [debug] # 是否使用remote控制器, 是否debug输出
 # 启动 ryu remote 控制器
  cd /opt/ryu; PYTHONPATH=/opt/ryu/ /opt/ryu/bin/ryu-manager ryu.app.rest_qos cuc.book.qos_simple_switch_13 ryu.app.rest_conf_switch
 # 监控带宽 与 flow表
@@ -56,24 +53,31 @@ ln -sf /opt/sdn/mininet-cuc/ cuc
 
 在 `ecn_topo.py` 拓扑中可以运行在 `ecn_test_case.py` 中的多个实验评估
 
+* `test01_base()` no ecn 测试
+* `test02_04_base_ecn_red()` ecn base 测试
+* `ovs_openflow_ecn(ecn_tcp_flag=True)` ecn_tcp 测试
+* `ovs_openflow_ecn(ecn_tcp_flag=False)` ecn_ip 测试
 * `ecn_test_case.test11_base()` 需要使用ryu remote控制器, 测试结果记录在ecn_result/2016-06-01_ecn_openflow.txt 中, openflow的ecn参数测试, 不同队列大小. 用外部命令`ecn_ovs_helper.py start`来控制ecn标志修改.
-  TODO ecn_ovs_helper.py 的控制颗粒度有些粗, 待改进
-* `ecn_test_case.test01_04_ecn_red()` # 测试结果记录 ecn_result/2016-06-28_ecn_red.txt 中, red的ecn参数测试, 4组实验. 可以看打开red参数后, min队列值越小, 带宽利用率稍微下降, avg平均延时越小, mdev分布越稳定, 测试结果记录 
+* `ecn_test_case.test01_04_ecn_red()` enc red测试,  测试结果记录 ecn_result/2016-06-28_ecn_red.txt 中, red的ecn参数测试, 4组实验. 可以看打开red参数后, min队列值越小, 带宽利用率稍微下降, avg平均延时越小, mdev分布越稳定, 测试结果记录
+ 
 测试结果    |无red ecn| 有redmimmax条件1| 条件2  | 条件3
 -----------|-----|--------|-----
 bw:        |9.42M|9.29M| 9.24M  | 9.37M
 ping avg:  |375ms|110ms| 118ms  | 127ms
 ping mdev: | 99ms|7.4ms| 10.9ms | 13.6ms
+
 * `print_mininet_objs(net)`  # 打印 mininet 拓扑对象
 * `test_diff_bw(net)`        # 设置不同带宽条件qos, 并使用 iperf测试
 * `test_diff_latency(net)`   # 设置不同延时条件qos, 并使用 ping 测试
 
 
-`ecn_topo.py` 拓扑中一些可修改的参数
 ```
+# ecn_topo.py 拓扑中一些可修改的参数
 setLogLevel("debug")  # 打开 debug 日志
 ecn_qos_init(remote_controller=True)  # 使用外部 ryu remote 控制器, 支持openflow13,  qos_ecn_table=0, fw_table=1
 ecn_qos_init(remote_controller=False) # 使用内置控制器 
+# ecn_test_case.py 中修改参数 
+(ovs_helper=True) 是否自动启动 ovs_helper
 ```
 
 增加xterm测试终端
@@ -82,9 +86,6 @@ mininet>
 xterm h1 h2 h3 
 ```
 
-Mininet实验拓扑Node: 4个主机, 4个交换机的linear配置, s3-s4之间存在(10ms)延时链路.
-
-实验拓扑图: https://www.processon.com/view/link/5752d7f1e4b0695484404d39
 
 qidisc维护助手 `./ecn_qdisc_helper.py` 使用助手维护延时, 带宽信息 (不必重启mn拓扑)
 ```
