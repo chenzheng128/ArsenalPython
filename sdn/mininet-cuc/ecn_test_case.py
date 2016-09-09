@@ -231,3 +231,34 @@ def test_ping_with_background_traffice(network, round_count=1, round_duration=5,
 
     debug("\n".join(os.popen('tc -s -d qdisc show dev s1-eth3').readlines()))
     return result
+
+
+def test_diff_latency(network):
+    """
+    # 设置不同延时条件qos, 并使用 ping 测试
+    :param network:
+    :return:
+    """
+    # print_mininet_objs(net)
+    result = {}
+    for latency in [10, 50, 100]:
+        ecn_util.base_setup_queue_and_latency(network, latency=latency, queue_len=200)
+        # run_multi_bench()
+        # result[latency] = network.ping([net.get("h1"), net.get("h3")] )
+        result[latency] = test_ping_with_background_traffice(network, background=False)  # 禁止背后流量, 以查看准确延时
+    ecn_util.dump_result(result)
+
+
+def test_diff_bw(network):
+    """
+    # 设置不同带宽条件qos, 并使用 iperf测试
+    :param network:
+    :return:
+    """
+    # print_mininet_objs(net)
+    result = {}
+    for bw in [10, 50, 100]:
+        ecn_util.base_setup_queue_and_latency(network, bw=bw, queue_len=200)
+        # run_multi_bench()
+        result[bw] = network.iperf(hosts=[network.get("h1"), network.get("h3")])
+    ecn_util.dump_result(result)

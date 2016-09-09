@@ -66,8 +66,6 @@ ln -sf /opt/sdn/mininet-cuc/ cuc
 * `ovs_openflow_ecn(ecn_tcp_flag=True)` ecn_tcp 测试
 * `ovs_openflow_ecn(ecn_tcp_flag=False)` ecn_ip 测试
 * `print_mininet_objs(net)`  # 打印 mininet 拓扑对象
-* `test_diff_bw(net)`        # 设置不同带宽条件qos, 并使用 iperf测试
-* `test_diff_latency(net)`   # 设置不同延时条件qos, 并使用 ping 测试
 
 
 
@@ -105,6 +103,17 @@ Usage: ./ecn_qdisc_helper.py help
        example: ./ecn_qdisc_helper.py class host 500mbit # 设定主机高速接口带宽
        example: ./ecn_qdisc_helper.py class switch 5mbit # 设定交换低速接口带宽
 ```
+
+## 抓包分析
+
+- wireshark 查看 tcptrace 图表: `Statistics -> Conversation List`
+- wireshark filter
+  + ecn ip 包: `ip.dsfield.ecn == 3`
+  + ecn tcp 包: `tcp.flags.ecn == 1`
+- tcpdump filter:
+  + ecn ip 包: `tcpdump -i s1-eth3 -v "ip[1]=0x3"`
+  + ecn tcp 包: `tcpdump -i s1-eth2 -vv "(tcp[13] & 0xc0 != 0)"`
+
 
 
 ## qos 策略

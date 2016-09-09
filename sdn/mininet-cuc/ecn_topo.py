@@ -182,23 +182,26 @@ def ecn_qos_init(remote=False):
 
     # ecn_test_case.test01_06_setup_queue_and_latency(net) # 初始化 TEST01_06 拓扑 qos
 
-    # ecn_test_case.test01_04_ecn_red_duration(net, duration=(1, 180))  # 设置不同时长, 进行TEST01-04测试
+    # no ecn 测试
+    # ecn_test_case.test01_base(net, "TEST01", duration=60)  # 独立测试TEST 01
+
+    # ecn_red red ecn
+    # ecn_test_case.test02_04_base_ecn_red(net, "red-ecn-200000",
+    #    redminmax="min 200000  max  300000 avpkt 1500", duration=60)
+
+    # ecn_test_case.test01_04_ecn_red_duration(net, duration=(60, 180))  # 设置不同时长, 进行TEST01-04测试
     # red ecn 进行TEST01-04测试
     # ecn_test_case.test01_04_ecn_red(net, duration=10)
 
-    # -- ecn_red red ecn 70000 with 9.3 Mbps
-    # ecn_test_case.test02_04_base_ecn_red(net, "red-ecn-200000",
-    #    redminmax="min 200000  max  300000 avpkt 1500", duration=120)
-    # no ecn
-    # ecn_test_case.test01_base(net, "TEST01", duration=60)  # 独立测试TEST 01
 
     # - openflow ecn
     # -- ecn_ip 多组测试
-    # queue_mins = range(80000, 80001) # only 1 test
+    queue_mins = range(80000, 80001) # only 1 test
     # queue_mins = range(80000, 80002) # 2 test
-    queue_mins = range(80000, 80003)  # 3 test
-    ecn_test_case.ovs_openflow_ecn(net, "openflow-ecn_ip-", duration=120,
+    # queue_mins = range(80000, 80003)  # 3 test
+    ecn_test_case.ovs_openflow_ecn(net, "openflow-ecn_ip-", duration=60,
                                     qmins=queue_mins, wait_seconds=10, ecn_tcp_flag=False)
+
     # -- ecn_tcp 多组测试
     # ecn_test_case.ovs_openflow_ecn(net, "openflow-ecn_tcp-", duration=120,
     #                                qmins=queue_mins, wait_seconds=1, ecn_tcp_flag=True)
