@@ -30,14 +30,6 @@ cd $MININET_HOME
 ln -sf /opt/sdn/mininet-cuc/ cuc
 ```
 
-
-=======
-## 实验拓扑
-Mininet实验拓扑Node: 4个主机, 4个交换机的linear配置, s3-s4之间存在(10ms)延时链路.
-
-实验拓扑图: https://www.processon.com/view/link/5752d7f1e4b0695484404d39
-
-
 ## 实验文件
 
 拓扑代码
@@ -73,22 +65,13 @@ Mininet实验拓扑Node: 4个主机, 4个交换机的linear配置, s3-s4之间�
 * `test02_04_base_ecn_red()` ecn base 测试
 * `ovs_openflow_ecn(ecn_tcp_flag=True)` ecn_tcp 测试
 * `ovs_openflow_ecn(ecn_tcp_flag=False)` ecn_ip 测试
-* `ecn_test_case.test11_base()` 需要使用ryu remote控制器, 测试结果记录在ecn_result/2016-06-01_ecn_openflow.txt 中, openflow的ecn参数测试, 不同队列大小. 用外部命令`ecn_ovs_helper.py start`来控制ecn标志修改.
-* `ecn_test_case.test01_04_ecn_red()` enc red测试,  测试结果记录 ecn_result/2016-06-28_ecn_red.txt 中, red的ecn参数测试, 4组实验. 可以看打开red参数后, min队列值越小, 带宽利用率稍微下降, avg平均延时越小, mdev分布越稳定, 测试结果记录
-
-测试结果    |无red ecn| 有redmimmax条件1| 条件2  | 条件3
------------|-----|--------|-----
-bw:        |9.42M|9.29M| 9.24M  | 9.37M
-ping avg:  |375ms|110ms| 118ms  | 127ms
-ping mdev: | 99ms|7.4ms| 10.9ms | 13.6ms
-
 * `print_mininet_objs(net)`  # 打印 mininet 拓扑对象
 * `test_diff_bw(net)`        # 设置不同带宽条件qos, 并使用 iperf测试
 * `test_diff_latency(net)`   # 设置不同延时条件qos, 并使用 ping 测试
 
 
 
-## 参数修改
+## 测试参数修改
 
 ```
 # ecn_topo.py 拓扑中一些可修改的参数
@@ -150,6 +133,17 @@ tc 默认在网卡出(out)的地方进行控制. 然而在ovs交换机内部传�
 - `hailong_local_no_qos.py`  本地 ovs controller 控制器, 无 qos 策略, 便于作 tc qos 命令行设置
 - `hailong_remote.orignial.py` 最初的 远程 controller 拓扑
 当使用 iperf 在 h1和h3直接进行传输时应能看到拥塞情况. 具体测试方法运行 `sudo python cuc/hailong_local_qos.py` 后可查看.
+
+
+其他测试用例
+* `ecn_test_case.test11_base()` 需要使用ryu remote控制器, 测试结果记录在ecn_result/2016-06-01_ecn_openflow.txt 中, openflow的ecn参数测试, 不同队列大小. 用外部命令`ecn_ovs_helper.py start`来控制ecn标志修改.
+* `ecn_test_case.test01_04_ecn_red()` enc red测试,  测试结果记录 ecn_result/2016-06-28_ecn_red.txt 中, red的ecn参数测试, 4组实验. 可以看打开red参数后, min队列值越小, 带宽利用率稍微下降, avg平均延时越小, mdev分布越稳定, 测试结果记录
+
+测试结果    |无red ecn| 有redmimmax条件1| 条件2  | 条件3
+-----------|-----|--------|-----
+bw:        |9.42M|9.29M| 9.24M  | 9.37M
+ping avg:  |375ms|110ms| 118ms  | 127ms
+ping mdev: | 99ms|7.4ms| 10.9ms | 13.6ms
 
 
 如自编译ovs交换机, 应先启动自编译的ovs交换机服务
