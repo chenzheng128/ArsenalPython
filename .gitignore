@@ -47,3 +47,5 @@ sdn/iproute2
 .DS_Store
 
 out.nam
+
+ns2/ns_by_example/output/
