@@ -45,3 +45,5 @@ sdn/akaedu/*/*.o
 sdn/iproute2
 
 .DS_Store
+
+out.nam
