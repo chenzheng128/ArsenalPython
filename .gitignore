@@ -8,6 +8,13 @@ EduLogging/.idea/
 
 *.pyc
 
+# c & cpp default out
+a.out
+
+# ns3 default out
+out.nam
+
+
 .idea/*
 .idea/misc.xml
 
@@ -46,6 +53,5 @@ sdn/iproute2
 
 .DS_Store
 
-out.nam
-
 ns2/ns_by_example/output/
+
