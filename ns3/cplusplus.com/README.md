@@ -18,16 +18,16 @@ InstalledDir: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault
 * ch01: Introduction
     - Compilers
 * ch02: Basics of C++
-    - Structure of a program
-    - Variables and types
-    - Constants
-    - Operators
-    - Basic Input/Output
-* ch03: Program structure
-    - Control Structures
-    - Functions
-    - Overloads and templates
-    - Name visibility
+    - Structure of a program: `ch02_program_structure.cpp`
+    - Variables and types: `ch02_variables.cpp`
+    - Constants: `ch02_constants.cpp`
+    - Operators: `ch02_operators.cpp`
+    - Basic Input/Output: `ch02_basic_io.cpp`
+* ch03: Program structure: `ch02_operators.cpp`
+    - Control Structures:  `ch03_control.cpp`
+    - Functions: `ch03_functions.cpp`
+    - Overloads and templates: `ch03_overload_template.cpp`
+    - Name visibility: `ch03_namespaces.cpp`
 * ch04: Compound data types
     - Arrays
     - Character sequences
