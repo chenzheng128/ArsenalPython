@@ -25,6 +25,8 @@ Source: http://nile.wpi.edu/NS/
     + post01: `ns ../post01_ns-simple-trace.tcl` 写入 trace 文件 `out.tr` [文件格式说明](http://nile.wpi.edu/NS/analysis.html)
     + `../post01_trace2jitter.sh` 通过 `out.tr` 生成 `jitter.txt`
     + post02: `ns ../post02_red.tcl`
+  * Trace Analysis Utilities
+      + `column.sh` `stats.pl` `jitter.sh`
 
 - Extending NS : 没说清楚扩展代码 Makefile 修改哪里
 - More Examples : 版本不兼容, 运行不起来
