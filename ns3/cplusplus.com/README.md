@@ -33,8 +33,8 @@ InstalledDir: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault
     - Character sequences: `ch04_chars.cpp`
     - Pointers: `pointers.cpp`
     - Dynamic Memory: `ch04_dynamic.cpp`
-    - Data structures
-    - Other data types
+    - Data structures: `ch04_structures.cpp`
+    - Other data types: `ch04_other_data_types.cpp`
 * ch05: Classes
     - Classes (I)
     - Classes (II)
