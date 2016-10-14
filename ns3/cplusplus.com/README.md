@@ -29,10 +29,10 @@ InstalledDir: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault
     - Overloads and templates: `ch03_overload_template.cpp`
     - Name visibility: `ch03_namespaces.cpp`
 * ch04: Compound data types
-    - Arrays
-    - Character sequences
-    - Pointers
-    - Dynamic Memory
+    - Arrays: `ch04_arrays.cpp`
+    - Character sequences: `ch04_chars.cpp`
+    - Pointers: `pointers.cpp`
+    - Dynamic Memory: `ch04_dynamic.cpp`
     - Data structures
     - Other data types
 * ch05: Classes
