@@ -1,6 +1,9 @@
 ## 完成 cplusplus.com 例子
 
+这个网站的内容很好, 是独立的 C++ 内容 (不需要另外的 C 语言内容), 包含直接链接 api 文档, 完整代码可以直接在运行与调试工具: http://cpp.sh/6wq5 进行测试与演示.
+
 Source http://www.cplusplus.com/doc/tutorial/
+
 
 在 Mac OSX 10.11.3 EI Captian 编译通过
 
@@ -41,9 +44,16 @@ InstalledDir: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault
     - Special members
     - Friendship and inheritance
     - Polymorphism
-* ch06: Other language features
-    - Type conversions
-    - Exceptions
-    - Preprocessor directives
+* ch06: Other language features: 
+    - Type conversions: `ch06_typecasting.cpp`
+    - Exceptions: `ch06_exceptions.cpp`
+    - Preprocessor directives: `ch06_preprocessor.cpp`
 * ch07: C++ Standard Library
-    - Input/Output with files
+    - Input/Output with files: `ch07_files.cpp`
+
+
+
+知识点备忘
+
+* move constructor 只能用在未命名的对象上, move 之后, destination 对象就接管了原来 source 的数据空间.  "The move constructor is called when an object is initialized on construction using an unnamed temporary." 
+http://www.cplusplus.com/doc/tutorial/classes2/ 
