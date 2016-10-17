@@ -1,0 +1,12 @@
+2
+What is your favorite flavor of ice cream?
+3
+Vanilla
+Chocolate
+Strawberry
+Socket programming is:
+4
+Surprisingly easy
+Empowering
+Not for the faint of heart
+Fun for the whole family
