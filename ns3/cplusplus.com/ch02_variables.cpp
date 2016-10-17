@@ -37,5 +37,4 @@ int main ()
   mystring = "This is a different string content";
   cout << mystring << endl;
   return 0;
-  return 0;
 }
