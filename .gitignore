@@ -55,3 +55,9 @@ sdn/iproute2
 
 ns2/ns_by_example/output/
 
+# ns3 output end eclipse project files
+ns3/practical_csocket2/output/
+ns3/.cproject
+ns3/.project
+ns3/.settings
+

@@ -37,10 +37,16 @@ main (int argc, char *argv[])
   CommandLine cmd;
   cmd.AddValue("nPackets", "Number of packets to echo", nPackets);
   cmd.Parse (argc, argv);
+
+  if (nPackets != 1)
+      NS_LOG_UNCOND ("读入自定义 nPackets 参数");
+
   NS_LOG_INFO ("Creating Topology two nodes ");
 
   Time::SetResolution (Time::NS);
-  LogComponentEnable ("UdpEchoClientApplication", LOG_LEVEL_INFO);
+  // 设置 level 级别 $ export NS_LOG=UdpEchoClientApplication=level_all
+  // export NS_LOG=UdpEchoClientApplication=level_debug
+  LogComponentEnable ("UdpEchoClientApplication", LOG_LEVEL_ALL);
   LogComponentEnable ("UdpEchoServerApplication", LOG_LEVEL_INFO);
 
   NodeContainer nodes;
