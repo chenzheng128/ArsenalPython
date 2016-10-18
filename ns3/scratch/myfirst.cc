@@ -22,6 +22,7 @@
 
 using namespace ns3;
 
+// 定义日志组件名
 NS_LOG_COMPONENT_DEFINE ("FirstScriptExample");
 
 int
@@ -38,19 +39,24 @@ main (int argc, char *argv[])
   cmd.AddValue("nPackets", "Number of packets to echo", nPackets);
   cmd.Parse (argc, argv);
 
-  if (nPackets != 1)
-      NS_LOG_UNCOND ("读入自定义 nPackets 参数");
+  //if (nPackets != 1)
+      NS_LOG_UNCOND ("读入自定义 nPackets 参数 = " << nPackets);
 
   NS_LOG_INFO ("Creating Topology two nodes ");
 
   Time::SetResolution (Time::NS);
   // 设置 level 级别 $ export NS_LOG=UdpEchoClientApplication=level_all
   // export NS_LOG=UdpEchoClientApplication=level_debug
-  LogComponentEnable ("UdpEchoClientApplication", LOG_LEVEL_ALL);
+  LogComponentEnable ("UdpEchoClientApplication", LOG_LEVEL_INFO);
   LogComponentEnable ("UdpEchoServerApplication", LOG_LEVEL_INFO);
+
+  // 需要用下面两种方法之一激活日志组件, 才能看到后面的 NS_LOG_INFO () 输出
+  // export NS_LOG=FirstScriptExample=info
+  LogComponentEnable ("FirstScriptExample", LOG_LEVEL_INFO);
 
   NodeContainer nodes;
   nodes.Create (2);
+  NS_LOG_INFO ("创建 2 个节点的拓扑 Creating Topology");
 
   PointToPointHelper pointToPoint;
   pointToPoint.SetDeviceAttribute ("DataRate", StringValue ("5Mbps"));
