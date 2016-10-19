@@ -95,11 +95,14 @@ main (int argc, char *argv[])
   serverApps.Start (Seconds (1.0));
   serverApps.Stop (Seconds (10.0));
 
-  UdpEchoClientHelper echoClient (csmaInterfaces.GetAddress (nCsma), 9);
+  NS_LOG_UNCOND ("通过 Server 地址 " << csmaInterfaces.GetAddress (nCsma) << " 建立echoClient.  csmaInterfaces.GetAddress (nCsma) " );
+  UdpEchoClientHelper echoClient (csmaInterfaces.GetAddress (nCsma), 9); //
   echoClient.SetAttribute ("MaxPackets", UintegerValue (1));
   echoClient.SetAttribute ("Interval", TimeValue (Seconds (1.0)));
   echoClient.SetAttribute ("PacketSize", UintegerValue (1024));
 
+
+  NS_LOG_UNCOND ("将 echoClient 安装至 p2pNodes.Get (0) Client 地址: "<< p2pInterfaces.GetAddress(0,0) <<" 成为 ApplicationContainer" );
   ApplicationContainer clientApps = echoClient.Install (p2pNodes.Get (0));
   clientApps.Start (Seconds (2.0));
   clientApps.Stop (Seconds (10.0));
@@ -109,6 +112,7 @@ main (int argc, char *argv[])
   //pointToPoint.EnablePcapAll ("second");
   //csma.EnablePcap ("second", csmaDevices.Get (1), true);
 
+  // 使用 GetId 获取生成的
   pointToPoint.EnablePcap ("second", p2pNodes.Get (0)->GetId (), 0);
   csma.EnablePcap ("second", csmaNodes.Get (nCsma)->GetId (), 0, false);
   csma.EnablePcap ("second", csmaNodes.Get (nCsma-1)->GetId (), 0, false);
