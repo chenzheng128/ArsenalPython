@@ -14,6 +14,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+#include "ns3/core-module.h" // 加入日志处理
 #include "ns3/object.h"
 #include "ns3/uinteger.h"
 #include "ns3/traced-value.h"
@@ -22,6 +23,9 @@
 #include <iostream>
 
 using namespace ns3;
+
+// 定义日志组件名
+NS_LOG_COMPONENT_DEFINE ("FourthScriptExample");
 
 class MyObject : public Object
 {
@@ -36,7 +40,7 @@ public:
       .SetParent<Object> ()
       .SetGroupName ("Tutorial")
       .AddConstructor<MyObject> ()
-      .AddTraceSource ("MyInteger",  //定义了 TraceSource
+      .AddTraceSource ("MyInteger",  //定义了 MyInteger 标示，并将其关联至 m_myInt
                        "An integer value to trace.",
                        MakeTraceSourceAccessor (&MyObject::m_myInt),
                        "ns3::TracedValueCallback::Int32")
@@ -55,14 +59,24 @@ IntTrace (int32_t oldValue, int32_t newValue)
   std::cout << "Traced myObject m_myInt:  " << oldValue << " to " << newValue << std::endl;
 }
 
+// 映射关系为 m_myInt -> MyInteger -> IntTrace()
 int
 main (int argc, char *argv[])
 {
   Ptr<MyObject> myObject = CreateObject<MyObject> ();
 
-  //使用 MyInteger TraceSource， 调用 IntTrace Callback 函数
+  // Trace 连接 TraceSource， 将 MyInteger 标示 和 IntTrace Callback 回调函数进行关联
+  NS_LOG_UNCOND( "// Trace 连接 TraceSource:  映射关系为 m_myInt -> MyInteger -> IntTrace()");
   myObject->TraceConnectWithoutContext ("MyInteger", MakeCallback (&IntTrace));
 
-  //sink 触发了事件改变
+  // sink 触发了事件改变
   myObject->m_myInt = 1234;
+
+  //再次触发事件
+  myObject->m_myInt = 512;
+
+  NS_LOG_UNCOND( "// Trace 断开， 断开之后 不再显示 m_myInt 改变");
+  myObject->TraceDisconnectWithoutContext("MyInteger", MakeCallback (&IntTrace));
+  // 不再触发
+  myObject->m_myInt = 254;
 }
