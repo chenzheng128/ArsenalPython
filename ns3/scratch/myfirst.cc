@@ -39,6 +39,9 @@ main (int argc, char *argv[])
   cmd.AddValue("nPackets", "Number of packets to echo", nPackets);
   cmd.Parse (argc, argv);
 
+  // TODO 会导致错误 msg="Could not set default value for ns3::Ipv4L3Protocol::CalcChecksum", file=../src/core/model/config.cc, line=779
+  //Config::SetDefault ("ns3::Ipv4L3Protocol::CalcChecksum", BooleanValue (true));
+
   //if (nPackets != 1)
       NS_LOG_UNCOND ("读入自定义 nPackets 参数 = " << nPackets);
 

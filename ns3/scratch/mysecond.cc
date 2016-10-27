@@ -112,10 +112,13 @@ main (int argc, char *argv[])
   //pointToPoint.EnablePcapAll ("second");
   //csma.EnablePcap ("second", csmaDevices.Get (1), true);
 
-  // 使用 GetId 获取生成的
-  pointToPoint.EnablePcap ("second", p2pNodes.Get (0)->GetId (), 0);
-  csma.EnablePcap ("second", csmaNodes.Get (nCsma)->GetId (), 0, false);
-  csma.EnablePcap ("second", csmaNodes.Get (nCsma-1)->GetId (), 0, false);
+  // 激活所有 pcap (ref from Tranning2014-session-3 )
+  pointToPoint.EnablePcapAll("second", true);
+  csma.EnablePcapAll("second", true);
+  // 使用 GetId 获取生成的 pcap
+  // pointToPoint.EnablePcap ("second", p2pNodes.Get (0)->GetId (), 0);
+  // csma.EnablePcap ("second", csmaNodes.Get (nCsma)->GetId (), 0, false);
+  // csma.EnablePcap ("second", csmaNodes.Get (nCsma-1)->GetId (), 0, false);
 
   Simulator::Run ();
   Simulator::Destroy ();

@@ -231,7 +231,8 @@ main (int argc, char *argv[])
   app->SetStartTime (Seconds (1.));
   app->SetStopTime (Seconds (20.));
 
-  // 使用 stream 来写入文件， 相对于 fifth.cc
+  // 不同于 fifth.cc 使用管道生成 tr 文件 ./waf –run scratch/myfifth > cwnd.dat 2>&1
+  // sixth 直接在程序中按指定的格式生成了 tr 文件
   AsciiTraceHelper asciiTraceHelper;
   Ptr<OutputStreamWrapper> stream = asciiTraceHelper.CreateFileStream ("sixth.cwnd");
   ns3TcpSocket->TraceConnectWithoutContext ("CongestionWindow", MakeBoundCallback (&CwndChange, stream));
