@@ -183,11 +183,18 @@ MyApp::ScheduleTx (void)
     }
 }
 
+//static void
+//CwndChange (Ptr<OutputStreamWrapper> stream, uint32_t oldCwnd, uint32_t newCwnd)
+//{
+//  // NS_LOG_UNCOND ("CwndChange: " << Simulator::Now ().GetSeconds () << "\t" << newCwnd);
+//  *stream->GetStream () << Simulator::Now ().GetSeconds () << "\t" << oldCwnd << "\t" << newCwnd << std::endl;
+//}
+
 static void
-CwndChange (Ptr<OutputStreamWrapper> stream, uint32_t oldCwnd, uint32_t newCwnd)
+// CwndChangeContext (std::string context, uint32_t oldCwnd, uint32_t newCwnd)
+CwndChangeContext (Ptr<OutputStreamWrapper> stream, uint32_t oldCwnd, uint32_t newCwnd)
 {
-  NS_LOG_UNCOND ("CwndChange: " << Simulator::Now ().GetSeconds () << "\t" << newCwnd);
-  *stream->GetStream () << Simulator::Now ().GetSeconds () << "\t" << oldCwnd << "\t" << newCwnd << std::endl;
+  NS_LOG_UNCOND ("CwndChange: " << " " << Simulator::Now ().GetSeconds () << "\t" << newCwnd);
 }
 
 static void
@@ -269,15 +276,20 @@ main (int argc, char *argv[])
   app->SetStopTime (Seconds (20.));
 
   AsciiTraceHelper asciiTraceHelper;
-  Ptr<OutputStreamWrapper> stream = asciiTraceHelper.CreateFileStream ("seventh.cwnd");
-  ns3TcpSocket->TraceConnectWithoutContext ("CongestionWindow", MakeBoundCallback (&CwndChange, stream));
+  Ptr<OutputStreamWrapper> stream = asciiTraceHelper.CreateFileStream ("seventh2.cwnd");
+  // Trace 的 attr 名称要输入正确， 否则不能正常显示
+
+  // ns3TcpSocket->TraceConnectWithoutContext ("CongestionWindow", MakeBoundCallback (&CwndChange, stream));
+  ns3TcpSocket->TraceConnectWithoutContext ("CongestionWindow", MakeBoundCallback (&CwndChangeContext, stream));
+  NS_LOG_UNCOND(ns3TcpSocket->GetTypeId());
 
   PcapHelper pcapHelper;
-  Ptr<PcapFileWrapper> file = pcapHelper.CreateFile ("seventh.pcap", std::ios::out, PcapHelper::DLT_PPP);
+  Ptr<PcapFileWrapper> file = pcapHelper.CreateFile ("seventh2.pcap", std::ios::out, PcapHelper::DLT_PPP);
   devices.Get (1)->TraceConnectWithoutContext ("PhyRxDrop", MakeBoundCallback (&RxDrop, file));
 
   ns3TcpSocket->TraceConnectWithoutContext ("OutputBytes11", MakeBoundCallback (&OutputBytes, stream));
 
+  NS_LOG_UNCOND ( tracePath );
   // Use GnuplotHelper to plot the packet byte count over time
   GnuplotHelper plotHelper;
 
@@ -293,9 +305,9 @@ main (int argc, char *argv[])
   // probe output trace source ("OutputBytes") to plot.  The fourth argument
   // specifies the name of the data series label on the plot.  The last
   // argument formats the plot by specifying where the key should be placed.
-  plotHelper.PlotProbe (probeType,
+  plotHelper.PlotProbe (probeType, // TODO 为什么必须是 Probe 呢? "ns3::TcpSocketBase就不行"
                         tracePath,
-                        "CongestionWindow",
+                        "CongestionWindow", // 这里写错也出不了
                         "Congestion Windows Size",
                         GnuplotAggregator::KEY_BELOW);
 
@@ -311,7 +323,7 @@ main (int argc, char *argv[])
 
   // Specify the probe type, trace source path (in configuration namespace), and
   // probe output trace source ("OutputBytes") to write.
-  fileHelper.WriteProbe (probeType,
+  fileHelper.WriteProbe (probeType,  // // TODO 为什么必须是 Probe 呢?
                          tracePath,
                          "CongestionWindows");
 
