@@ -22,6 +22,7 @@ scratch 目录
 * 10 Tracing 48
   - 使用 tracing `./waf --run scratch/mn103-tcp-large-transfer`
 * 11 DataCollection 64
+  - 11.2 Helper: `src/stats/examples/gnuplot-helper-example.cc`
 * 12 StatisticalFramework 89
 * 13 RealTime 97
 * 14 Helpers 99
