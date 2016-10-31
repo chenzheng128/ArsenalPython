@@ -43,6 +43,7 @@ main (int argc, char *argv[])
   //Config::SetDefault ("ns3::Ipv4L3Protocol::CalcChecksum", BooleanValue (true));
 
   //if (nPackets != 1)
+      // UNCOND 仅工作在 debug 模式下, Optimazed 是不会输出的
       NS_LOG_UNCOND ("读入自定义 nPackets 参数 = " << nPackets);
 
   NS_LOG_INFO ("Creating Topology two nodes ");
