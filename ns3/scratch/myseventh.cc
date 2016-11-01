@@ -14,6 +14,11 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+
+// 运行程序 && 绘图 && 查看图片
+// ./waf --run myseventh &&  sh seventh-packet-byte-count.sh && open seventh-packet-byte-count.png
+// 查看数据输出 head seventh-packet-byte-count.dat
+
 #include <fstream>
 #include "ns3/core-module.h"
 #include "ns3/network-module.h"
@@ -285,6 +290,19 @@ main (int argc, char *argv[])
   // probe output trace source ("OutputBytes") to plot.  The fourth argument
   // specifies the name of the data series label on the plot.  The last
   // argument formats the plot by specifying where the key should be placed.
+
+//  /*
+    // probeType = "ns3::Ipv4PacketProbe";
+    // tracePath = "/NodeList/*/$ns3::Ipv4L3Protocol/Tx";
+
+//   *  问题: 这里的 probeType 和 tracepath 是怎样发生关系的?
+//   *    答: Ipv4PacketProbe 为 /Tx 的 Packet 挂上一个对应类型的 Probe
+//   *       从 Ipv4PacketProbe 文档可以看到 选择 OutputBytes 或 Output 熟悉可以得到对应数据的输出
+//   *   Tx 是一个 Packet 的 TraceCallback
+//   *	  probeType = "ns3::Ipv4PacketProbe";
+//   *  tracePath = "/NodeList/*/$ns3::Ipv4L3Protocol/Tx"
+//   */
+
   plotHelper.PlotProbe (probeType,
                         tracePath,
                         "OutputBytes",
@@ -294,6 +312,7 @@ main (int argc, char *argv[])
   // Use FileHelper to write out the packet byte count over time
   FileHelper fileHelper;
 
+  
   // Configure the file to be written, and the formatting of output data.
   fileHelper.ConfigureFile ("seventh-packet-byte-count",
                             FileAggregator::FORMATTED);

@@ -14,6 +14,10 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+// 运行程序 && 绘图 && 查看图片
+// ./waf --run mn113-myseventh2 &&  sh seventh-cwnd-count.sh && open seventh-cwnd-count.png
+// 基于 seventh 修改, 将原有的 PacketSize (PacketProbe) 修改为 CongestionWindow (Uint32Probe)
+
 #include <fstream>
 #include "ns3/core-module.h"
 #include "ns3/network-module.h"
@@ -190,7 +194,7 @@ MyApp::ScheduleTx (void)
 //  *stream->GetStream () << Simulator::Now ().GetSeconds () << "\t" << oldCwnd << "\t" << newCwnd << std::endl;
 //}
 
-static void
+void
 // CwndChangeContext (std::string context, uint32_t oldCwnd, uint32_t newCwnd)
 CwndChangeContext (Ptr<OutputStreamWrapper> stream, uint32_t oldCwnd, uint32_t newCwnd)
 {
@@ -208,6 +212,12 @@ static void
 OutputBytes  (Ptr<OutputStreamWrapper> stream, uint32_t oldValue, uint32_t newValue)
 {
   NS_LOG_UNCOND ("OutputBytes at " << Simulator::Now ().GetSeconds () << "\t" << newValue);
+}
+
+static void
+CwndTracer (uint32_t oldval, uint32_t newval)
+{
+  NS_LOG_INFO ("Moving cwnd from " << oldval << " to " << newval);
 }
 
 int
@@ -277,10 +287,17 @@ main (int argc, char *argv[])
 
   AsciiTraceHelper asciiTraceHelper;
   Ptr<OutputStreamWrapper> stream = asciiTraceHelper.CreateFileStream ("seventh2.cwnd");
-  // Trace 的 attr 名称要输入正确， 否则不能正常显示
 
+  // Trace 的 attr 名称要输入正确， 否则不能正常显示
+  //
+  // seventh 用这种 TraceConnectWithoutContext 其实比较少用 (actually very rarely used )  Manual pp.51
   // ns3TcpSocket->TraceConnectWithoutContext ("CongestionWindow", MakeBoundCallback (&CwndChange, stream));
-  ns3TcpSocket->TraceConnectWithoutContext ("CongestionWindow", MakeBoundCallback (&CwndChangeContext, stream));
+  //Config::ConnectWithoutContext("CongestionWindow", MakeBoundCallback (&CwndChangeContext, stream));
+  // 修改为直接连接 path
+  std::string cwndPath =  "/NodeList/0/$ns3::TcpL4Protocol/SocketList/0/CongestionWindow";
+  Config::ConnectWithoutContext (
+		  cwndPath,
+   MakeCallback (&CwndTracer));
   NS_LOG_UNCOND(ns3TcpSocket->GetTypeId());
 
   PcapHelper pcapHelper;
@@ -305,9 +322,18 @@ main (int argc, char *argv[])
   // probe output trace source ("OutputBytes") to plot.  The fourth argument
   // specifies the name of the data series label on the plot.  The last
   // argument formats the plot by specifying where the key should be placed.
+
+  // 修改我们要连接的 cwndPath
+  // Probe 正确连接上之后, 可以使用 Output 进行输出
+  std::string outname = "Output";
+  probeType = "ns3::Uinteger32Probe"; // PacketProbe
+  // tracePath = "/NodeList/*/$ns3::Ipv4L3Protocol/Tx";
+  tracePath = cwndPath;
+
+  NS_LOG_UNCOND("--- generate file: cat seventh-cwnd-count.dat");
   plotHelper.PlotProbe (probeType, // TODO 为什么必须是 Probe 呢? "ns3::TcpSocketBase就不行"
-                        tracePath,
-                        "CongestionWindow", // 这里写错也出不了
+		  	  	  	  tracePath,
+					  outname, // 这里写错也出不了
                         "Congestion Windows Size",
                         GnuplotAggregator::KEY_BELOW);
 
@@ -325,7 +351,7 @@ main (int argc, char *argv[])
   // probe output trace source ("OutputBytes") to write.
   fileHelper.WriteProbe (probeType,  // // TODO 为什么必须是 Probe 呢?
                          tracePath,
-                         "CongestionWindows");
+						 outname);
 
   Simulator::Stop (Seconds (20));
   Simulator::Run ();
