@@ -52,7 +52,10 @@
 #include "ns3/traffic-control-module.h"
 
 // 运行。 打开程序与config日志
-// NS_LOG="TcpVariantsComparison=all:Config=level_all" ./waf --run "my-tcp-variants-comparison"
+// $ NS_LOG="TcpVariantsComparison=all:Config=level_all" ./waf --run "my-tcp-variants-comparison"
+
+// 绘制 tracing 图表
+// $ python scratch/my_plot_data.py TcpVariantsComparison-*.txt
 
 using namespace ns3;
 
@@ -147,6 +150,9 @@ NextRxTracer (SequenceNumber32 old, SequenceNumber32 nextRx)
   *nextRxStream->GetStream () << Simulator::Now ().GetSeconds () << " " << nextRx << std::endl;
 }
 
+// Connect Tracing Callback
+
+//cwnd 窗口大小
 static void
 TraceCwnd (std::string cwnd_tr_file_name)
 {
@@ -155,6 +161,7 @@ TraceCwnd (std::string cwnd_tr_file_name)
   Config::ConnectWithoutContext ("/NodeList/1/$ns3::TcpL4Protocol/SocketList/0/CongestionWindow", MakeCallback (&CwndTracer));
 }
 
+//SlowStartThreshold
 static void
 TraceSsThresh (std::string ssthresh_tr_file_name)
 {
@@ -163,6 +170,7 @@ TraceSsThresh (std::string ssthresh_tr_file_name)
   Config::ConnectWithoutContext ("/NodeList/1/$ns3::TcpL4Protocol/SocketList/0/SlowStartThreshold", MakeCallback (&SsThreshTracer));
 }
 
+//RTT
 static void
 TraceRtt (std::string rtt_tr_file_name)
 {
@@ -171,6 +179,7 @@ TraceRtt (std::string rtt_tr_file_name)
   Config::ConnectWithoutContext ("/NodeList/1/$ns3::TcpL4Protocol/SocketList/0/RTT", MakeCallback (&RttTracer));
 }
 
+//RTO
 static void
 TraceRto (std::string rto_tr_file_name)
 {
@@ -206,11 +215,12 @@ TraceNextRx (std::string &next_rx_seq_file_name)
 
 int main (int argc, char *argv[])
 {
+  // 原始参数
   std::string transport_prot = "TcpWestwood";
   double error_p = 0.0;
-  std::string bandwidth = "2Mbps";
+  std::string bandwidth = "20Mbps";
   std::string delay = "0.01ms";
-  std::string access_bandwidth = "10Mbps";
+  std::string access_bandwidth = "100Mbps";
   std::string access_delay = "45ms";
   bool tracing = false;
   std::string prefix_file_name = "TcpVariantsComparison";
@@ -223,7 +233,16 @@ int main (int argc, char *argv[])
   bool pcap = false;
   std::string queue_disc_type = "ns3::PfifoFastQueueDisc";
 
+  // 新实验默认参数
+  tracing = true;
+  duration = 30; // 由于 NS 的离散event设计, 实际运行时间会更短
+//  bandwidth = "2Mbps";
+//  delay = "0.01ms";
+//  access_bandwidth = "10Mbps";
+//  access_delay = "45ms";
 
+
+  // 命令行传入参数
   CommandLine cmd;
   cmd.AddValue ("transport_prot", "Transport protocol to use: TcpNewReno, "
                 "TcpHybla, TcpHighSpeed, TcpHtcp, TcpVegas, TcpScalable, TcpVeno, "
@@ -232,17 +251,18 @@ int main (int argc, char *argv[])
   cmd.AddValue ("bandwidth", "Bottleneck bandwidth", bandwidth);
   cmd.AddValue ("delay", "Bottleneck delay", delay);
   cmd.AddValue ("access_bandwidth", "Access link bandwidth", access_bandwidth);
-  cmd.AddValue ("access_delay", "Access link delay", access_delay);
-  cmd.AddValue ("tracing", "Flag to enable/disable tracing", tracing);
+  //时延 --access_delay=60ms 记录在 TcpVariantsComparison-rtt 文件中
+  cmd.AddValue ("access_delay", "时延 Access link delay", access_delay);
+  cmd.AddValue ("tracing", "文件记录 Flag to enable/disable tracing", tracing);
   cmd.AddValue ("prefix_name", "Prefix of output trace file", prefix_file_name);
   cmd.AddValue ("data", "Number of Megabytes of data to transmit", data_mbytes);
   cmd.AddValue ("mtu", "Size of IP packets to send in bytes", mtu_bytes);
-  cmd.AddValue ("num_flows", "Number of flows", num_flows);
-  cmd.AddValue ("duration", "Time to allow flows to run in seconds", duration);
+  cmd.AddValue ("num_flows", "流数量 Number of flows", num_flows);
+  cmd.AddValue ("duration", "持续时长 Time to allow flows to run in seconds", duration);
   cmd.AddValue ("run", "Run index (for setting repeatable seeds)", run);
   cmd.AddValue ("flow_monitor", "Enable flow monitor", flow_monitor);
   cmd.AddValue ("pcap_tracing", "Enable or disable PCAP tracing", pcap);
-  cmd.AddValue ("queue_disc_type", "Queue disc type for gateway (e.g. ns3::CoDelQueueDisc)", queue_disc_type);
+  cmd.AddValue ("queue_disc_type", "队列类型 Queue disc type for gateway (e.g. ns3::CoDelQueueDisc)", queue_disc_type);
   cmd.Parse (argc, argv);
 
   SeedManager::SetSeed (1);
@@ -253,7 +273,7 @@ int main (int argc, char *argv[])
   //LogComponentEnable("BulkSendApplication", LOG_LEVEL_INFO);
   //LogComponentEnable("PfifoFastQueueDisc", LOG_LEVEL_ALL);
 
-  // Calculate the ADU size
+  // Calculate the ADU size TODO ADU 是什么
   Header* temp_header = new Ipv4Header ();
   uint32_t ip_header = temp_header->GetSerializedSize ();
   NS_LOG_LOGIC ("IP Header size is: " << ip_header);
@@ -464,18 +484,19 @@ int main (int argc, char *argv[])
     {
       std::ofstream ascii;
       Ptr<OutputStreamWrapper> ascii_wrap;
-      ascii.open ((prefix_file_name + "-ascii").c_str ());
-      ascii_wrap = new OutputStreamWrapper ((prefix_file_name + "-ascii").c_str (),
+      prefix_file_name += "-" +  transport_prot; // 文件名中增加 tcp类型
+      ascii.open ((prefix_file_name + "-ascii.tr").c_str ());
+      ascii_wrap = new OutputStreamWrapper ((prefix_file_name + "-ascii.tr").c_str (),
                                             std::ios::out);
       stack.EnableAsciiIpv4All (ascii_wrap);
 
-      Simulator::Schedule (Seconds (0.00001), &TraceCwnd, prefix_file_name + "-cwnd.data");
-      Simulator::Schedule (Seconds (0.00001), &TraceSsThresh, prefix_file_name + "-ssth.data");
-      Simulator::Schedule (Seconds (0.00001), &TraceRtt, prefix_file_name + "-rtt.data");
-      Simulator::Schedule (Seconds (0.00001), &TraceRto, prefix_file_name + "-rto.data");
-      Simulator::Schedule (Seconds (0.00001), &TraceNextTx, prefix_file_name + "-next-tx.data");
-      Simulator::Schedule (Seconds (0.00001), &TraceInFlight, prefix_file_name + "-inflight.data");
-      Simulator::Schedule (Seconds (0.1), &TraceNextRx, prefix_file_name + "-next-rx.data");
+      Simulator::Schedule (Seconds (0.00001), &TraceCwnd, prefix_file_name + "-cwnd.txt");
+      Simulator::Schedule (Seconds (0.00001), &TraceSsThresh, prefix_file_name + "-ssth.txt");
+      Simulator::Schedule (Seconds (0.00001), &TraceRtt, prefix_file_name + "-rtt.txt");
+      Simulator::Schedule (Seconds (0.00001), &TraceRto, prefix_file_name + "-rto.txt");
+      Simulator::Schedule (Seconds (0.00001), &TraceNextTx, prefix_file_name + "-next-tx.txt");
+      Simulator::Schedule (Seconds (0.00001), &TraceInFlight, prefix_file_name + "-inflight.txt");
+      Simulator::Schedule (Seconds (0.1), &TraceNextRx, prefix_file_name + "-next-rx.txt");
     }
 
   if (pcap)

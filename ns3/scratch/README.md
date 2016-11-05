@@ -1,4 +1,5 @@
 ## scratch 目录代码
+ * tcp参数实验 `./waf --run "my-tcp-variants-comparison"`
 
 ## Tutorial 例子
  以 my[first|second|third等].cc 为命名格式
@@ -27,7 +28,7 @@
     + doubleProbe 例子 `NS_LOG="DoubleProbeExample=all" ./waf --run double-probe-example`
     + gnuplot helper 例子 `NS_LOG="GnuplotHelperExample=all" ./waf --run gnuplot-helper-example && sh gnuplot-helper-example.sh && open gnuplot-helper-example.png`
   - 11.3 Proble 
-  - 我们的 Uinteger32Probe 例子: `./waf --run mn103-myseventh2 `
+  - 我们的 Uinteger32Probe 例子: `./waf --run mn113-myseventh2 `
 * 12 Statistical Framework 89 统计框架
   - 运行 wifi 例子: `cd examples/stats/ && sh wifi-example-db.sh && open wifi-default.eps`
 * 13 RealTime 97 (Linux 专用)
