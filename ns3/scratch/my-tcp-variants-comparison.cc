@@ -51,9 +51,6 @@
 #include "ns3/ipv4-global-routing-helper.h"
 #include "ns3/traffic-control-module.h"
 
-// 运行。 打开程序与config日志
-// $ NS_LOG="TcpVariantsComparison=all:Config=level_all" ./waf --run "my-tcp-variants-comparison"
-
 // 绘制 tracing 图表
 // $ python scratch/my_plot_data.py TcpVariantsComparison-*.txt
 
@@ -213,6 +210,13 @@ TraceNextRx (std::string &next_rx_seq_file_name)
   Config::ConnectWithoutContext ("/NodeList/2/$ns3::TcpL4Protocol/SocketList/1/RxBuffer/NextRxSequence", MakeCallback (&NextRxTracer));
 }
 
+
+// 运行。 打开程序与config日志
+// 不同 tcp 模式
+// 使用 matplotlib 绘制 tracing 图表
+// $ pyenv shell anaconda2-2.5.0  / pyenv shell anaconda2-2.4.1
+// $ python scratch/my_plot_data.py TcpVariantsComparison-*.txt
+
 int main (int argc, char *argv[])
 {
   // 原始参数
@@ -234,6 +238,7 @@ int main (int argc, char *argv[])
   std::string queue_disc_type = "ns3::PfifoFastQueueDisc";
 
   // 新实验默认参数
+  transport_prot = "TcpNewReno";
   tracing = true;
   duration = 30; // 由于 NS 的离散event设计, 实际运行时间会更短
 //  bandwidth = "2Mbps";
