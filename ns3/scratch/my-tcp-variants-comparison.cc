@@ -51,8 +51,6 @@
 #include "ns3/ipv4-global-routing-helper.h"
 #include "ns3/traffic-control-module.h"
 
-// 绘制 tracing 图表
-// $ python scratch/my_plot_data.py TcpVariantsComparison-*.txt
 
 using namespace ns3;
 
@@ -212,10 +210,15 @@ TraceNextRx (std::string &next_rx_seq_file_name)
 
 
 // 运行。 打开程序与config日志
+// $ NS_LOG="TcpVariantsComparison=all:Config=level_all" ./waf --run "my-tcp-variants-comparison"
 // 不同 tcp 模式
+// --run "my-tcp-variants-comparison --transport_prot=TcpNewReno"
+// --run "my-tcp-variants-comparison --transport_prot=TcpWestwood"
+
 // 使用 matplotlib 绘制 tracing 图表
 // $ pyenv shell anaconda2-2.5.0  / pyenv shell anaconda2-2.4.1
 // $ python scratch/my_plot_data.py TcpVariantsComparison-*.txt
+
 
 int main (int argc, char *argv[])
 {
