@@ -5,13 +5,13 @@
 #
 
 # 单绘图
-# python scratch/my_plot_data.py seventh-cwnd-count.dat
+# python scratch/my_plot_helper.py seventh-cwnd-count.dat
 #
 # 独立 多绘图模式 (适合一种模型下的不同类型图表)
-# python scratch/my_plot_data.py TcpVariantsComparison-TcpNewReno-*.txt
+# python scratch/my_plot_helper.py TcpVariantsComparison-TcpNewReno-*.txt
 #
 # merge 多绘图模式 (适合不同模型下的同一类型图表对比)
-# python scratch/my_plot_data.py --merge TcpVariantsComparison-*-cwnd.txt
+# python scratch/my_plot_helper.py --merge TcpVariantsComparison-*-cwnd.txt
 
 import sys
 import matplotlib.pyplot as plt

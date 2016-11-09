@@ -51,6 +51,8 @@
 #include "ns3/ipv4-global-routing-helper.h"
 #include "ns3/traffic-control-module.h"
 
+// s#include "ns3/internet/module/tcp-myalg.h"
+
 
 using namespace ns3;
 
@@ -211,13 +213,16 @@ TraceNextRx (std::string &next_rx_seq_file_name)
 
 // 运行。 打开程序与config日志
 // $ NS_LOG="TcpVariantsComparison=all:Config=level_all" ./waf --run "my-tcp-variants-comparison"
-// 不同 tcp 模式
-// --run "my-tcp-variants-comparison --transport_prot=TcpNewReno"
-// --run "my-tcp-variants-comparison --transport_prot=TcpWestwood"
+// 在不同 tcp 算法下运行
+// $ NS_LOG="TcpVariantsComparison=all:Config=level_all" ./waf \
+//   --run "my-tcp-variants-comparison --transport_prot=TcpNewResno"
+//   --run "my-tcp-variants-comparison --transport_prot=TcpWestwood"
+//   --run "my-tcp-variants-comparison --transport_prot=TcpVegas"
+//   --run "my-tcp-variants-comparison --transport_prot=TcpMyAlg" //自定义算法
 
 // 使用 matplotlib 绘制 tracing 图表
 // $ pyenv shell anaconda2-2.5.0  / pyenv shell anaconda2-2.4.1
-// $ python scratch/my_plot_data.py TcpVariantsComparison-*.txt
+// $ python scratch/my_plot_helper.py TcpVariantsComparison-*.txt
 
 
 int main (int argc, char *argv[])
@@ -252,9 +257,10 @@ int main (int argc, char *argv[])
 
   // 命令行传入参数
   CommandLine cmd;
+  // 增加了从 TcpWestwood 复制修改来的 MyAlgrithm
   cmd.AddValue ("transport_prot", "Transport protocol to use: TcpNewReno, "
                 "TcpHybla, TcpHighSpeed, TcpHtcp, TcpVegas, TcpScalable, TcpVeno, "
-                "TcpBic, TcpYeah, TcpIllinois, TcpWestwood, TcpWestwoodPlus ", transport_prot);
+                "TcpBic, TcpYeah, TcpIllinois, TcpWestwood, TcpWestwoodPlus , TcpMyAlg (revised from Westwood)", transport_prot);
   cmd.AddValue ("error_p", "Packet error rate", error_p);
   cmd.AddValue ("bandwidth", "Bottleneck bandwidth", bandwidth);
   cmd.AddValue ("delay", "Bottleneck delay", delay);
@@ -353,6 +359,12 @@ int main (int argc, char *argv[])
       Config::SetDefault ("ns3::TcpWestwood::ProtocolType", EnumValue (TcpWestwood::WESTWOODPLUS));
       Config::SetDefault ("ns3::TcpWestwood::FilterType", EnumValue (TcpWestwood::TUSTIN));
     }
+  else if (transport_prot.compare ("TcpMyAlg") == 0) // our Alg
+      {
+        Config::SetDefault ("ns3::TcpL4Protocol::SocketType", TypeIdValue (TcpMyAlg::GetTypeId ()));
+        Config::SetDefault ("ns3::TcpMyAlg::ProtocolType", EnumValue (TcpMyAlg::MYALG));
+        Config::SetDefault ("ns3::TcpMyAlg::FilterType", EnumValue (TcpMyAlg::TUSTIN));
+      }
   else
     {
       NS_LOG_DEBUG ("Invalid TCP version");
@@ -453,6 +465,7 @@ int main (int argc, char *argv[])
       AddressValue remoteAddress (InetSocketAddress (sink_interfaces.GetAddress (i, 0), port));
 
       if (transport_prot.compare ("TcpNewReno") == 0
+	  || transport_prot.compare ("TcpMyAlg") == 0 // my tcp algorithm
           || transport_prot.compare ("TcpWestwood") == 0
           || transport_prot.compare ("TcpWestwoodPlus") == 0
           || transport_prot.compare ("TcpHybla") == 0
