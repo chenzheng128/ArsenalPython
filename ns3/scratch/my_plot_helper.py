@@ -1,5 +1,8 @@
+#!/usr/bin/env python
 #coding: utf-8
-#!env python
+# Ubuntu
+#  sudo apt-get install python-matplotlib  # 安装 matplotlib
+# OSX
 # 进入 anaconda 环境
 # pyenv shell anaconda2-2.5.0  / pyenv shell anaconda2-2.4.1
 #

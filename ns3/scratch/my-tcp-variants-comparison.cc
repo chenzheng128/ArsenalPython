@@ -214,7 +214,7 @@ TraceNextRx (std::string &next_rx_seq_file_name)
 // 运行。 打开程序与config日志
 // $ NS_LOG="TcpVariantsComparison=all:Config=level_all" ./waf --run "my-tcp-variants-comparison"
 // 在不同 tcp 算法下运行
-// $ NS_LOG="TcpVariantsComparison=all:Config=level_all" ./waf \
+// $ NS_LOG="TcpVariantsComparison=all:Config=level_all" ./waf
 //   --run "my-tcp-variants-comparison --transport_prot=TcpNewResno"
 //   --run "my-tcp-variants-comparison --transport_prot=TcpWestwood"
 //   --run "my-tcp-variants-comparison --transport_prot=TcpVegas"
