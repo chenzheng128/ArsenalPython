@@ -211,6 +211,7 @@ TraceNextRx (std::string &next_rx_seq_file_name)
 }
 
 
+// TODO 本程序在运行 TcpBic 会崩溃, 原因未知.
 // 运行。 打开程序与config日志
 // $ NS_LOG="TcpVariantsComparison=all:Config=level_all" ./waf --run "my-tcp-variants-comparison"
 // 在不同 tcp 算法下运行
@@ -247,8 +248,8 @@ int main (int argc, char *argv[])
 
   // 新实验默认参数
   transport_prot = "TcpNewReno";
-  tracing = true;
-  duration = 30; // 由于 NS 的离散event设计, 实际运行时间会更短
+//  tracing = true;
+//  duration = 30; // 由于 NS 的离散event设计, 实际运行时间会更短
 //  bandwidth = "2Mbps";
 //  delay = "0.01ms";
 //  access_bandwidth = "10Mbps";
@@ -503,9 +504,12 @@ int main (int argc, char *argv[])
   // Set up tracing if enabled
   if (tracing)
     {
+
       std::ofstream ascii;
       Ptr<OutputStreamWrapper> ascii_wrap;
       prefix_file_name += "-" +  transport_prot; // 文件名中增加 tcp类型
+      NS_LOG_UNCOND("激活 tracing 日志 " << prefix_file_name);
+
       ascii.open ((prefix_file_name + "-ascii.tr").c_str ());
       ascii_wrap = new OutputStreamWrapper ((prefix_file_name + "-ascii.tr").c_str (),
                                             std::ios::out);
