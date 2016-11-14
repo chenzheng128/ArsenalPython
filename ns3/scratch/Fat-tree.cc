@@ -37,7 +37,10 @@
 #include "ns3/ipv4-global-routing-helper.h"
 #include "ns3/csma-module.h"
 #include "ns3/ipv4-nix-vector-helper.h"
-#include "ns3/random-variable.h"
+// ns-3.13-API
+// #include "ns3/random-variable.h"
+// ns-3.26-API
+#include "ns3/random-variable-stream.h"
 
 /*
 	- This work goes along with the paper "Towards Reproducible Performance Studies of Datacenter Network Architectures Using An Open-Source Simulation Approach"
@@ -226,8 +229,21 @@ int
 
 	// Initialize On/Off Application with addresss of server
 		OnOffHelper oo = OnOffHelper("ns3::UdpSocketFactory",Address(InetSocketAddress(Ipv4Address(add), port))); // ip address of server
-	        oo.SetAttribute("OnTime",RandomVariableValue(ExponentialVariable(1)));
-	        oo.SetAttribute("OffTime",RandomVariableValue(ExponentialVariable(1)));
+					//ns-3.13-API
+					// oo.SetAttribute("OnTime",RandomVariableValue(ExponentialVariable(1)));
+	        // oo.SetAttribute("OffTime",RandomVariableValue(ExponentialVariable(1)));
+
+					//ns-3.26-API
+					// init ExponentialRandomVariable
+					double mean = 1;
+					double bound = 0.0;
+					Ptr<ExponentialRandomVariable> ev = CreateObject<ExponentialRandomVariable> ();
+					ev->SetAttribute ("Mean", DoubleValue (mean));
+					ev->SetAttribute ("Bound", DoubleValue (bound));
+
+					oo.SetAttribute("OnTime", DoubleValue(ev->GetValue()));
+					oo.SetAttribute("OffTime", DoubleValue(ev->GetValue()));
+
  	        oo.SetAttribute("PacketSize",UintegerValue (packetSize));
  	       	oo.SetAttribute("DataRate",StringValue (dataRate_OnOff));
 	        oo.SetAttribute("MaxBytes",StringValue (maxBytes));
