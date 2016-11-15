@@ -121,7 +121,7 @@ int
 {
 //=========== Define parameters based on value of k ===========//
 //
-	int k = 4;			// number of ports per switch
+	int k = 6;			// number of ports per switch
 	int num_pod = k;		// number of pod
 	int num_host = (k/2);		// number of hosts under a switch
 	int num_edge = (k/2);		// number of edge switch in a pod
@@ -234,15 +234,11 @@ int
 	        // oo.SetAttribute("OffTime",RandomVariableValue(ExponentialVariable(1)));
 
 					//ns-3.26-API
-					// init ExponentialRandomVariable
-					double mean = 1;
-					double bound = 0.0;
-					Ptr<ExponentialRandomVariable> ev = CreateObject<ExponentialRandomVariable> ();
-					ev->SetAttribute ("Mean", DoubleValue (mean));
-					ev->SetAttribute ("Bound", DoubleValue (bound));
 
-					oo.SetAttribute("OnTime", DoubleValue(ev->GetValue()));
-					oo.SetAttribute("OffTime", DoubleValue(ev->GetValue()));
+					//oo.SetAttribute ("OnTime", StringValue ("ns3::ConstantRandomVariable[Constant=1000]"));
+ 				  //oo.SetAttribute ("OffTime", StringValue ("ns3::ConstantRandomVariable[Constant=0]"));
+					oo.SetAttribute("OnTime", StringValue ("ns3::ExponentialRandomVariable[Mean=1|Bound=0.0]"));
+					oo.SetAttribute("OffTime", StringValue ("ns3::ExponentialRandomVariable[Mean=1|Bound=0.0]"));
 
  	        oo.SetAttribute("PacketSize",UintegerValue (packetSize));
  	       	oo.SetAttribute("DataRate",StringValue (dataRate_OnOff));
