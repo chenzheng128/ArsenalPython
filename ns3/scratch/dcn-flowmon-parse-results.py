@@ -127,8 +127,16 @@ def main(argv):
     print " done."
 
 
+
+    total_flow_count = 0
+    total_rx_bitrate = 0
+    total_tx_bitrate = 0
+    total_mean_delay = 0
+    total_loss_ratio = 0
     for sim in sim_list:
+        print "debug: for sim %s" % sim
         for flow in sim.flows:
+            total_flow_count += 1
             t = flow.fiveTuple
             proto = {6: 'TCP', 17: 'UDP'} [t.protocol]
             print "FlowID: %i (%s %s/%s --> %s/%i)" % \
@@ -149,6 +157,8 @@ def main(argv):
                 print "\tPacket Loss Ratio: None"
             else:
                 print "\tPacket Loss Ratio: %.2f %%" % (flow.packetLossRatio*100)
+
+
 
 
 if __name__ == '__main__':
