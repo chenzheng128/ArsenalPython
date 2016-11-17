@@ -121,7 +121,7 @@ int
 {
 //=========== Define parameters based on value of k ===========//
 //
-	int k = 4;			// number of ports per switch  4->6 ( CFI2016 )
+	int k = 4;			// number of ports per switch
 	int num_pod = k;		// number of pod
 	int num_host = (k/2);		// number of hosts under a switch
 	int num_edge = (k/2);		// number of edge switch in a pod
@@ -130,13 +130,7 @@ int
 	int num_group = k/2;		// number of group of core switches
         int num_core = (k/2);		// number of core switch in a group
 	int total_host = k*k*k/4;	// number of hosts in the entire network
-	char filename [256] ;// filename for Flow Monitor xml output file
-	// strcat(filename,"-k");
-	//snprintf(filename,strlen(filename), "%d",k);
-	// strcat(filename,".xml");
-	// 拼接含参数的文件名
-	sprintf (filename, "%s-k%d%s", "statistics/Fat-tree", k, ".xml");
-	cout << "dump statistics to " << filename << endl;
+	char filename [] = "statistics/Fat-tree.xml";// filename for Flow Monitor xml output file
 
 // Define variables for On/Off Application
 // These values will be used to serve the purpose that addresses of server and client are selected randomly
@@ -160,12 +154,12 @@ int
 //
 	int port = 9;
 	int packetSize = 1024;		// 1024 bytes
-	char dataRate_OnOff [] = "50Mbps"; // 1Mbps -> 50Mbsp (CFI2016)
+	char dataRate_OnOff [] = "1Mbps";
 	char maxBytes [] = "0";		// unlimited
 
 // Initialize parameters for Csma and PointToPoint protocol
 //
-	char dataRate [] = "100Mbps";	// 1Gbps -> 100Mbs (CFI2016)
+	char dataRate [] = "1000Mbps";	// 1Gbps
 	double delay = 0.001;		// 0.001 ms
 
 
@@ -375,7 +369,7 @@ int
 	std::cout << "Start Simulation.. "<<"\n";
 	for (i=0;i<total_host;i++){
 		app[i].Start (Seconds (0.0));
-  		app[i].Stop (Seconds (60.0));
+  		app[i].Stop (Seconds (100.0));
 	}
   	Ipv4GlobalRoutingHelper::PopulateRoutingTables ();
 // Calculate Throughput using Flowmonitor
@@ -385,7 +379,7 @@ int
 // Run simulation.
 //
   	NS_LOG_INFO ("Run Simulation.");
-  	Simulator::Stop (Seconds(61.0));
+  	Simulator::Stop (Seconds(101.0));
   	Simulator::Run ();
 
   	monitor->CheckForLostPackets ();
