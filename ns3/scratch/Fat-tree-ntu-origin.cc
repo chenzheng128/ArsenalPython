@@ -130,7 +130,7 @@ int
 	int num_group = k/2;		// number of group of core switches
         int num_core = (k/2);		// number of core switch in a group
 	int total_host = k*k*k/4;	// number of hosts in the entire network
-	char filename [] = "statistics/Fat-tree.xml";// filename for Flow Monitor xml output file
+	char filename [] = "statistics/Fat-tree-ntu-origin.xml";// filename for Flow Monitor xml output file
 
 // Define variables for On/Off Application
 // These values will be used to serve the purpose that addresses of server and client are selected randomly
@@ -362,6 +362,10 @@ int
 	}
 	std::cout << "Finished connecting core switches and aggregation switches  "<< "\n";
 	std::cout << "------------- "<<"\n";
+
+	#if 0
+	csma.EnablePcapAll(filename, false);
+	#endif
 
 //=========== Start the simulation ===========//
 //

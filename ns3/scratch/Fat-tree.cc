@@ -294,11 +294,12 @@ main (int argc, char *argv[])
   LogComponentEnable ("Fat-Tree", LOG_LEVEL_DEBUG);
 #endif
 
-  std::string prefix_file_name = "statistics/FatTree";
+  double sim_duration = 10.0; // simulation seconds
+  std::string prefix_file_name = "statistics/fatTree";
   std::string transport_prot = "TcpNewReno";
 //=========== Define parameters based on value of k ===========//
 //
-  int k = 2;			// number of ports per switch
+  int k = 4;			// number of ports per switch
   int num_pod = k;		// number of pod
   int num_host = (k / 2);		// number of hosts under a switch
   int num_edge = (k / 2);		// number of edge switch in a pod
@@ -415,7 +416,7 @@ main (int argc, char *argv[])
 
       // Initialize On/Off Application with addresss of server
       OnOffHelper oo = OnOffHelper (
-          "ns3::UdpSocketFactory",
+          "ns3::TcpSocketFactory",
           Address (InetSocketAddress (Ipv4Address (add), port))); // ip address of server
       //ns-3.13-API
       // oo.SetAttribute("OnTime",RandomVariableValue(ExponentialVariable(1)));
@@ -585,11 +586,15 @@ main (int argc, char *argv[])
       NS_LOG_UNCOND("激活 tracing 文件记录 " << prefix_file_name);
       //
 
+      // enable ascii & pacap full tracing
+      #if 1
       std::string ascii_trace_filename = prefix_file_name + "-ascii";
       ascii.open (ascii_trace_filename.c_str ());
       ascii_wrap = new OutputStreamWrapper (ascii_trace_filename.c_str (),
                                             std::ios::out);
       internet.EnableAsciiIpv4All (ascii_wrap); // 激活 tracing 很容易看到对应的 id 信息
+      csma.EnablePcapAll (prefix_file_name, false); // 激活
+      #endif
 
       Simulator::Schedule (Seconds (0.00001), &TraceCwnd,
                            prefix_file_name + "-cwnd.data");
@@ -611,7 +616,7 @@ main (int argc, char *argv[])
   for (i = 0; i < total_host; i++)
     {
       app[i].Start (Seconds (0.0));
-      app[i].Stop (Seconds (60.0));
+      app[i].Stop (Seconds (sim_duration));
     }
   Ipv4GlobalRoutingHelper::PopulateRoutingTables ();
 // Calculate Throughput using Flowmonitor
@@ -621,7 +626,7 @@ main (int argc, char *argv[])
 // Run simulation.
 //
   NS_LOG_INFO("Run Simulation.");
-  Simulator::Stop (Seconds (61.0));
+  Simulator::Stop (Seconds (sim_duration+1));
   Simulator::Run ();
 
   monitor->CheckForLostPackets ();
