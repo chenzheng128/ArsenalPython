@@ -612,13 +612,25 @@ main (int argc, char *argv[])
                            prefix_file_name + "-next-rx.data");
     }
 
+
+  Ipv4GlobalRoutingHelper::PopulateRoutingTables ();
+  // ======================================================================
+  // Print routing tables at T=0.1
+  // ----------------------------------------------------------------------
+
+  NS_LOG_INFO ("Set up to print routing tables at T=0.1s");
+  Ptr<OutputStreamWrapper> routingStream =
+    Create<OutputStreamWrapper> (prefix_file_name + "-router.routes", std::ios::out);
+  Ipv4GlobalRoutingHelper g;
+  g.PrintRoutingTableAllAt (Seconds (0.1), routingStream);
+
   std::cout << "Start Simulation.. " << "\n";
   for (i = 0; i < total_host; i++)
     {
       app[i].Start (Seconds (0.0));
       app[i].Stop (Seconds (sim_duration));
     }
-  Ipv4GlobalRoutingHelper::PopulateRoutingTables ();
+
 // Calculate Throughput using Flowmonitor
 //
   FlowMonitorHelper flowmon;
