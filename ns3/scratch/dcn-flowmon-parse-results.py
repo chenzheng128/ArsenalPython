@@ -116,12 +116,18 @@ class Simulation(object):
 
 
 def main(argv):
-    if len(argv) <= 2:
+    #print len(argv)
+    if len(argv) <= 1:
         print "Usage: %s xmlfile simu_duration_seconds" % argv[0]
         print "Examples: python scratch/dcn-flowmon-parse-results.py statistics/Fat-tree.xml 100"
+        sys.exit()
     file_obj = open(argv[1])
     print "Reading XML file ",
-    simu_duration_seconds = float(argv[2])
+
+    if len(argv) == 2:
+        simu_duration_seconds = 60 # default seconds
+    else:
+        simu_duration_seconds = float(argv[2])
 
     sys.stdout.flush()
     level = 0
@@ -192,6 +198,7 @@ def main(argv):
     print "\tMean Delay: %.2f ms" % (total_mean_delay / flow_count *1e3,)
     # print "\tPacket Loss Ratio: %.2f %%" % ( total_loss_ratio / flow_count * 100)
     print "\tPacket Loss Ratio: %.2f %%" % (total_lost_packets / (total_lost_packets+total_rx_packets) * 100)
+    print "\tsimu_duration_seconds = %d" % simu_duration_seconds
 
 if __name__ == '__main__':
     main(sys.argv)
