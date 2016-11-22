@@ -72,7 +72,9 @@ main (int argc, char *argv[])
   // on all nodes
   Ipv4NixVectorHelper nixRouting;
   InternetStackHelper stack;
+  #if 1 //enable or disable Nix Routing
   stack.SetRoutingHelper (nixRouting); // has effect on the next Install ()
+  #endif
   stack.Install (allNodes);
 
   NetDeviceContainer devices12;
@@ -92,6 +94,14 @@ main (int argc, char *argv[])
   address1.Assign (devices12);
   address2.Assign (devices23);
   Ipv4InterfaceContainer interfaces = address3.Assign (devices34);
+
+
+  // Create router nodes, initialize routing database and set up the routing
+  // tables in the nodes.
+  #if 0
+  //enable or disable Nix Routing
+  Ipv4GlobalRoutingHelper::PopulateRoutingTables ();
+  #endif
 
   UdpEchoServerHelper echoServer (9);
 
@@ -115,7 +125,7 @@ main (int argc, char *argv[])
   #endif
 
   // Trace routing tables
-  Ptr<OutputStreamWrapper> routingStream = Create<OutputStreamWrapper> ("nix-simple.routes", std::ios::out);
+  Ptr<OutputStreamWrapper> routingStream = Create<OutputStreamWrapper> ("statistics/nix-simple.routes", std::ios::out);
   nixRouting.PrintRoutingTableAllAt (Seconds (8), routingStream);
 
   Simulator::Run ();

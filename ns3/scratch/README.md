@@ -5,6 +5,7 @@
  * 实验结果绘图 `./scratch/my_plot_helper.py`
  * dcn Fat-tree 拓扑: `Fat-tree.cc`, 原始 ntu Fat-tree `Fat-tree-ntu-origin.cc`
  * node api 例子 `node-apis.cc`
+ * routing 例子 `./waf --run scratch/src-nix-simple`
 
 ## Tutorial 例子
  以 my[first|second|third等].cc 为命名格式
