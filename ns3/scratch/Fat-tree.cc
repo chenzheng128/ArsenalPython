@@ -291,6 +291,9 @@ main (int argc, char *argv[])
 {
 
 #if 1 // debug
+  // LogComponentEnable ("OnOffApplication", LOG_LEVEL_INFO);
+  LogComponentEnable ("UdpEchoClientApplication", LOG_LEVEL_INFO);
+  LogComponentEnable ("UdpEchoServerApplication", LOG_LEVEL_INFO);
   LogComponentEnable ("Fat-Tree", LOG_LEVEL_DEBUG);
 #endif
 
@@ -299,7 +302,7 @@ main (int argc, char *argv[])
   std::string transport_prot = "TcpNewReno";
 //=========== Define parameters based on value of k ===========//
 //
-  int k = 4;			// number of ports per switch
+  int k = 2;			// number of ports per switch
   int num_pod = k;		// number of pod
   int num_host = (k / 2);		// number of hosts under a switch
   int num_edge = (k / 2);		// number of edge switch in a pod
@@ -308,6 +311,7 @@ main (int argc, char *argv[])
   int num_group = k / 2;		// number of group of core switches
   int num_core = (k / 2);		// number of core switch in a group
   int total_host = k * k * k / 4;	// number of hosts in the entire network
+
   char filename[256];
   ; // filename for Flow Monitor xml output file
   sprintf (filename, "%s-%d", "statistics/Fat-tree-k", k);
@@ -345,11 +349,13 @@ main (int argc, char *argv[])
 
 // Output some useful information
 //
-  std::cout << "Value of k =  " << k << "\n";
-  std::cout << "Total number of hosts =  " << total_host << "\n";
-  std::cout << "Number of hosts under each switch =  " << num_host << "\n";
-  std::cout << "Number of edge switch under each pod =  " << num_edge << "\n";
+  std::cout << "Value of k (ports per switch) =  " << k << "\n";
+  std::cout << "Total number of hosts (total_host) =  " << total_host << "\n";
+  std::cout << "Number of hosts under each switch (num_host) =  " << num_host << "\n";
+  std::cout << "Number of edge switch under each pod (num_edge) =  " << num_edge << "\n";
+  NS_LOG_DEBUG ("debug: num_pod = " << num_pod);
   std::cout << "------------- " << "\n";
+
 
 // Initialize Internet Stack and Routing Protocols
 //
@@ -416,7 +422,7 @@ main (int argc, char *argv[])
 
       // Initialize On/Off Application with addresss of server
       OnOffHelper oo = OnOffHelper (
-          "ns3::TcpSocketFactory",
+          "ns3::UdpSocketFactory",
           Address (InetSocketAddress (Ipv4Address (add), port))); // ip address of server
       //ns-3.13-API
       // oo.SetAttribute("OnTime",RandomVariableValue(ExponentialVariable(1)));
