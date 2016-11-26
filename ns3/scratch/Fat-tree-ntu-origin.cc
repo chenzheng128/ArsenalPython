@@ -119,6 +119,11 @@ char * toString(int a,int b, int c, int d){
 int
 	main(int argc, char *argv[])
 {
+
+	LogComponentEnable ("UdpEchoClientApplication", LOG_LEVEL_INFO);
+	LogComponentEnable ("UdpEchoServerApplication", LOG_LEVEL_INFO);
+	// LogComponentEnable ("OnOffApplication", LOG_LEVEL_INFO);
+
 //=========== Define parameters based on value of k ===========//
 //
 	int k = 4;			// number of ports per switch
@@ -363,7 +368,7 @@ int
 	std::cout << "Finished connecting core switches and aggregation switches  "<< "\n";
 	std::cout << "------------- "<<"\n";
 
-	#if 0
+	#if 1
 	csma.EnablePcapAll(filename, false);
 	#endif
 

@@ -52,64 +52,26 @@ uint32_t cWndValue;
 uint32_t ssThreshValue;
 
 
-static void
-CwndTracer (uint32_t oldval, uint32_t newval)
-{
-  if (firstCwnd)
-    {
-      *cWndStream->GetStream () << "0.0 " << oldval << std::endl;
-      firstCwnd = false;
-    }
-  *cWndStream->GetStream () << Simulator::Now ().GetSeconds () << " " << newval << std::endl;
-  cWndValue = newval;
-
-  if (!firstSshThr)
-    {
-      *ssThreshStream->GetStream () << Simulator::Now ().GetSeconds () << " " << ssThreshValue << std::endl;
-    }
-}
-
-static void
-SsThreshTracer (uint32_t oldval, uint32_t newval)
-{
-  if (firstSshThr)
-    {
-      *ssThreshStream->GetStream () << "0.0 " << oldval << std::endl;
-      firstSshThr = false;
-    }
-  *ssThreshStream->GetStream () << Simulator::Now ().GetSeconds () << " " << newval << std::endl;
-  ssThreshValue = newval;
-
-  if (!firstCwnd)
-    {
-      *cWndStream->GetStream () << Simulator::Now ().GetSeconds () << " " << cWndValue << std::endl;
-    }
-}
-
-
-static void
-TraceCwnd (std::string cwnd_tr_file_name)
-{
-  AsciiTraceHelper ascii;
-  cWndStream = ascii.CreateFileStream (cwnd_tr_file_name.c_str ());
-  Config::ConnectWithoutContext ("/NodeList/2/$ns3::TcpL4Protocol/SocketList/0/CongestionWindow", MakeCallback (&CwndTracer));
-}
-
-static void
-TraceSsThresh (std::string ssthresh_tr_file_name)
-{
-  AsciiTraceHelper ascii;
-  ssThreshStream = ascii.CreateFileStream (ssthresh_tr_file_name.c_str ());
-  Config::ConnectWithoutContext ("/NodeList/2/$ns3::TcpL4Protocol/SocketList/0/SlowStartThreshold", MakeCallback (&SsThreshTracer));
-}
-
-
 NS_LOG_COMPONENT_DEFINE ("NodeApis");
 
 // copy from csma-one-subnet
 // change from UDP -> TCP
 // time ./waf --run node-apis && wc -l statistics/node-apis.tr
 // time ./waf --run node-apis && wc -l statistics/NodeApiTcp-TcpNewReno-cwnd.data
+
+int printInterfaceAddress( Ipv4InterfaceContainer interfaces1){
+  // using GetN to inter Ipv4InterfaceContainer
+  NS_LOG_INFO("<Ipv4InterfaceContainer> Iterate interfaces ");
+  uint32_t nNodes = interfaces1.GetN ();
+  for (uint32_t i = 0; i < nNodes; ++i)
+  {
+    std::pair<Ptr<Ipv4>, uint32_t> pair = interfaces1.Get (i);
+    //method (pair.first, pair.second);  // use the pair
+    NS_LOG_INFO("  interfaces1 Get() pair " << pair.first << " " << pair.second);
+    NS_LOG_INFO("    GetAddress() " << interfaces1.GetAddress(i, 0));
+  }
+  return 0;
+}
 int
 main (int argc, char *argv[])
 {
@@ -144,36 +106,47 @@ main (int argc, char *argv[])
 // Now fill out the topology by creating the net devices required to connect
 // the nodes to the channels and hooking them up.
 //
-  NodeContainer nodes;
-  for (int i = 0; i< k ; ++i){
-    //if (i % 2 == 0) {// select half node to new Containers
-      nodes.Add(allNodes.Get(i));
-      NS_LOG_INFO("add allNodes[" << i << "] to nodes");
+  NodeContainer nodes1;
+  NodeContainer nodes2;
+  for (int i = 0; i< k ; ++i)
+  {
+    if (i % 2 == 0)
+    { // select half node to new Containers
+      nodes1.Add(allNodes.Get(i));
+      NS_LOG_INFO("add allNodes[" << i << "] to nodes group 1");
+    }
+    else
+    {
+      nodes2.Add(allNodes.Get(i));
+      NS_LOG_INFO("add allNodes[" << i << "] to nodes group 2");
+    }
+
     //}
   }
 
-  NetDeviceContainer devices = csma.Install (nodes);
+  NetDeviceContainer devices1 = csma.Install (nodes1);
+  NetDeviceContainer devices2 = csma.Install (nodes2);
 
-  InternetStackHelper internet;
-  internet.Install (nodes);
+  InternetStackHelper internet1;
+  InternetStackHelper internet2;
+  internet1.Install (nodes1);
+  internet2.Install (nodes2);
 
 // We've got the "hardware" in place.  Now we need to add IP addresses.
 //
-  NS_LOG_INFO ("Assign IP Addresses.");
-  Ipv4AddressHelper ipv4;
-  ipv4.SetBase ("10.1.1.0", "255.255.255.0");
-  Ipv4InterfaceContainer interfaces = ipv4.Assign (devices);
+  NS_LOG_INFO ("Assign IP Addresses." << "10.1.1.0");
+  Ipv4AddressHelper ipAddrs1;
 
-  // using GetN to inter Ipv4InterfaceContainer
-  NS_LOG_INFO("<Ipv4InterfaceContainer> Iterate interfaces ");
-  uint32_t nNodes = interfaces.GetN ();
-  for (uint32_t i = 0; i < nNodes; ++i)
-  {
-    std::pair<Ptr<Ipv4>, uint32_t> pair = interfaces.Get (i);
-    //method (pair.first, pair.second);  // use the pair
-    NS_LOG_INFO("  Get() pair " << pair.first << " " << pair.second);
-    NS_LOG_INFO("    GetAddress() " << interfaces.GetAddress(i, 0));
-  }
+  ipAddrs1.SetBase ("10.0.1.0", "255.255.255.0");
+  Ipv4InterfaceContainer interfaces1 = ipAddrs1.Assign (devices1);
+  Ipv4AddressHelper ipAddrs2;
+  ipAddrs2.SetBase ("10.0.2.0", "255.255.255.0");
+  Ipv4InterfaceContainer interfaces2 = ipAddrs2.Assign (devices2);
+  // Ipv4AddressHelper 会自动记忆 ip 的分配状态自动递增, 如果继续使用 ipAddrs1 则会继续分配
+  //Ipv4InterfaceContainer interfaces2 = ipAddrs1.Assign (devices2);
+
+  printInterfaceAddress(interfaces1);
+  printInterfaceAddress(interfaces2);
 
 //
 // Create an OnOff application to send UDP datagrams from node zero to node 1.
@@ -182,10 +155,10 @@ main (int argc, char *argv[])
   uint16_t port = 9;   // Discard port (RFC 863)
 
   OnOffHelper onoff ("ns3::TcpSocketFactory",
-                     Address (InetSocketAddress (interfaces.GetAddress (1), port)));
+                     Address (InetSocketAddress (interfaces1.GetAddress (1), port)));
   onoff.SetConstantRate (DataRate ("500kb/s"));
 
-  ApplicationContainer app = onoff.Install (nodes.Get (0));
+  ApplicationContainer app = onoff.Install (nodes1.Get (0));
   // Start the application
   app.Start (Seconds (1.0));
   app.Stop (Seconds (60.0));
@@ -193,19 +166,19 @@ main (int argc, char *argv[])
   // Create an optional packet sink to receive these packets
   PacketSinkHelper sink ("ns3::TcpSocketFactory",
                          Address (InetSocketAddress (Ipv4Address::GetAny (), port)));
-  app = sink.Install (nodes.Get (1));
+  app = sink.Install (nodes1.Get (1));
   app.Start (Seconds (0.0));
 
 //
 // Create a similar flow from n3 to n0, starting at time 1.1 seconds
 //
   onoff.SetAttribute ("Remote",
-                      AddressValue (InetSocketAddress (interfaces.GetAddress (0), port)));
-  app = onoff.Install (nodes.Get (3));
+                      AddressValue (InetSocketAddress (interfaces1.GetAddress (0), port)));
+  app = onoff.Install (nodes1.Get (3));
   app.Start (Seconds (1.1));
   app.Stop (Seconds (60.0));
 
-  app = sink.Install (nodes.Get (0));
+  app = sink.Install (nodes1.Get (0));
   app.Start (Seconds (0.0));
 
   NS_LOG_INFO ("Configure Tracing.");
@@ -252,8 +225,8 @@ if (tracing)
       //                                      std::ios::out);
       // stack.EnableAsciiIpv4All (ascii_wrap);
 
-      Simulator::Schedule (Seconds (0.00001), &TraceCwnd, prefix_file_name + "-cwnd.data");
-      Simulator::Schedule (Seconds (0.00001), &TraceSsThresh, prefix_file_name + "-ssth.data");
+      //Simulator::Schedule (Seconds (0.00001), &TraceCwnd, prefix_file_name + "-cwnd.data");
+      //Simulator::Schedule (Seconds (0.00001), &TraceSsThresh, prefix_file_name + "-ssth.data");
 }
 //
 // Now, do the actual simulation.

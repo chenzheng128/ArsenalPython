@@ -284,17 +284,34 @@ TraceNextRx (std::string &next_rx_seq_file_name)
       MakeCallback (&NextRxTracer));
 }
 
+
+int printInterfaceAddress( Ipv4InterfaceContainer interfaces1){
+  // using GetN to inter Ipv4InterfaceContainer
+  // NS_LOG_INFO("<Ipv4InterfaceContainer> Iterate interfaces ");
+  uint32_t nNodes = interfaces1.GetN ();
+  for (uint32_t i = 0; i < nNodes; ++i)
+  {
+    std::pair<Ptr<Ipv4>, uint32_t> pair = interfaces1.Get (i);
+    //method (pair.first, pair.second);  // use the pair
+    // NS_LOG_INFO("  interfaces1 Get() pair " << pair.first << " " << pair.second);
+    NS_LOG_INFO("    GetAddress() " << interfaces1.GetAddress(i, 0));
+  }
+  return 0;
+}
+
 // Main function
 //
 int
 main (int argc, char *argv[])
 {
 
+  int EchoTestOnly = true;  // using echo to test topo routing
 #if 1 // debug
   // LogComponentEnable ("OnOffApplication", LOG_LEVEL_INFO);
   LogComponentEnable ("UdpEchoClientApplication", LOG_LEVEL_INFO);
   LogComponentEnable ("UdpEchoServerApplication", LOG_LEVEL_INFO);
   LogComponentEnable ("Fat-Tree", LOG_LEVEL_DEBUG);
+	LogComponentEnable ("Fat-Tree", LOG_LEVEL_INFO);
 #endif
 
   double sim_duration = 10.0; // simulation seconds
@@ -302,7 +319,7 @@ main (int argc, char *argv[])
   std::string transport_prot = "TcpNewReno";
 //=========== Define parameters based on value of k ===========//
 //
-  int k = 2;			// number of ports per switch
+  int k = 4;			// number of ports per switch
   int num_pod = k;		// number of pod
   int num_host = (k / 2);		// number of hosts under a switch
   int num_edge = (k / 2);		// number of edge switch in a pod
@@ -395,12 +412,25 @@ main (int argc, char *argv[])
       internet.Install (bridge[i]);
     }
   NodeContainer host[num_pod][num_bridge];	// NodeContainer for hosts
+
+
   for (i = 0; i < k; i++)
     {
       for (j = 0; j < num_bridge; j++)
         {
           host[i][j].Create (num_host);
           internet.Install (host[i][j]);
+
+					if (EchoTestOnly){
+						NS_LOG_INFO("Setup Echo server on All Host at port 9 ");
+						UdpEchoServerHelper echoServer (port);
+						// install all echo server
+						for (int k = 0; k < num_host; k++) {
+							ApplicationContainer serverApps = echoServer.Install ( host[i][j].Get (k));
+							serverApps.Start (Seconds (1.0));
+							serverApps.Stop (Seconds (100.0));
+						}
+					}
         }
     }
 
@@ -457,8 +487,20 @@ main (int argc, char *argv[])
       // Install On/Off Application to the client
       NodeContainer onoff;
       onoff.Add (host[rand1][rand2].Get (rand3));
+
       app[i] = oo.Install (onoff);
-    }
+			if (EchoTestOnly) { // if echo test only, send short duration packets;
+				app[i].Start (Seconds (2.0));
+				app[i].Stop (Seconds (2.01));
+			}
+			else { // full duration test;
+				app[i].Start (Seconds (0.0));
+				app[i].Stop (Seconds (sim_duration));
+			}
+			NS_LOG_DEBUG("  app "<< i << " random select dest addresss " << add);
+			NS_LOG_DEBUG("  install app "<< i << " on host ["<<rand1<<"]["<<rand2<<"]["<<rand3 <<"]");
+  }
+
   std::cout << "Finished creating On/Off traffic" << "\n";
 
 // Inintialize Address Helper
@@ -481,7 +523,7 @@ main (int argc, char *argv[])
 //
   NetDeviceContainer hostSw[num_pod][num_bridge];
   NetDeviceContainer bridgeDevices[num_pod][num_bridge];
-  Ipv4InterfaceContainer ipContainer[num_pod][num_bridge];
+  Ipv4InterfaceContainer interfaces[num_pod][num_bridge];
 
   for (i = 0; i < num_pod; i++)
     {
@@ -506,8 +548,14 @@ main (int argc, char *argv[])
           char *subnet;
           subnet = toString (10, i, j, 0);
           address.SetBase (subnet, "255.255.255.0");
-          ipContainer[i][j] = address.Assign (hostSw[i][j]);
+          interfaces[i][j] = address.Assign (hostSw[i][j]);
+					#if 1 // display ip address topo
+					NS_LOG_DEBUG("  interfaces " << i << " " << j);
+					printInterfaceAddress(interfaces[i][j]);
+					NS_LOG_DEBUG("    Finised num_pod "<< i << " num_bridge "<< j <<" "<< toString (10, i, j, 0) << " setup");
+					#endif
         }
+			NS_LOG_DEBUG("--- finised pod "<< i <<" "<< toString (10, i, 0, 0) << " setup ---");
     }
   std::cout << "Finished connecting edge switches and hosts  " << "\n";
 
@@ -631,11 +679,6 @@ main (int argc, char *argv[])
   g.PrintRoutingTableAllAt (Seconds (0.1), routingStream);
 
   std::cout << "Start Simulation.. " << "\n";
-  for (i = 0; i < total_host; i++)
-    {
-      app[i].Start (Seconds (0.0));
-      app[i].Stop (Seconds (sim_duration));
-    }
 
 // Calculate Throughput using Flowmonitor
 //
