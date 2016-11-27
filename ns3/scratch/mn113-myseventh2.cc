@@ -223,6 +223,9 @@ CwndTracer (uint32_t oldval, uint32_t newval)
 int
 main (int argc, char *argv[])
 {
+
+  LogComponentEnable ("SeventhScriptExample", LOG_LEVEL_INFO);
+
   bool useV6 = false;
 
   CommandLine cmd;
@@ -295,6 +298,7 @@ main (int argc, char *argv[])
   //Config::ConnectWithoutContext("CongestionWindow", MakeBoundCallback (&CwndChangeContext, stream));
   // 修改为直接连接 path
   std::string cwndPath =  "/NodeList/0/$ns3::TcpL4Protocol/SocketList/0/CongestionWindow";
+  cwndPath =  "/NodeList/*/$ns3::TcpL4Protocol/SocketList/*/CongestionWindow"; // 通配符
   Config::ConnectWithoutContext (
 		  cwndPath,
    MakeCallback (&CwndTracer));
@@ -304,7 +308,7 @@ main (int argc, char *argv[])
   Ptr<PcapFileWrapper> file = pcapHelper.CreateFile ("seventh2.pcap", std::ios::out, PcapHelper::DLT_PPP);
   devices.Get (1)->TraceConnectWithoutContext ("PhyRxDrop", MakeBoundCallback (&RxDrop, file));
 
-  ns3TcpSocket->TraceConnectWithoutContext ("OutputBytes11", MakeBoundCallback (&OutputBytes, stream));
+  ns3TcpSocket->TraceConnectWithoutContext ("OutputBytes", MakeBoundCallback (&OutputBytes, stream));
 
   NS_LOG_UNCOND ( tracePath );
   // Use GnuplotHelper to plot the packet byte count over time
@@ -359,4 +363,3 @@ main (int argc, char *argv[])
 
   return 0;
 }
-

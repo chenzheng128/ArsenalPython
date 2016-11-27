@@ -158,7 +158,7 @@ main (int argc, char *argv[])
   clientApps2.Start (Seconds (10.0));
   clientApps2.Stop (Seconds (20.0));
 
-  // Tcp OnOffServer and Client setup
+  // Tcp OnOffServer and Client setup; revised from examples/tcp/star.cc
   NS_LOG_INFO("Setup OnOff server at port 209, address " << interfaces5.GetAddress (1) );
   uint16_t port = 209;
   Address bindAddressAndPort (InetSocketAddress (Ipv4Address::GetAny (), port));

@@ -120,7 +120,7 @@ main (int argc, char *argv[])
       nodes2.Add(allNodes.Get(i));
       NS_LOG_INFO("add allNodes[" << i << "] to nodes group 2");
     }
-
+    NS_LOG_INFO("node id: " << allNodes.Get(i)->GetId());
     //}
   }
 

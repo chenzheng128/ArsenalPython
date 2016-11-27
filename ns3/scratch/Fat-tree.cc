@@ -129,6 +129,7 @@ Ptr<OutputStreamWrapper> nextRxStream;
 Ptr<OutputStreamWrapper> inFlightStream;
 uint32_t cWndValue;
 uint32_t ssThreshValue;
+uint32_t NODE_ID;
 
 static void
 CwndTracer (uint32_t oldval, uint32_t newval)
@@ -156,7 +157,7 @@ TraceCwnd (std::string cwnd_tr_file_name)
   AsciiTraceHelper ascii;
   cWndStream = ascii.CreateFileStream (cwnd_tr_file_name.c_str ());
   Config::ConnectWithoutContext (
-      "/NodeList/1/$ns3::TcpL4Protocol/SocketList/0/CongestionWindow",
+      "/NodeList/19/$ns3::TcpL4Protocol/SocketList/0/CongestionWindow",
       MakeCallback (&CwndTracer));
 }
 
@@ -230,7 +231,7 @@ TraceSsThresh (std::string ssthresh_tr_file_name)
   AsciiTraceHelper ascii;
   ssThreshStream = ascii.CreateFileStream (ssthresh_tr_file_name.c_str ());
   Config::ConnectWithoutContext (
-      "/NodeList/1/$ns3::TcpL4Protocol/SocketList/0/SlowStartThreshold",
+      "/NodeList/14/$ns3::TcpL4Protocol/SocketList/0/SlowStartThreshold",
       MakeCallback (&SsThreshTracer));
 }
 
@@ -240,7 +241,7 @@ TraceRtt (std::string rtt_tr_file_name)
   AsciiTraceHelper ascii;
   rttStream = ascii.CreateFileStream (rtt_tr_file_name.c_str ());
   Config::ConnectWithoutContext (
-      "/NodeList/1/$ns3::TcpL4Protocol/SocketList/0/RTT",
+      "/NodeList/14/$ns3::TcpL4Protocol/SocketList/0/RTT",
       MakeCallback (&RttTracer));
 }
 
@@ -250,7 +251,7 @@ TraceRto (std::string rto_tr_file_name)
   AsciiTraceHelper ascii;
   rtoStream = ascii.CreateFileStream (rto_tr_file_name.c_str ());
   Config::ConnectWithoutContext (
-      "/NodeList/1/$ns3::TcpL4Protocol/SocketList/0/RTO",
+      "/NodeList/14/$ns3::TcpL4Protocol/SocketList/0/RTO",
       MakeCallback (&RtoTracer));
 }
 
@@ -260,7 +261,7 @@ TraceNextTx (std::string &next_tx_seq_file_name)
   AsciiTraceHelper ascii;
   nextTxStream = ascii.CreateFileStream (next_tx_seq_file_name.c_str ());
   Config::ConnectWithoutContext (
-      "/NodeList/1/$ns3::TcpL4Protocol/SocketList/0/NextTxSequence",
+      "/NodeList/14/$ns3::TcpL4Protocol/SocketList/0/NextTxSequence",
       MakeCallback (&NextTxTracer));
 }
 
@@ -270,7 +271,7 @@ TraceInFlight (std::string &in_flight_file_name)
   AsciiTraceHelper ascii;
   inFlightStream = ascii.CreateFileStream (in_flight_file_name.c_str ());
   Config::ConnectWithoutContext (
-      "/NodeList/1/$ns3::TcpL4Protocol/SocketList/0/BytesInFlight",
+      "/NodeList/14/$ns3::TcpL4Protocol/SocketList/0/BytesInFlight",
       MakeCallback (&InFlightTracer));
 }
 
@@ -280,7 +281,7 @@ TraceNextRx (std::string &next_rx_seq_file_name)
   AsciiTraceHelper ascii;
   nextRxStream = ascii.CreateFileStream (next_rx_seq_file_name.c_str ());
   Config::ConnectWithoutContext (
-      "/NodeList/2/$ns3::TcpL4Protocol/SocketList/1/RxBuffer/NextRxSequence",
+      "/NodeList/*/$ns3::TcpL4Protocol/SocketList/*/RxBuffer/NextRxSequence",
       MakeCallback (&NextRxTracer));
 }
 
@@ -288,15 +289,23 @@ TraceNextRx (std::string &next_rx_seq_file_name)
 int printInterfaceAddress( Ipv4InterfaceContainer interfaces1){
   // using GetN to inter Ipv4InterfaceContainer
   // NS_LOG_INFO("<Ipv4InterfaceContainer> Iterate interfaces ");
+  std::cout << "    GetAddress() ";
   uint32_t nNodes = interfaces1.GetN ();
   for (uint32_t i = 0; i < nNodes; ++i)
   {
     std::pair<Ptr<Ipv4>, uint32_t> pair = interfaces1.Get (i);
     //method (pair.first, pair.second);  // use the pair
     // NS_LOG_INFO("  interfaces1 Get() pair " << pair.first << " " << pair.second);
-    NS_LOG_INFO("    GetAddress() " << interfaces1.GetAddress(i, 0));
+    std::cout << " " << interfaces1.GetAddress(i, 0) ;
   }
+  std::cout <<"\n";
   return 0;
+}
+
+static void
+CwndTracer2 (uint32_t oldval, uint32_t newval)
+{
+  NS_LOG_INFO ("Moving cwnd from " << oldval << " to " << newval);
 }
 
 // Main function
@@ -305,7 +314,7 @@ int
 main (int argc, char *argv[])
 {
 
-  int EchoTestOnly = true;  // using echo to test topo routing
+
 #if 1 // debug
   // LogComponentEnable ("OnOffApplication", LOG_LEVEL_INFO);
   LogComponentEnable ("UdpEchoClientApplication", LOG_LEVEL_INFO);
@@ -314,7 +323,9 @@ main (int argc, char *argv[])
 	LogComponentEnable ("Fat-Tree", LOG_LEVEL_INFO);
 #endif
 
-  double sim_duration = 10.0; // simulation seconds
+  bool EchoTestOnly = false;        // using udp echo to test 使用UdpEcho测试各节点连通性, 否则改用 tcp 测试
+  double sim_duration = 10.0;       // simulation seconds
+  int random_flow_count_limit = 1; // 加速测试: -1 不限制 random flow 数量, 其他值: 限制 random flow 数量
   std::string prefix_file_name = "statistics/fatTree";
   std::string transport_prot = "TcpNewReno";
 //=========== Define parameters based on value of k ===========//
@@ -421,16 +432,22 @@ main (int argc, char *argv[])
           host[i][j].Create (num_host);
           internet.Install (host[i][j]);
 
-					if (EchoTestOnly){
-						NS_LOG_INFO("Setup Echo server on All Host at port 9 ");
+					if (EchoTestOnly){ // setup udp echo servers
 						UdpEchoServerHelper echoServer (port);
 						// install all echo server
-						for (int k = 0; k < num_host; k++) {
-							ApplicationContainer serverApps = echoServer.Install ( host[i][j].Get (k));
-							serverApps.Start (Seconds (1.0));
-							serverApps.Stop (Seconds (100.0));
-						}
+						ApplicationContainer serverApps = echoServer.Install ( host[i][j]);
+						serverApps.Start (Seconds (1.0));
+						serverApps.Stop (Seconds (100.0));
+            NS_LOG_INFO("Setup Echo server on NodeContainer host["<< i <<"]["<< j <<"].Get("<< k <<") at port 9 ");
+            NS_LOG_INFO("node id: " << host[i][j].Get(0)->GetId());
 					}
+          else { // setup tcp sinker
+            Address bindAddressAndPort (InetSocketAddress (Ipv4Address::GetAny (), port));
+            PacketSinkHelper packetSinkHelper ("ns3::TcpSocketFactory", bindAddressAndPort);
+            ApplicationContainer hubApp = packetSinkHelper.Install (host[i][j]);
+            hubApp.Start (Seconds (1.0));
+            hubApp.Stop (Seconds (sim_duration));
+          }
         }
     }
 
@@ -439,8 +456,14 @@ main (int argc, char *argv[])
 
 // Generate traffics for the simulation
 //
+
+if (random_flow_count_limit == -1 ) { // 判断是否需要限制 随机流, 减少测试时间
+  random_flow_count_limit = total_host;
+}
+NS_LOG_INFO ("生成 "<< random_flow_count_limit <<" 条随机流进行测试");
+
   ApplicationContainer app[total_host];
-  for (i = 0; i < total_host; i++)
+  for (i = 0; i < random_flow_count_limit; i++)  // for (i = 0; i < total_host; i++)
     {
       // Randomly select a server
       podRand = rand () % num_pod + 0;
@@ -452,7 +475,7 @@ main (int argc, char *argv[])
 
       // Initialize On/Off Application with addresss of server
       OnOffHelper oo = OnOffHelper (
-          "ns3::UdpSocketFactory",
+          "ns3::TcpSocketFactory",
           Address (InetSocketAddress (Ipv4Address (add), port))); // ip address of server
       //ns-3.13-API
       // oo.SetAttribute("OnTime",RandomVariableValue(ExponentialVariable(1)));
@@ -485,20 +508,60 @@ main (int argc, char *argv[])
         } // to make sure that client and server are different
 
       // Install On/Off Application to the client
-      NodeContainer onoff;
-      onoff.Add (host[rand1][rand2].Get (rand3));
+      Ptr< Node > node = host[rand1][rand2].Get (rand3);
 
-      app[i] = oo.Install (onoff);
-			if (EchoTestOnly) { // if echo test only, send short duration packets;
-				app[i].Start (Seconds (2.0));
-				app[i].Stop (Seconds (2.01));
+			if (EchoTestOnly) { // if echo test only, disable random packets; 使用后面的顺序测试
+				// app[i].Start (Seconds (i+2.0));
+				// app[i].Stop (Seconds (i+2.1));
 			}
 			else { // full duration test;
-				app[i].Start (Seconds (0.0));
+			  app[i] = oo.Install (node);
+				app[i].Start (Seconds (1));
 				app[i].Stop (Seconds (sim_duration));
 			}
-			NS_LOG_DEBUG("  app "<< i << " random select dest addresss " << add);
-			NS_LOG_DEBUG("  install app "<< i << " on host ["<<rand1<<"]["<<rand2<<"]["<<rand3 <<"]");
+			NS_LOG_DEBUG("install app [" << i << "] OnOff on node id:" << node->GetId()  << " host ["<< rand1 <<"]["<< rand2 <<"].Get("<<rand3 <<") connect to "<< add);
+      NODE_ID = node->GetId(); // save node id for tracing
+  }
+
+
+
+  // 顺序测试
+  if (EchoTestOnly){
+    // k= 4;  host[0][0].Get(0) 10.0.0.2 Get(1) 10.0.0.3
+    int seq = 0;
+    for (i = 0; i < num_pod; i++)
+      {
+        for (j = 0; j < num_host; j++)
+        {
+          seq++;
+          char *add;
+          add = toString (10, i, 1, 2+j);
+          NS_LOG_INFO("Setup Echo Client( connet -> 9) at address " << add );
+          UdpEchoClientHelper echoClient (Ipv4Address(add), port); // 目标地址与端口
+          echoClient.SetAttribute ("MaxPackets", UintegerValue (1));
+          echoClient.SetAttribute ("Interval", TimeValue (Seconds (1.)));
+          echoClient.SetAttribute ("PacketSize", UintegerValue (1024));
+          ApplicationContainer clientApp = echoClient.Install (host[0][0].Get(0));
+          clientApp.Start (Seconds (seq*2)); // start one app every 2 seconds
+          clientApp.Stop (Seconds (seq*2+20.0));
+        }
+      }
+  }
+  else {
+    #if 0
+    // 准确(非随机)定义一个Onoff 客户端 (10.0.0.2) 发往 10.3.1.3
+    char *add;
+    add = toString (10, 3, 1, 3);
+    NS_LOG_INFO("Setup OnOff client (connet -> 9), address " << add );
+    OnOffHelper onOffHelper ("ns3::TcpSocketFactory", Address ());
+    onOffHelper.SetAttribute ("OnTime", StringValue ("ns3::ConstantRandomVariable[Constant=1]"));
+    onOffHelper.SetAttribute ("OffTime", StringValue ("ns3::ConstantRandomVariable[Constant=0]"));
+    AddressValue remoteAddress (InetSocketAddress (Ipv4Address(add) , port));
+    onOffHelper.SetAttribute ("Remote", remoteAddress);
+    ApplicationContainer clientApps3 =  onOffHelper.Install (host[0][0].Get(0));
+    clientApps3.Start (Seconds (5.0));
+    clientApps3.Stop (Seconds (5.03)); // 发2个包 , 每 0.1
+    #endif
   }
 
   std::cout << "Finished creating On/Off traffic" << "\n";
@@ -550,9 +613,9 @@ main (int argc, char *argv[])
           address.SetBase (subnet, "255.255.255.0");
           interfaces[i][j] = address.Assign (hostSw[i][j]);
 					#if 1 // display ip address topo
-					NS_LOG_DEBUG("  interfaces " << i << " " << j);
+					// NS_LOG_DEBUG("  interfaces " << i << " " << j);
 					printInterfaceAddress(interfaces[i][j]);
-					NS_LOG_DEBUG("    Finised num_pod "<< i << " num_bridge "<< j <<" "<< toString (10, i, j, 0) << " setup");
+					// NS_LOG_DEBUG("  Finised interface "<< i << "  "<< j <<" "<< toString (10, i, j, 0) << " setup");
 					#endif
         }
 			NS_LOG_DEBUG("--- finised pod "<< i <<" "<< toString (10, i, 0, 0) << " setup ---");
@@ -633,6 +696,15 @@ main (int argc, char *argv[])
   if (tracing)
     {
 
+      std::string cwndPath =  "/NodeList/0/$ns3::TcpL4Protocol/SocketList/0/CongestionWindow";
+      cwndPath =  "/NodeList/*/$ns3::TcpL4Protocol/SocketList/*/CongestionWindow"; // 通配符
+      Config::ConnectWithoutContext (
+    		  cwndPath, MakeCallback (&CwndTracer2));
+
+      // Config::ConnectWithoutContext (
+      //         "/NodeList/*/$ns3::Ipv4L3Protocol/Tx", MakeCallback (&CwndTracer2));
+
+
       std::ofstream ascii;
       Ptr<OutputStreamWrapper> ascii_wrap;
 
@@ -647,9 +719,11 @@ main (int argc, char *argv[])
       ascii_wrap = new OutputStreamWrapper (ascii_trace_filename.c_str (),
                                             std::ios::out);
       internet.EnableAsciiIpv4All (ascii_wrap); // 激活 tracing 很容易看到对应的 id 信息
-      csma.EnablePcapAll (prefix_file_name, false); // 激活
+      csma.EnablePcapAll (prefix_file_name, false); // 激活 pacap 抓包
       #endif
 
+      // Simulator::Schedule (Seconds (0.00001), &TraceIp,
+      //                      prefix_file_name + "-iprx.data");
       Simulator::Schedule (Seconds (0.00001), &TraceCwnd,
                            prefix_file_name + "-cwnd.data");
       Simulator::Schedule (Seconds (0.00001), &TraceSsThresh,
@@ -672,11 +746,13 @@ main (int argc, char *argv[])
   // Print routing tables at T=0.1
   // ----------------------------------------------------------------------
 
+  #if 0
   NS_LOG_INFO ("Set up to print routing tables at T=0.1s");
   Ptr<OutputStreamWrapper> routingStream =
     Create<OutputStreamWrapper> (prefix_file_name + "-router.routes", std::ios::out);
   Ipv4GlobalRoutingHelper g;
   g.PrintRoutingTableAllAt (Seconds (0.1), routingStream);
+  #endif 
 
   std::cout << "Start Simulation.. " << "\n";
 
