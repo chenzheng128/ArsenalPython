@@ -45,10 +45,31 @@ using namespace ns3;
 
 NS_LOG_COMPONENT_DEFINE ("NixSimpleExample");
 
-static void // copy function from tcp-large-transfer
+
+// Tracer 3个接口：文件全局变量， tracer记录，trace调度(Schedule在SocketList建立后注入)
+Ptr<OutputStreamWrapper> cWndStream;
+static void // copy function from tcp-large-transfer.cc
 CwndTracer (uint32_t oldval, uint32_t newval)
 {
-  NS_LOG_INFO ("Moving cwnd from " << oldval << " to " << newval);
+  NS_LOG_UNCOND ("Tracer CwndTracer() Moving cwnd from " << oldval << " to " << newval);
+}
+static void
+TraceCwnd (std::string cwnd_tr_file_name)
+{
+  AsciiTraceHelper ascii;
+  cWndStream = ascii.CreateFileStream (cwnd_tr_file_name.c_str ());
+  Config::ConnectWithoutContext (
+      "/NodeList/*/$ns3::TcpL4Protocol/SocketList/*/CongestionWindow",
+      MakeCallback (&CwndTracer));
+}
+
+static void SinkRx (Ptr<const Packet> p, const Address &ad) // copy func from topology-example-sim.cc
+{
+  Ipv4Header ipv4;
+  p->PeekHeader (ipv4);
+  // std::cout << "Tracer SinkRx() TTL: " << (unsigned)ipv4.GetTtl () << std::endl;
+  std::cout << "Tracer SinkRx() src: " << ipv4.GetSource() << std::endl;
+  // std::cout << "Tracer SinkRx() dst: " << ipv4.GetDestination () << std::endl;
 }
 
 int
@@ -197,9 +218,13 @@ main (int argc, char *argv[])
   pointToPoint.EnableAsciiAll("statistics/nix-simple-ascii");
   #endif
 
-  Config::ConnectWithoutContext (
-      "/NodeList/0/$ns3::TcpL4Protocol/SocketList/0/CongestionWindow",
-      MakeCallback (&CwndTracer));
+  // Trace Connect 不能太早，如果 ApplicationList 还没初始化，则获取不到数据
+  Config::ConnectWithoutContext ("/NodeList/*/ApplicationList/*/$ns3::PacketSink/Rx",
+    MakeCallback (&SinkRx));
+
+  // TraceCwnd 针对 socket 这种 tracer 必须通过 schedule 等候 socket 建立之后才能获取到数据
+  Simulator::Schedule (Seconds (20.00001), &TraceCwnd,
+                         "statistics/nix-simple-cwnd.data");
 
   // Trace routing tables
   Ptr<OutputStreamWrapper> routingStream = Create<OutputStreamWrapper> ("statistics/nix-simple.routes", std::ios::out);

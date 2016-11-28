@@ -131,35 +131,7 @@ uint32_t cWndValue;
 uint32_t ssThreshValue;
 uint32_t NODE_ID;
 
-static void
-CwndTracer (uint32_t oldval, uint32_t newval)
-{
-  NS_LOG_DEBUG("CwndTracer newval" << newval);
-  if (firstCwnd)
-    {
-      *cWndStream->GetStream () << "0.0 " << oldval << std::endl;
-      firstCwnd = false;
-    }
-  *cWndStream->GetStream () << Simulator::Now ().GetSeconds () << " " << newval
-      << std::endl;
-  cWndValue = newval;
 
-  if (!firstSshThr)
-    {
-      *ssThreshStream->GetStream () << Simulator::Now ().GetSeconds () << " "
-          << ssThreshValue << std::endl;
-    }
-}
-
-static void
-TraceCwnd (std::string cwnd_tr_file_name)
-{
-  AsciiTraceHelper ascii;
-  cWndStream = ascii.CreateFileStream (cwnd_tr_file_name.c_str ());
-  Config::ConnectWithoutContext (
-      "/NodeList/19/$ns3::TcpL4Protocol/SocketList/0/CongestionWindow",
-      MakeCallback (&CwndTracer));
-}
 
 static void
 SsThreshTracer (uint32_t oldval, uint32_t newval)
@@ -302,10 +274,53 @@ int printInterfaceAddress( Ipv4InterfaceContainer interfaces1){
   return 0;
 }
 
+
+
+
+static void
+CwndTracer (uint32_t oldval, uint32_t newval)
+{
+  NS_LOG_UNCOND ("Tracer CwndTracer() Moving cwnd from " << oldval << " to " << newval);
+
+  if (firstCwnd)
+    {
+      *cWndStream->GetStream () << "0.0 " << oldval << std::endl;
+      firstCwnd = false;
+    }
+  *cWndStream->GetStream () << Simulator::Now ().GetSeconds () << " " << newval
+      << std::endl;
+  cWndValue = newval;
+
+  if (!firstSshThr)
+    {
+      *ssThreshStream->GetStream () << Simulator::Now ().GetSeconds () << " "
+          << ssThreshValue << std::endl;
+    }
+}
+
 static void
 CwndTracer2 (uint32_t oldval, uint32_t newval)
 {
   NS_LOG_INFO ("Moving cwnd from " << oldval << " to " << newval);
+}
+
+static void
+TraceCwnd (std::string cwnd_tr_file_name)
+{
+  AsciiTraceHelper ascii;
+  cWndStream = ascii.CreateFileStream (cwnd_tr_file_name.c_str ());
+  Config::ConnectWithoutContext (
+      "/NodeList/7/$ns3::TcpL4Protocol/SocketList/*/CongestionWindow",
+      MakeCallback (&CwndTracer));
+}
+
+static void SinkRx (Ptr<const Packet> p, const Address &ad) // copy func from topology-example-sim.cc
+{
+  Ipv4Header ipv4;
+  p->PeekHeader (ipv4);
+  // std::cout << "Tracer SinkRx() TTL: " << (unsigned)ipv4.GetTtl () << std::endl;
+  std::cout << "Tracer SinkRx() src: " << ipv4.GetSource() << std::endl;
+  // std::cout << "Tracer SinkRx() dst: " << ipv4.GetDestination () << std::endl;
 }
 
 // Main function
@@ -328,9 +343,12 @@ main (int argc, char *argv[])
   int random_flow_count_limit = 1; // 加速测试: -1 不限制 random flow 数量, 其他值: 限制 random flow 数量
   std::string prefix_file_name = "statistics/fatTree";
   std::string transport_prot = "TcpNewReno";
+	float start_time = 0.1;
+
+
 //=========== Define parameters based on value of k ===========//
 //
-  int k = 4;			// number of ports per switch
+  int k = 2;			// number of ports per switch
   int num_pod = k;		// number of pod
   int num_host = (k / 2);		// number of hosts under a switch
   int num_edge = (k / 2);		// number of edge switch in a pod
@@ -445,7 +463,7 @@ main (int argc, char *argv[])
             Address bindAddressAndPort (InetSocketAddress (Ipv4Address::GetAny (), port));
             PacketSinkHelper packetSinkHelper ("ns3::TcpSocketFactory", bindAddressAndPort);
             ApplicationContainer hubApp = packetSinkHelper.Install (host[i][j]);
-            hubApp.Start (Seconds (1.0));
+            hubApp.Start (Seconds (start_time));
             hubApp.Stop (Seconds (sim_duration));
           }
         }
@@ -516,7 +534,7 @@ NS_LOG_INFO ("生成 "<< random_flow_count_limit <<" 条随机流进行测试");
 			}
 			else { // full duration test;
 			  app[i] = oo.Install (node);
-				app[i].Start (Seconds (1));
+				app[i].Start (Seconds (start_time)); // 客户端比服务端启动晚 0.001
 				app[i].Stop (Seconds (sim_duration));
 			}
 			NS_LOG_DEBUG("install app [" << i << "] OnOff on node id:" << node->GetId()  << " host ["<< rand1 <<"]["<< rand2 <<"].Get("<<rand3 <<") connect to "<< add);
@@ -722,6 +740,9 @@ NS_LOG_INFO ("生成 "<< random_flow_count_limit <<" 条随机流进行测试");
       csma.EnablePcapAll (prefix_file_name, false); // 激活 pacap 抓包
       #endif
 
+			Config::ConnectWithoutContext ("/NodeList/*/ApplicationList/*/$ns3::PacketSink/Rx",
+		    MakeCallback (&SinkRx));
+
       // Simulator::Schedule (Seconds (0.00001), &TraceIp,
       //                      prefix_file_name + "-iprx.data");
       Simulator::Schedule (Seconds (0.00001), &TraceCwnd,
@@ -752,7 +773,7 @@ NS_LOG_INFO ("生成 "<< random_flow_count_limit <<" 条随机流进行测试");
     Create<OutputStreamWrapper> (prefix_file_name + "-router.routes", std::ios::out);
   Ipv4GlobalRoutingHelper g;
   g.PrintRoutingTableAllAt (Seconds (0.1), routingStream);
-  #endif 
+  #endif
 
   std::cout << "Start Simulation.. " << "\n";
 
