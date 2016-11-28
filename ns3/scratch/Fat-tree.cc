@@ -131,24 +131,21 @@ uint32_t cWndValue;
 uint32_t ssThreshValue;
 uint32_t NODE_ID;
 
-
-
 static void
 SsThreshTracer (uint32_t oldval, uint32_t newval)
 {
+  NS_LOG_DEBUG("Tracer SsThreshTracer() Moving ssth from " << oldval << " to " << newval);
   if (firstSshThr)
     {
       *ssThreshStream->GetStream () << "0.0 " << oldval << std::endl;
       firstSshThr = false;
     }
-  *ssThreshStream->GetStream () << Simulator::Now ().GetSeconds () << " "
-      << newval << std::endl;
+  *ssThreshStream->GetStream () << Simulator::Now ().GetSeconds () << " " << newval << std::endl;
   ssThreshValue = newval;
 
   if (!firstCwnd)
     {
-      *cWndStream->GetStream () << Simulator::Now ().GetSeconds () << " "
-          << cWndValue << std::endl;
+      *cWndStream->GetStream () << Simulator::Now ().GetSeconds () << " " << cWndValue << std::endl;
     }
 }
 
@@ -160,8 +157,8 @@ RttTracer (Time oldval, Time newval)
       *rttStream->GetStream () << "0.0 " << oldval.GetSeconds () << std::endl;
       firstRtt = false;
     }
-  *rttStream->GetStream () << Simulator::Now ().GetSeconds () << " "
-      << newval.GetSeconds () << std::endl;
+  *rttStream->GetStream () << Simulator::Now ().GetSeconds () << " " << newval.GetSeconds ()
+      << std::endl;
 }
 
 static void
@@ -172,29 +169,26 @@ RtoTracer (Time oldval, Time newval)
       *rtoStream->GetStream () << "0.0 " << oldval.GetSeconds () << std::endl;
       firstRto = false;
     }
-  *rtoStream->GetStream () << Simulator::Now ().GetSeconds () << " "
-      << newval.GetSeconds () << std::endl;
+  *rtoStream->GetStream () << Simulator::Now ().GetSeconds () << " " << newval.GetSeconds ()
+      << std::endl;
 }
 
 static void
 NextTxTracer (SequenceNumber32 old, SequenceNumber32 nextTx)
 {
-  *nextTxStream->GetStream () << Simulator::Now ().GetSeconds () << " "
-      << nextTx << std::endl;
+  *nextTxStream->GetStream () << Simulator::Now ().GetSeconds () << " " << nextTx << std::endl;
 }
 
 static void
 InFlightTracer (uint32_t old, uint32_t inFlight)
 {
-  *inFlightStream->GetStream () << Simulator::Now ().GetSeconds () << " "
-      << inFlight << std::endl;
+  *inFlightStream->GetStream () << Simulator::Now ().GetSeconds () << " " << inFlight << std::endl;
 }
 
 static void
 NextRxTracer (SequenceNumber32 old, SequenceNumber32 nextRx)
 {
-  *nextRxStream->GetStream () << Simulator::Now ().GetSeconds () << " "
-      << nextRx << std::endl;
+  *nextRxStream->GetStream () << Simulator::Now ().GetSeconds () << " " << nextRx << std::endl;
 }
 
 static void
@@ -202,9 +196,8 @@ TraceSsThresh (std::string ssthresh_tr_file_name)
 {
   AsciiTraceHelper ascii;
   ssThreshStream = ascii.CreateFileStream (ssthresh_tr_file_name.c_str ());
-  Config::ConnectWithoutContext (
-      "/NodeList/14/$ns3::TcpL4Protocol/SocketList/0/SlowStartThreshold",
-      MakeCallback (&SsThreshTracer));
+  Config::ConnectWithoutContext ("/NodeList/*/$ns3::TcpL4Protocol/SocketList/*/SlowStartThreshold",
+                                 MakeCallback (&SsThreshTracer));
 }
 
 static void
@@ -212,9 +205,8 @@ TraceRtt (std::string rtt_tr_file_name)
 {
   AsciiTraceHelper ascii;
   rttStream = ascii.CreateFileStream (rtt_tr_file_name.c_str ());
-  Config::ConnectWithoutContext (
-      "/NodeList/14/$ns3::TcpL4Protocol/SocketList/0/RTT",
-      MakeCallback (&RttTracer));
+  Config::ConnectWithoutContext ("/NodeList/*/$ns3::TcpL4Protocol/SocketList/*/RTT",
+                                 MakeCallback (&RttTracer));
 }
 
 static void
@@ -222,9 +214,8 @@ TraceRto (std::string rto_tr_file_name)
 {
   AsciiTraceHelper ascii;
   rtoStream = ascii.CreateFileStream (rto_tr_file_name.c_str ());
-  Config::ConnectWithoutContext (
-      "/NodeList/14/$ns3::TcpL4Protocol/SocketList/0/RTO",
-      MakeCallback (&RtoTracer));
+  Config::ConnectWithoutContext ("/NodeList/*/$ns3::TcpL4Protocol/SocketList/*/RTO",
+                                 MakeCallback (&RtoTracer));
 }
 
 static void
@@ -232,9 +223,8 @@ TraceNextTx (std::string &next_tx_seq_file_name)
 {
   AsciiTraceHelper ascii;
   nextTxStream = ascii.CreateFileStream (next_tx_seq_file_name.c_str ());
-  Config::ConnectWithoutContext (
-      "/NodeList/14/$ns3::TcpL4Protocol/SocketList/0/NextTxSequence",
-      MakeCallback (&NextTxTracer));
+  Config::ConnectWithoutContext ("/NodeList/*/$ns3::TcpL4Protocol/SocketList/*/NextTxSequence",
+                                 MakeCallback (&NextTxTracer));
 }
 
 static void
@@ -242,9 +232,8 @@ TraceInFlight (std::string &in_flight_file_name)
 {
   AsciiTraceHelper ascii;
   inFlightStream = ascii.CreateFileStream (in_flight_file_name.c_str ());
-  Config::ConnectWithoutContext (
-      "/NodeList/14/$ns3::TcpL4Protocol/SocketList/0/BytesInFlight",
-      MakeCallback (&InFlightTracer));
+  Config::ConnectWithoutContext ("/NodeList/*/$ns3::TcpL4Protocol/SocketList/*/BytesInFlight",
+                                 MakeCallback (&InFlightTracer));
 }
 
 static void
@@ -257,51 +246,42 @@ TraceNextRx (std::string &next_rx_seq_file_name)
       MakeCallback (&NextRxTracer));
 }
 
-
-int printInterfaceAddress( Ipv4InterfaceContainer interfaces1){
+int
+printInterfaceAddress (Ipv4InterfaceContainer interfaces1)
+{
   // using GetN to inter Ipv4InterfaceContainer
   // NS_LOG_INFO("<Ipv4InterfaceContainer> Iterate interfaces ");
   std::cout << "    GetAddress() ";
   uint32_t nNodes = interfaces1.GetN ();
   for (uint32_t i = 0; i < nNodes; ++i)
-  {
-    std::pair<Ptr<Ipv4>, uint32_t> pair = interfaces1.Get (i);
-    //method (pair.first, pair.second);  // use the pair
-    // NS_LOG_INFO("  interfaces1 Get() pair " << pair.first << " " << pair.second);
-    std::cout << " " << interfaces1.GetAddress(i, 0) ;
-  }
-  std::cout <<"\n";
+    {
+      std::pair<Ptr<Ipv4>, uint32_t> pair = interfaces1.Get (i);
+      //method (pair.first, pair.second);  // use the pair
+      // NS_LOG_INFO("  interfaces1 Get() pair " << pair.first << " " << pair.second);
+      std::cout << " " << interfaces1.GetAddress (i, 0);
+    }
+  std::cout << "\n";
   return 0;
 }
-
-
-
 
 static void
 CwndTracer (uint32_t oldval, uint32_t newval)
 {
-  NS_LOG_UNCOND ("Tracer CwndTracer() Moving cwnd from " << oldval << " to " << newval);
+  // NS_LOG_DEBUG("Tracer CwndTracer() Moving cwnd from " << oldval << " to " << newval);
 
   if (firstCwnd)
     {
       *cWndStream->GetStream () << "0.0 " << oldval << std::endl;
       firstCwnd = false;
     }
-  *cWndStream->GetStream () << Simulator::Now ().GetSeconds () << " " << newval
-      << std::endl;
+  *cWndStream->GetStream () << Simulator::Now ().GetSeconds () << " " << newval << std::endl;
   cWndValue = newval;
 
   if (!firstSshThr)
     {
-      *ssThreshStream->GetStream () << Simulator::Now ().GetSeconds () << " "
-          << ssThreshValue << std::endl;
+      *ssThreshStream->GetStream () << Simulator::Now ().GetSeconds () << " " << ssThreshValue
+          << std::endl;
     }
-}
-
-static void
-CwndTracer2 (uint32_t oldval, uint32_t newval)
-{
-  NS_LOG_INFO ("Moving cwnd from " << oldval << " to " << newval);
 }
 
 static void
@@ -309,64 +289,139 @@ TraceCwnd (std::string cwnd_tr_file_name)
 {
   AsciiTraceHelper ascii;
   cWndStream = ascii.CreateFileStream (cwnd_tr_file_name.c_str ());
-  Config::ConnectWithoutContext (
-      "/NodeList/7/$ns3::TcpL4Protocol/SocketList/*/CongestionWindow",
-      MakeCallback (&CwndTracer));
+  Config::ConnectWithoutContext ("/NodeList/*/$ns3::TcpL4Protocol/SocketList/*/CongestionWindow",
+                                 MakeCallback (&CwndTracer));
 }
 
-static void SinkRx (Ptr<const Packet> p, const Address &ad) // copy func from topology-example-sim.cc
+static void
+SinkRx (Ptr<const Packet> p, const Address &ad) // copy func from topology-example-sim.cc
 {
   Ipv4Header ipv4;
   p->PeekHeader (ipv4);
   // std::cout << "Tracer SinkRx() TTL: " << (unsigned)ipv4.GetTtl () << std::endl;
-  std::cout << "Tracer SinkRx() src: " << ipv4.GetSource() << std::endl;
+  // std::cout << "Tracer SinkRx() src: " << ipv4.GetSource() << std::endl;
   // std::cout << "Tracer SinkRx() dst: " << ipv4.GetDestination () << std::endl;
 }
 
 // Main function
 //
+
 int
 main (int argc, char *argv[])
 {
 
+  //== 参数默认值
+  //
+  bool debug = false;               // 是否为 debug
+  bool tracing = true;              // 是否 输出 tracing 数据
+  bool UdpEchoTestOnly = false;     // using udp echo to test 使用UdpEcho测试各节点连通性, 否则改用 tcp 测试
+  float duration = 60.0;            // 仿真时间 simulation seconds
+  int num_flows = -1;               //随机流数量: -1 不限制randomflow数量, 其他值:限制randomflow数量
+  bool flow_monitor = true;         // 是否记录 flow_monitor
+  bool pcap = false;                //  是否记录 pcap
+  float start_time = 0.1;           // 客户端发起时间, tracer 调度与它有关
 
-#if 1 // debug
+  int k = 4;			                 // default number of ports per switch
+
+  // Initialize parameters for On/Off application
+  // Define variables for On/Off Application
+  // These values will be used to serve the purpose that addresses of server and client are selected randomly
+  int port = 9;
+  int packetSize = 1024;		// 1024 bytes
+  char dataRate_OnOff[] = "5Mbps";
+  char maxBytes[] = "0";		// unlimited
+  // Initialize parameters for Csma and PointToPoint protocol
+  //
+  char dataRate[] = "20Mbps";	// 1Gbps -> 100Mbs (cfi16)
+  double delay = 0.001;		// 0.001 ms
+
+  //== copy parameters setting from TcpVariantsComparison
+  //
+  std::string transport_prot = "TcpNewReno";
+  double error_p = 0.0;
+  std::string bandwidth = "5Mbps";
+  std::string delay_str = "0.001ms";        // no use here , using delay instead of delay_str
+  std::string access_bandwidth = "20Mbps";
+  std::string access_delay = "45ms";
+  std::string prefix_file_name = "statistics/fatTree";
+  double data_mbytes = 0;
+  uint32_t mtu_bytes = 400;
+  uint32_t run = 0;
+  std::string queue_disc_type = "ns3::PfifoFastQueueDisc";
+
+  //== 临时修改一些初始化参数, 便于调试 debug 时  增加输出 或 加速测试
+  debug = true;                     // 增加输出
+  k = 4;                             // 调整节点数
+  duration = 4.0 ;                 // 减小测试时间
+  // num_flows = 1;               // 减小随机流数量
+
+  //== 命令行传入参数 从 TcpVariantsComparison 复制而来
+  //
+  CommandLine cmd;
+  cmd.AddValue ("k", "number of k ports per switch", k);
+  cmd.AddValue ("debug", "debug 增加输出", debug);
+  cmd.AddValue ("duration", "持续时长 Time to allow flows to run in seconds", duration);
+  cmd.AddValue ("num_flows", "流数量 Number of flows", num_flows);
+  cmd.AddValue ("tracing", "文件记录 Flag to enable/disable tracing", tracing);
+  cmd.AddValue ("prefix_name", "Prefix of output trace file", prefix_file_name);
+  cmd.AddValue ("flow_monitor", "Enable flow monitor", flow_monitor);
+  cmd.AddValue ("pcap_tracing", "Enable or disable PCAP tracing", pcap);
+  // TODO 下面这些参数还没对应使用
+  cmd.AddValue ("error_p", "Packet error rate", error_p);
+  cmd.AddValue ("bandwidth", "Bottleneck bandwidth", bandwidth);
+  cmd.AddValue ("delay", "Bottleneck delay", delay_str);
+  cmd.AddValue ("access_bandwidth", "Access link bandwidth", access_bandwidth);
+  cmd.AddValue ("access_delay", "时延 Access link delay", access_delay);
+  cmd.AddValue ("data", "Number of Megabytes of data to transmit", data_mbytes);
+  cmd.AddValue ("mtu", "Size of IP packets to send in bytes", mtu_bytes);
+  cmd.AddValue ("run", "Run index (for setting repeatable seeds)", run);
+  cmd.AddValue ("queue_disc_type", "队列类型 Queue disc type for gateway (e.g. ns3::CoDelQueueDisc)", queue_disc_type);
+  cmd.AddValue ("transport_prot", "Transport protocol to use: TcpNewReno, "
+                "TcpHybla, TcpHighSpeed, TcpHtcp, TcpVegas, TcpScalable, TcpVeno, "
+                "TcpBic, TcpYeah, TcpIllinois, TcpWestwood, TcpWestwoodPlus , TcpMyAlg (revised from Westwood)", transport_prot);
+  cmd.Parse (argc, argv);
+
+  // setting random seed
+  SeedManager::SetSeed (1);
+  SeedManager::SetRun (run);
+
+
+  //== 调整日志输出
+  //
   // LogComponentEnable ("OnOffApplication", LOG_LEVEL_INFO);
   LogComponentEnable ("UdpEchoClientApplication", LOG_LEVEL_INFO);
   LogComponentEnable ("UdpEchoServerApplication", LOG_LEVEL_INFO);
-  LogComponentEnable ("Fat-Tree", LOG_LEVEL_DEBUG);
-	LogComponentEnable ("Fat-Tree", LOG_LEVEL_INFO);
-#endif
+  if (debug)
+    {
+      LogComponentEnable ("Fat-Tree", LOG_LEVEL_ALL);
+    }
+  else
+    {
+      // TODO 暂时注释, 因为设置为 INFO 也会打印出 _DEBUG 信息, why?
+      // LogComponentEnable ("Fat-Tree", LOG_LEVEL_INFO);
+    }
 
-  bool EchoTestOnly = false;        // using udp echo to test 使用UdpEcho测试各节点连通性, 否则改用 tcp 测试
-  double sim_duration = 10.0;       // simulation seconds
-  int random_flow_count_limit = 1; // 加速测试: -1 不限制 random flow 数量, 其他值: 限制 random flow 数量
-  std::string prefix_file_name = "statistics/fatTree";
-  std::string transport_prot = "TcpNewReno";
-	float start_time = 0.1;
+  // 命令行传入修改参数
 
+  // 输出变量值
+  NS_LOG_INFO("运行参数");
+  NS_LOG_INFO("  debug=" << debug);
+  NS_LOG_INFO("  模拟时间 duration=" << duration);
+  NS_LOG_INFO("  输入文件前缀 prefix_file_name=" << prefix_file_name);
 
-//=========== Define parameters based on value of k ===========//
-//
-  int k = 2;			// number of ports per switch
-  int num_pod = k;		// number of pod
+  //=========== Calculate parameters based on value of k ===========//
+  // Note: the format of host's address is 10.pod.switch.(host+2)
+  //
+  int num_pod = k;		      // number of pod
   int num_host = (k / 2);		// number of hosts under a switch
   int num_edge = (k / 2);		// number of edge switch in a pod
-  int num_bridge = num_edge;	// number of bridge in a pod
+  int num_bridge = num_edge;// number of bridge in a pod
   int num_agg = (k / 2);		// number of aggregation switch in a pod
   int num_group = k / 2;		// number of group of core switches
   int num_core = (k / 2);		// number of core switch in a group
   int total_host = k * k * k / 4;	// number of hosts in the entire network
 
-  char filename[256];
-  ; // filename for Flow Monitor xml output file
-  sprintf (filename, "%s-%d", "statistics/Fat-tree-k", k);
-  strcat (filename, ".xml");
-
-// Define variables for On/Off Application
-// These values will be used to serve the purpose that addresses of server and client are selected randomly
-// Note: the format of host's address is 10.pod.switch.(host+2)
-//
+  //
   int podRand = 0;	//
   int swRand = 0;		// Random values for servers' address
   int hostRand = 0;	//
@@ -375,36 +430,24 @@ main (int argc, char *argv[])
   int rand2 = 0;		// Random values for clients' address
   int rand3 = 0;		//
 
-// Initialize other variables
-//
+  // Initialize other variables
+  //
   int i = 0;
   int j = 0;
   int h = 0;
 
-// Initialize parameters for On/Off application
-//
-  int port = 9;
-  int packetSize = 1024;		// 1024 bytes
-  char dataRate_OnOff[] = "1Mbps";
-  char maxBytes[] = "0";		// unlimited
-
-// Initialize parameters for Csma and PointToPoint protocol
-//
-  char dataRate[] = "100Mbps";	// 1Gbps -> 100Mbs (cfi16)
-  double delay = 0.001;		// 0.001 ms
-
-// Output some useful information
-//
+  // Output some useful information
+  //
+  std::cout << ("拓扑参数") << "\n";
   std::cout << "Value of k (ports per switch) =  " << k << "\n";
+  std::cout << "Number of Pod (num_pod) = " << num_pod << "\n";
   std::cout << "Total number of hosts (total_host) =  " << total_host << "\n";
   std::cout << "Number of hosts under each switch (num_host) =  " << num_host << "\n";
   std::cout << "Number of edge switch under each pod (num_edge) =  " << num_edge << "\n";
-  NS_LOG_DEBUG ("debug: num_pod = " << num_pod);
   std::cout << "------------- " << "\n";
 
-
-// Initialize Internet Stack and Routing Protocols
-//
+  // Initialize Internet Stack and Routing Protocols
+  //
   InternetStackHelper internet;
   Ipv4NixVectorHelper nixRouting;
   Ipv4StaticRoutingHelper staticRouting;
@@ -442,30 +485,35 @@ main (int argc, char *argv[])
     }
   NodeContainer host[num_pod][num_bridge];	// NodeContainer for hosts
 
-
+  NS_LOG_INFO("生成 host nodes ");
   for (i = 0; i < k; i++)
     {
+
       for (j = 0; j < num_bridge; j++)
         {
           host[i][j].Create (num_host);
           internet.Install (host[i][j]);
 
-					if (EchoTestOnly){ // setup udp echo servers
-						UdpEchoServerHelper echoServer (port);
-						// install all echo server
-						ApplicationContainer serverApps = echoServer.Install ( host[i][j]);
-						serverApps.Start (Seconds (1.0));
-						serverApps.Stop (Seconds (100.0));
-            NS_LOG_INFO("Setup Echo server on NodeContainer host["<< i <<"]["<< j <<"].Get("<< k <<") at port 9 ");
-            NS_LOG_INFO("node id: " << host[i][j].Get(0)->GetId());
-					}
-          else { // setup tcp sinker
-            Address bindAddressAndPort (InetSocketAddress (Ipv4Address::GetAny (), port));
-            PacketSinkHelper packetSinkHelper ("ns3::TcpSocketFactory", bindAddressAndPort);
-            ApplicationContainer hubApp = packetSinkHelper.Install (host[i][j]);
-            hubApp.Start (Seconds (start_time));
-            hubApp.Stop (Seconds (sim_duration));
-          }
+          if (UdpEchoTestOnly)
+            { // setup udp echo servers
+              UdpEchoServerHelper echoServer (port);
+              // install all echo server
+              ApplicationContainer serverApps = echoServer.Install (host[i][j]);
+              serverApps.Start (Seconds (1.0));
+              serverApps.Stop (Seconds (100.0));
+              NS_LOG_INFO(
+                  "Setup Echo server on NodeContainer host["<< i <<"]["<< j <<"].Get("<< k <<") at port 9 ");
+              NS_LOG_DEBUG("setup UdpEchoServer on node id: " << host[i][j].Get(0)->GetId());
+            }
+          else
+            { // setup tcp sinker
+              NS_LOG_DEBUG("setup Tcp Sinker on node id: " << host[i][j].Get(0)->GetId());
+              Address bindAddressAndPort (InetSocketAddress (Ipv4Address::GetAny (), port));
+              PacketSinkHelper packetSinkHelper ("ns3::TcpSocketFactory", bindAddressAndPort);
+              ApplicationContainer hubApp = packetSinkHelper.Install (host[i][j]);
+              hubApp.Start (Seconds (start_time));
+              hubApp.Stop (Seconds (duration));
+            }
         }
     }
 
@@ -475,13 +523,14 @@ main (int argc, char *argv[])
 // Generate traffics for the simulation
 //
 
-if (random_flow_count_limit == -1 ) { // 判断是否需要限制 随机流, 减少测试时间
-  random_flow_count_limit = total_host;
-}
-NS_LOG_INFO ("生成 "<< random_flow_count_limit <<" 条随机流进行测试");
+  if (num_flows == -1)
+    { // 判断是否需要限制 随机流, 减少测试时间
+      num_flows = total_host;
+    }
+  NS_LOG_INFO("生成 "<< num_flows <<" 条随机流进行测试");
 
   ApplicationContainer app[total_host];
-  for (i = 0; i < random_flow_count_limit; i++)  // for (i = 0; i < total_host; i++)
+  for (i = 0; i < num_flows; i++) // for (i = 0; i < total_host; i++)
     {
       // Randomly select a server
       podRand = rand () % num_pod + 0;
@@ -492,9 +541,8 @@ NS_LOG_INFO ("生成 "<< random_flow_count_limit <<" 条随机流进行测试");
       add = toString (10, podRand, swRand, hostRand);
 
       // Initialize On/Off Application with addresss of server
-      OnOffHelper oo = OnOffHelper (
-          "ns3::TcpSocketFactory",
-          Address (InetSocketAddress (Ipv4Address (add), port))); // ip address of server
+      OnOffHelper oo = OnOffHelper ("ns3::TcpSocketFactory",
+                                    Address (InetSocketAddress (Ipv4Address (add), port))); // ip address of server
       //ns-3.13-API
       // oo.SetAttribute("OnTime",RandomVariableValue(ExponentialVariable(1)));
       // oo.SetAttribute("OffTime",RandomVariableValue(ExponentialVariable(1)));
@@ -503,12 +551,8 @@ NS_LOG_INFO ("生成 "<< random_flow_count_limit <<" 条随机流进行测试");
 
       //oo.SetAttribute ("OnTime", StringValue ("ns3::ConstantRandomVariable[Constant=1000]"));
       //oo.SetAttribute ("OffTime", StringValue ("ns3::ConstantRandomVariable[Constant=0]"));
-      oo.SetAttribute (
-          "OnTime",
-          StringValue ("ns3::ExponentialRandomVariable[Mean=1|Bound=0.0]"));
-      oo.SetAttribute (
-          "OffTime",
-          StringValue ("ns3::ExponentialRandomVariable[Mean=1|Bound=0.0]"));
+      oo.SetAttribute ("OnTime", StringValue ("ns3::ExponentialRandomVariable[Mean=1|Bound=0.0]"));
+      oo.SetAttribute ("OffTime", StringValue ("ns3::ExponentialRandomVariable[Mean=1|Bound=0.0]"));
 
       oo.SetAttribute ("PacketSize", UintegerValue (packetSize));
       oo.SetAttribute ("DataRate", StringValue (dataRate_OnOff));
@@ -526,61 +570,68 @@ NS_LOG_INFO ("生成 "<< random_flow_count_limit <<" 条随机流进行测试");
         } // to make sure that client and server are different
 
       // Install On/Off Application to the client
-      Ptr< Node > node = host[rand1][rand2].Get (rand3);
+      Ptr<Node> node = host[rand1][rand2].Get (rand3);
 
-			if (EchoTestOnly) { // if echo test only, disable random packets; 使用后面的顺序测试
-				// app[i].Start (Seconds (i+2.0));
-				// app[i].Stop (Seconds (i+2.1));
-			}
-			else { // full duration test;
-			  app[i] = oo.Install (node);
-				app[i].Start (Seconds (start_time)); // 客户端比服务端启动晚 0.001
-				app[i].Stop (Seconds (sim_duration));
-			}
-			NS_LOG_DEBUG("install app [" << i << "] OnOff on node id:" << node->GetId()  << " host ["<< rand1 <<"]["<< rand2 <<"].Get("<<rand3 <<") connect to "<< add);
-      NODE_ID = node->GetId(); // save node id for tracing
-  }
-
-
-
-  // 顺序测试
-  if (EchoTestOnly){
-    // k= 4;  host[0][0].Get(0) 10.0.0.2 Get(1) 10.0.0.3
-    int seq = 0;
-    for (i = 0; i < num_pod; i++)
-      {
-        for (j = 0; j < num_host; j++)
-        {
-          seq++;
-          char *add;
-          add = toString (10, i, 1, 2+j);
-          NS_LOG_INFO("Setup Echo Client( connet -> 9) at address " << add );
-          UdpEchoClientHelper echoClient (Ipv4Address(add), port); // 目标地址与端口
-          echoClient.SetAttribute ("MaxPackets", UintegerValue (1));
-          echoClient.SetAttribute ("Interval", TimeValue (Seconds (1.)));
-          echoClient.SetAttribute ("PacketSize", UintegerValue (1024));
-          ApplicationContainer clientApp = echoClient.Install (host[0][0].Get(0));
-          clientApp.Start (Seconds (seq*2)); // start one app every 2 seconds
-          clientApp.Stop (Seconds (seq*2+20.0));
+      if (UdpEchoTestOnly)
+        { // if echo test only, disable random packets; 使用后面的顺序测试
+          // app[i].Start (Seconds (i+2.0));
+          // app[i].Stop (Seconds (i+2.1));
         }
-      }
-  }
-  else {
-    #if 0
-    // 准确(非随机)定义一个Onoff 客户端 (10.0.0.2) 发往 10.3.1.3
-    char *add;
-    add = toString (10, 3, 1, 3);
-    NS_LOG_INFO("Setup OnOff client (connet -> 9), address " << add );
-    OnOffHelper onOffHelper ("ns3::TcpSocketFactory", Address ());
-    onOffHelper.SetAttribute ("OnTime", StringValue ("ns3::ConstantRandomVariable[Constant=1]"));
-    onOffHelper.SetAttribute ("OffTime", StringValue ("ns3::ConstantRandomVariable[Constant=0]"));
-    AddressValue remoteAddress (InetSocketAddress (Ipv4Address(add) , port));
-    onOffHelper.SetAttribute ("Remote", remoteAddress);
-    ApplicationContainer clientApps3 =  onOffHelper.Install (host[0][0].Get(0));
-    clientApps3.Start (Seconds (5.0));
-    clientApps3.Stop (Seconds (5.03)); // 发2个包 , 每 0.1
-    #endif
-  }
+      else
+        { // full duration test;
+          app[i] = oo.Install (node);
+          app[i].Start (Seconds (start_time)); // 客户端比服务端启动晚 0.001
+          if (debug)
+            app[i].Stop (Seconds (start_time+1)); // debug 模式下, 只运行很短的流量测试
+          else
+            app[i].Stop (Seconds (duration));
+
+        }
+      NS_LOG_DEBUG(
+          "install app [" << i << "] OnOff on node id:" << node->GetId() << " host ["<< rand1 <<"]["<< rand2 <<"].Get("<<rand3 <<") connect to "<< add);
+      NODE_ID = node->GetId (); // save node id for tracing
+    }
+
+  // UdpEcho顺序测试
+  if (UdpEchoTestOnly)
+    {
+      // k= 4;  host[0][0].Get(0) 10.0.0.2 Get(1) 10.0.0.3
+      int seq = 0;
+      for (i = 0; i < num_pod; i++)
+        {
+          for (j = 0; j < num_host; j++)
+            {
+              seq++;
+              char *add;
+              add = toString (10, i, 1, 2 + j);
+              NS_LOG_INFO("Setup Echo Client( connet -> 9) at address " << add);
+              UdpEchoClientHelper echoClient (Ipv4Address (add), port); // 目标地址与端口
+              echoClient.SetAttribute ("MaxPackets", UintegerValue (1));
+              echoClient.SetAttribute ("Interval", TimeValue (Seconds (1.)));
+              echoClient.SetAttribute ("PacketSize", UintegerValue (1024));
+              ApplicationContainer clientApp = echoClient.Install (host[0][0].Get (0));
+              clientApp.Start (Seconds (seq * 2)); // start one app every 2 seconds
+              clientApp.Stop (Seconds (seq * 2 + 20.0));
+            }
+        }
+    }
+  else
+    {
+#if 0
+      // 准确(非随机)定义一个Onoff 客户端 (10.0.0.2) 发往 10.3.1.3
+      char *add;
+      add = toString (10, 3, 1, 3);
+      NS_LOG_INFO("Setup OnOff client (connet -> 9), address " << add );
+      OnOffHelper onOffHelper ("ns3::TcpSocketFactory", Address ());
+      onOffHelper.SetAttribute ("OnTime", StringValue ("ns3::ConstantRandomVariable[Constant=1]"));
+      onOffHelper.SetAttribute ("OffTime", StringValue ("ns3::ConstantRandomVariable[Constant=0]"));
+      AddressValue remoteAddress (InetSocketAddress (Ipv4Address(add) , port));
+      onOffHelper.SetAttribute ("Remote", remoteAddress);
+      ApplicationContainer clientApps3 = onOffHelper.Install (host[0][0].Get(0));
+      clientApps3.Start (Seconds (5.0));
+      clientApps3.Stop (Seconds (5.03));// 发2个包 , 每 0.1
+#endif
+    }
 
   std::cout << "Finished creating On/Off traffic" << "\n";
 
@@ -593,12 +644,14 @@ NS_LOG_INFO ("生成 "<< random_flow_count_limit <<" 条随机流进行测试");
   PointToPointHelper p2p;
   p2p.SetDeviceAttribute ("DataRate", StringValue (dataRate));
   p2p.SetChannelAttribute ("Delay", TimeValue (MilliSeconds (delay)));
+  // p2p.SetChannelAttribute ("Delay", StringValue (delay));
 
 // Initialize Csma helper
 //
   CsmaHelper csma;
   csma.SetChannelAttribute ("DataRate", StringValue (dataRate));
   csma.SetChannelAttribute ("Delay", TimeValue (MilliSeconds (delay)));
+  //csma.SetChannelAttribute ("Delay", StringValue (delay));
 
 //=========== Connect edge switches to hosts ===========//
 //
@@ -630,13 +683,13 @@ NS_LOG_INFO ("生成 "<< random_flow_count_limit <<" 条随机流进行测试");
           subnet = toString (10, i, j, 0);
           address.SetBase (subnet, "255.255.255.0");
           interfaces[i][j] = address.Assign (hostSw[i][j]);
-					#if 1 // display ip address topo
-					// NS_LOG_DEBUG("  interfaces " << i << " " << j);
-					printInterfaceAddress(interfaces[i][j]);
-					// NS_LOG_DEBUG("  Finised interface "<< i << "  "<< j <<" "<< toString (10, i, j, 0) << " setup");
-					#endif
+#if 1 // display ip address topo
+          // NS_LOG_DEBUG("  interfaces " << i << " " << j);
+          printInterfaceAddress (interfaces[i][j]);
+          // NS_LOG_DEBUG("  Finised interface "<< i << "  "<< j <<" "<< toString (10, i, j, 0) << " setup");
+#endif
         }
-			NS_LOG_DEBUG("--- finised pod "<< i <<" "<< toString (10, i, 0, 0) << " setup ---");
+      NS_LOG_DEBUG("--- finised pod "<< i <<" "<< toString (10, i, 0, 0) << " setup ---");
     }
   std::cout << "Finished connecting edge switches and hosts  " << "\n";
 
@@ -670,8 +723,7 @@ NS_LOG_INFO ("生成 "<< random_flow_count_limit <<" 条随机流进行测试");
             }
         }
     }
-  std::cout << "Finished connecting aggregation switches and edge switches  "
-      << "\n";
+  std::cout << "Finished connecting aggregation switches and edge switches  " << "\n";
 
 //=========== Connect core switches to aggregate switches ===========//
 //
@@ -702,26 +754,15 @@ NS_LOG_INFO ("生成 "<< random_flow_count_limit <<" 条随机流进行测试");
             }
         }
     }
-  std::cout << "Finished connecting core switches and aggregation switches  "
-      << "\n";
+  std::cout << "Finished connecting core switches and aggregation switches  " << "\n";
   std::cout << "------------- " << "\n";
 
 //=========== Start the simulation ===========//
 //
 
 // Set up tracing if enabled
-  bool tracing = true;
   if (tracing)
     {
-
-      std::string cwndPath =  "/NodeList/0/$ns3::TcpL4Protocol/SocketList/0/CongestionWindow";
-      cwndPath =  "/NodeList/*/$ns3::TcpL4Protocol/SocketList/*/CongestionWindow"; // 通配符
-      Config::ConnectWithoutContext (
-    		  cwndPath, MakeCallback (&CwndTracer2));
-
-      // Config::ConnectWithoutContext (
-      //         "/NodeList/*/$ns3::Ipv4L3Protocol/Tx", MakeCallback (&CwndTracer2));
-
 
       std::ofstream ascii;
       Ptr<OutputStreamWrapper> ascii_wrap;
@@ -731,64 +772,65 @@ NS_LOG_INFO ("生成 "<< random_flow_count_limit <<" 条随机流进行测试");
       //
 
       // enable ascii & pacap full tracing
-      #if 1
+#if 1
       std::string ascii_trace_filename = prefix_file_name + "-ascii";
       ascii.open (ascii_trace_filename.c_str ());
-      ascii_wrap = new OutputStreamWrapper (ascii_trace_filename.c_str (),
-                                            std::ios::out);
+      ascii_wrap = new OutputStreamWrapper (ascii_trace_filename.c_str (), std::ios::out);
       internet.EnableAsciiIpv4All (ascii_wrap); // 激活 tracing 很容易看到对应的 id 信息
-      csma.EnablePcapAll (prefix_file_name, false); // 激活 pacap 抓包
-      #endif
+      if (pcap)
+        csma.EnablePcapAll (prefix_file_name, false); // 激活 pacap 抓包
+#endif
 
-			Config::ConnectWithoutContext ("/NodeList/*/ApplicationList/*/$ns3::PacketSink/Rx",
-		    MakeCallback (&SinkRx));
+      if (debug)
+        {
+          Config::ConnectWithoutContext ("/NodeList/*/ApplicationList/*/$ns3::PacketSink/Rx",
+                                     MakeCallback (&SinkRx));
+        }
 
-      // Simulator::Schedule (Seconds (0.00001), &TraceIp,
-      //                      prefix_file_name + "-iprx.data");
-      Simulator::Schedule (Seconds (0.00001), &TraceCwnd,
-                           prefix_file_name + "-cwnd.data");
-      Simulator::Schedule (Seconds (0.00001), &TraceSsThresh,
-                           prefix_file_name + "-ssth.data");
-      Simulator::Schedule (Seconds (0.00001), &TraceRtt,
-                           prefix_file_name + "-rtt.data");
-      Simulator::Schedule (Seconds (0.00001), &TraceRto,
-                           prefix_file_name + "-rto.data");
-      Simulator::Schedule (Seconds (0.00001), &TraceNextTx,
-                           prefix_file_name + "-next-tx.data");
-      Simulator::Schedule (Seconds (0.00001), &TraceInFlight,
-                           prefix_file_name + "-inflight.data");
-      Simulator::Schedule (Seconds (0.1), &TraceNextRx,
-                           prefix_file_name + "-next-rx.data");
+      Time s_time = Seconds(start_time + 0.00001);
+      Simulator::Schedule (s_time, &TraceCwnd, prefix_file_name + "-cwnd.data");
+      Simulator::Schedule (s_time, &TraceSsThresh, prefix_file_name + "-ssth.data");
+      Simulator::Schedule (s_time, &TraceRtt, prefix_file_name + "-rtt.data");
+      Simulator::Schedule (s_time, &TraceRto, prefix_file_name + "-rto.data");
+      Simulator::Schedule (s_time, &TraceNextTx, prefix_file_name + "-next-tx.data");
+      Simulator::Schedule (s_time, &TraceInFlight, prefix_file_name + "-inflight.data");
+      Simulator::Schedule (Seconds (0.1), &TraceNextRx, prefix_file_name + "-next-rx.data");
     }
-
 
   Ipv4GlobalRoutingHelper::PopulateRoutingTables ();
   // ======================================================================
   // Print routing tables at T=0.1
   // ----------------------------------------------------------------------
 
-  #if 0
+#if 0
   NS_LOG_INFO ("Set up to print routing tables at T=0.1s");
   Ptr<OutputStreamWrapper> routingStream =
-    Create<OutputStreamWrapper> (prefix_file_name + "-router.routes", std::ios::out);
+  Create<OutputStreamWrapper> (prefix_file_name + "-router.routes", std::ios::out);
   Ipv4GlobalRoutingHelper g;
   g.PrintRoutingTableAllAt (Seconds (0.1), routingStream);
-  #endif
+#endif
 
   std::cout << "Start Simulation.. " << "\n";
 
-// Calculate Throughput using Flowmonitor
-//
+
+  // Calculate Throughput using Flowmonitor
+  //
   FlowMonitorHelper flowmon;
-  Ptr<FlowMonitor> monitor = flowmon.InstallAll ();
-// Run simulation.
-//
+  Ptr<FlowMonitor> monitor;
+  if (flow_monitor)
+    monitor = flowmon.InstallAll ();
+
+  // Run simulation.
+  //
   NS_LOG_INFO("Run Simulation.");
-  Simulator::Stop (Seconds (sim_duration+1));
+  Simulator::Stop (Seconds (duration + 1));
   Simulator::Run ();
 
-  monitor->CheckForLostPackets ();
-  monitor->SerializeToXmlFile (filename, true, true);
+  if (flow_monitor)
+    {
+      monitor->CheckForLostPackets ();
+      monitor->SerializeToXmlFile (prefix_file_name + ".k" + std::to_string (k) + ".xml", true, true);
+    }
 
   std::cout << "Simulation finished " << "\n";
 

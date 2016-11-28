@@ -3,7 +3,9 @@
  * 跳过例子之后的编译变得很迅猛 `./waf configure && ./waf`
  * tcp参数实验 `./waf --run "my-tcp-variants-comparison"`
  * 实验结果绘图 `./scratch/my_plot_helper.py`
- * dcn Fat-tree 拓扑: `Fat-tree.cc`, 原始 ntu Fat-tree `Fat-tree-ntu-origin.cc`
+ * dcn  
+   - 原始 ntu Fat-tree `Fat-tree-ntu-origin.cc`
+   - 新 Fat-tree 拓扑: `./waf --run "scratch/Fat-tree --PrintHelp"``
  * node api 例子 `node-apis.cc`
  * routing 例子 `./waf --run scratch/src-nix-simple`
  * Trace例子 TracedValue<int32_t> m_myInt `myfourth.cc`
