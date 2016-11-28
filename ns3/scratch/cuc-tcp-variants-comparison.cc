@@ -203,7 +203,13 @@ TraceNextRx (std::string &next_rx_seq_file_name)
 
 int main (int argc, char *argv[])
 {
-  std::string transport_prot = "TcpWestwood";
+
+  // User may find it convenient to enable logging
+  LogComponentEnable("TcpVariantsComparison", LOG_LEVEL_ALL);
+  //LogComponentEnable("BulkSendApplication", LOG_LEVEL_INFO);
+  //LogComponentEnable("PfifoFastQueueDisc", LOG_LEVEL_ALL);
+
+  std::string transport_prot = "TcpNewReno";
   double error_p = 0.0;
   std::string bandwidth = "2Mbps";
   std::string delay = "0.01ms";
@@ -220,6 +226,18 @@ int main (int argc, char *argv[])
   bool pcap = false;
   std::string queue_disc_type = "ns3::PfifoFastQueueDisc";
 
+  NS_LOG_UNCOND("CUC change parameter default values");
+  tracing = true;
+  pcap = true;
+  duration = 5;
+  prefix_file_name = "statistics/TcpVariantsComparison";
+  flow_monitor = true;
+
+  NS_LOG_INFO("  tracing = " << tracing);
+  NS_LOG_INFO("  flow_monitor = " << flow_monitor);
+  NS_LOG_INFO("  pcap = " << pcap);
+  NS_LOG_INFO("  duration = " << duration);
+  NS_LOG_INFO("  prefix_file_name = " << prefix_file_name);
 
   CommandLine cmd;
   cmd.AddValue ("transport_prot", "Transport protocol to use: TcpNewReno, "
@@ -245,10 +263,6 @@ int main (int argc, char *argv[])
   SeedManager::SetSeed (1);
   SeedManager::SetRun (run);
 
-  // User may find it convenient to enable logging
-  //LogComponentEnable("TcpVariantsComparison", LOG_LEVEL_ALL);
-  //LogComponentEnable("BulkSendApplication", LOG_LEVEL_INFO);
-  //LogComponentEnable("PfifoFastQueueDisc", LOG_LEVEL_ALL);
 
   // Calculate the ADU size
   Header* temp_header = new Ipv4Header ();

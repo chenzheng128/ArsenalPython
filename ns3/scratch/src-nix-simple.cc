@@ -45,16 +45,28 @@ using namespace ns3;
 
 NS_LOG_COMPONENT_DEFINE ("NixSimpleExample");
 
+static void // copy function from tcp-large-transfer
+CwndTracer (uint32_t oldval, uint32_t newval)
+{
+  NS_LOG_INFO ("Moving cwnd from " << oldval << " to " << newval);
+}
+
 int
 main (int argc, char *argv[])
 {
   CommandLine cmd;
   cmd.Parse (argc, argv);
 
-  LogComponentEnable ("NixSimpleExample", LOG_LEVEL_INFO);
+  //  copy code from tcp-large-transfer
+  // Users may find it convenient to turn on explicit debugging
+  // for selected modules; the below lines suggest how to do this
+  //  LogComponentEnable("TcpL4Protocol", LOG_LEVEL_ALL);
+  //  LogComponentEnable("TcpSocketImpl", LOG_LEVEL_ALL);
+  //  LogComponentEnable("PacketSink", LOG_LEVEL_ALL);
   LogComponentEnable ("OnOffApplication", LOG_LEVEL_INFO);
   LogComponentEnable ("UdpEchoClientApplication", LOG_LEVEL_INFO);
   LogComponentEnable ("UdpEchoServerApplication", LOG_LEVEL_INFO);
+  LogComponentEnable ("NixSimpleExample", LOG_LEVEL_ALL);
 
   NodeContainer nodes12;
   nodes12.Create (2);
@@ -166,7 +178,7 @@ main (int argc, char *argv[])
   ApplicationContainer hubApp = packetSinkHelper.Install (nodes56.Get (1));
   hubApp.Start (Seconds (1.0));
   hubApp.Stop (Seconds (30.0));
-  NS_LOG_INFO("Setup OnOff client (connet -> 209), address " << interfaces5.GetAddress (1) );
+  NS_LOG_INFO("Setup OnOff Node id="<<nodes12.Get(0)->GetId()<<" client (connet -> 209), address " << interfaces5.GetAddress (1) );
   OnOffHelper onOffHelper ("ns3::TcpSocketFactory", Address ());
   onOffHelper.SetAttribute ("OnTime", StringValue ("ns3::ConstantRandomVariable[Constant=1]"));
   onOffHelper.SetAttribute ("OffTime", StringValue ("ns3::ConstantRandomVariable[Constant=0]"));
@@ -184,6 +196,10 @@ main (int argc, char *argv[])
   #if 0
   pointToPoint.EnableAsciiAll("statistics/nix-simple-ascii");
   #endif
+
+  Config::ConnectWithoutContext (
+      "/NodeList/0/$ns3::TcpL4Protocol/SocketList/0/CongestionWindow",
+      MakeCallback (&CwndTracer));
 
   // Trace routing tables
   Ptr<OutputStreamWrapper> routingStream = Create<OutputStreamWrapper> ("statistics/nix-simple.routes", std::ios::out);
