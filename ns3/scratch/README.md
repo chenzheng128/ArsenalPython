@@ -6,6 +6,9 @@
  * dcn  
    - 原始 ntu Fat-tree `Fat-tree-ntu-origin.cc`
    - 新 Fat-tree 拓扑: `./waf --run "scratch/Fat-tree --PrintHelp"``
+   - `Fat-tree.cc` 基本上重现了 cfi16 文章中 Fig.2 的实验结果
+   - `ns3/scratch/dcn-flowmon-parse-results.py` 收集数据结果
+   - `ns3/scratch/cfi16-plot-fig2-drop-packets.py` 绘图输出
  * node api 例子 `node-apis.cc`
  * routing 例子 `./waf --run scratch/src-nix-simple`
  * Trace例子 TracedValue<int32_t> m_myInt `myfourth.cc`

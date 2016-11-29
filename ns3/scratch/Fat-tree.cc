@@ -318,21 +318,22 @@ main (int argc, char *argv[])
   float duration = 60.0;            // 仿真时间 simulation seconds
   int num_flows = -1;               //随机流数量: -1 不限制randomflow数量, 其他值:限制randomflow数量
   bool flow_monitor = true;         // 是否记录 flow_monitor
-  bool pcap = false;                //  是否记录 pcap
+  bool pcap = false;                // 是否记录 pcap
+  bool ascii_trace = false;         // 是否记录 ascii trace 
   float start_time = 0.1;           // 客户端发起时间, tracer 调度与它有关
 
-  int k = 4;			                 // default number of ports per switch
+  int k = 6;			                 // default number of ports per switch
 
   // Initialize parameters for On/Off application
   // Define variables for On/Off Application
   // These values will be used to serve the purpose that addresses of server and client are selected randomly
   int port = 9;
   int packetSize = 1024;		// 1024 bytes
-  char dataRate_OnOff[] = "5Mbps";
+  char dataRate_OnOff[] = "50Mbps";   // 50Mbs (cfi16)
   char maxBytes[] = "0";		// unlimited
   // Initialize parameters for Csma and PointToPoint protocol
   //
-  char dataRate[] = "20Mbps";	// 1Gbps -> 100Mbs (cfi16)
+  char dataRate[] = "100Mbps";	// 1Gbps -> 100Mbs (cfi16)
   double delay = 0.001;		// 0.001 ms
 
   //== copy parameters setting from TcpVariantsComparison
@@ -351,8 +352,8 @@ main (int argc, char *argv[])
 
   //== 临时修改一些初始化参数, 便于调试 debug 时  增加输出 或 加速测试
   debug = true;                     // 增加输出
-  k = 4;                             // 调整节点数
-  duration = 4.0 ;                 // 减小测试时间
+  k = 6;                             // 调整节点数
+  duration = 60.0 ;                 // 减小测试时间  60s-7m
   // num_flows = 1;               // 减小随机流数量
 
   //== 命令行传入参数 从 TcpVariantsComparison 复制而来
@@ -385,7 +386,6 @@ main (int argc, char *argv[])
   SeedManager::SetSeed (1);
   SeedManager::SetRun (run);
 
-
   //== 调整日志输出
   //
   // LogComponentEnable ("OnOffApplication", LOG_LEVEL_INFO);
@@ -408,6 +408,77 @@ main (int argc, char *argv[])
   NS_LOG_INFO("  debug=" << debug);
   NS_LOG_INFO("  模拟时间 duration=" << duration);
   NS_LOG_INFO("  输入文件前缀 prefix_file_name=" << prefix_file_name);
+
+
+  // 设置 Socket 默认参数  which defined in tcp-socket.cc
+  //Config::SetDefault ("ns3::TcpSocket::RcvBufSize", UintegerValue (1 << 21));
+  //Config::SetDefault ("ns3::TcpSocket::SndBufSize", UintegerValue (1 << 21));
+  //Config::SetDefault ("ns3::TcpSocket::InitialCwnd", UintegerValue (1 << 21));
+  Config::SetDefault ("ns3::TcpSocket::InitialSlowStartThreshold", UintegerValue (2*1000*1000));
+
+
+  // Select TCP variant
+  if (transport_prot.compare ("TcpNewReno") == 0)
+    {
+      Config::SetDefault ("ns3::TcpL4Protocol::SocketType", TypeIdValue (TcpNewReno::GetTypeId ()));
+    }
+  else if (transport_prot.compare ("TcpHybla") == 0)
+    {
+      Config::SetDefault ("ns3::TcpL4Protocol::SocketType", TypeIdValue (TcpHybla::GetTypeId ()));
+    }
+  else if (transport_prot.compare ("TcpHighSpeed") == 0)
+    {
+      Config::SetDefault ("ns3::TcpL4Protocol::SocketType", TypeIdValue (TcpHighSpeed::GetTypeId ()));
+    }
+  else if (transport_prot.compare ("TcpVegas") == 0)
+    {
+      Config::SetDefault ("ns3::TcpL4Protocol::SocketType", TypeIdValue (TcpVegas::GetTypeId ()));
+    }
+  else if (transport_prot.compare ("TcpScalable") == 0)
+    {
+      Config::SetDefault ("ns3::TcpL4Protocol::SocketType", TypeIdValue (TcpScalable::GetTypeId ()));
+    }
+  else if (transport_prot.compare ("TcpHtcp") == 0)
+    {
+      Config::SetDefault ("ns3::TcpL4Protocol::SocketType", TypeIdValue (TcpHtcp::GetTypeId ()));
+    }
+  else if (transport_prot.compare ("TcpVeno") == 0)
+    {
+      Config::SetDefault ("ns3::TcpL4Protocol::SocketType", TypeIdValue (TcpVeno::GetTypeId ()));
+    }
+  else if (transport_prot.compare ("TcpBic") == 0)
+    {
+      Config::SetDefault ("ns3::TcpL4Protocol::SocketType", TypeIdValue (TcpBic::GetTypeId ()));
+    }
+  else if (transport_prot.compare ("TcpYeah") == 0)
+    {
+      Config::SetDefault ("ns3::TcpL4Protocol::SocketType", TypeIdValue (TcpYeah::GetTypeId ()));
+    }
+  else if (transport_prot.compare ("TcpIllinois") == 0)
+    {
+      Config::SetDefault ("ns3::TcpL4Protocol::SocketType", TypeIdValue (TcpIllinois::GetTypeId ()));
+    }
+  else if (transport_prot.compare ("TcpMyAlg") == 0) // MyAlg
+  {
+      Config::SetDefault ("ns3::TcpL4Protocol::SocketType", TypeIdValue (TcpMyAlg::GetTypeId ()));
+      Config::SetDefault ("ns3::TcpWestwood::FilterType", EnumValue (TcpMyAlg::TUSTIN));
+  }
+  else if (transport_prot.compare ("TcpWestwood") == 0)
+    { // the default protocol type in ns3::TcpWestwood is WESTWOOD
+      Config::SetDefault ("ns3::TcpL4Protocol::SocketType", TypeIdValue (TcpWestwood::GetTypeId ()));
+      Config::SetDefault ("ns3::TcpWestwood::FilterType", EnumValue (TcpWestwood::TUSTIN));
+    }
+  else if (transport_prot.compare ("TcpWestwoodPlus") == 0)
+    {
+      Config::SetDefault ("ns3::TcpL4Protocol::SocketType", TypeIdValue (TcpWestwood::GetTypeId ()));
+      Config::SetDefault ("ns3::TcpWestwood::ProtocolType", EnumValue (TcpWestwood::WESTWOODPLUS));
+      Config::SetDefault ("ns3::TcpWestwood::FilterType", EnumValue (TcpWestwood::TUSTIN));
+    }
+  else
+    {
+      NS_LOG_DEBUG ("Invalid TCP version");
+      exit (1);
+    }
 
   //=========== Calculate parameters based on value of k ===========//
   // Note: the format of host's address is 10.pod.switch.(host+2)
@@ -772,14 +843,15 @@ main (int argc, char *argv[])
       //
 
       // enable ascii & pacap full tracing
-#if 1
-      std::string ascii_trace_filename = prefix_file_name + "-ascii";
-      ascii.open (ascii_trace_filename.c_str ());
-      ascii_wrap = new OutputStreamWrapper (ascii_trace_filename.c_str (), std::ios::out);
-      internet.EnableAsciiIpv4All (ascii_wrap); // 激活 tracing 很容易看到对应的 id 信息
+      if (ascii_trace)
+        {
+          std::string ascii_trace_filename = prefix_file_name + "-ascii";
+          ascii.open (ascii_trace_filename.c_str ());
+          ascii_wrap = new OutputStreamWrapper (ascii_trace_filename.c_str (), std::ios::out);
+          internet.EnableAsciiIpv4All (ascii_wrap); // 激活 tracing 很容易看到对应的 id 信息
+        }
       if (pcap)
         csma.EnablePcapAll (prefix_file_name, false); // 激活 pacap 抓包
-#endif
 
       if (debug)
         {

@@ -188,7 +188,7 @@ def main(argv):
             print "\tRx Duration: %.2f seconds" % ( flow.rx_duration)
 
 
-    print "-- total statictis --"
+    print "-- total statictis from %s --" % argv[1]
     print "\t%d number flows" % (flow_count)
     tx_bps = (total_tx_bits / simu_duration_seconds * 1e-6)
     rx_bps = (total_rx_bits / simu_duration_seconds * 1e-6)
@@ -199,6 +199,7 @@ def main(argv):
     # print "\tPacket Loss Ratio: %.2f %%" % ( total_loss_ratio / flow_count * 100)
     print "\tPacket Loss Ratio: %.2f %%" % (total_lost_packets / (total_lost_packets+total_rx_packets) * 100)
     print "\tsimu_duration_seconds = %d" % simu_duration_seconds
+    print "\ttotal_lost_packets (cfi16): %d" % total_lost_packets
 
 if __name__ == '__main__':
     main(sys.argv)
