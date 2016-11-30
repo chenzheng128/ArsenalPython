@@ -127,6 +127,7 @@ Ptr<OutputStreamWrapper> rtoStream;
 Ptr<OutputStreamWrapper> nextTxStream;
 Ptr<OutputStreamWrapper> nextRxStream;
 Ptr<OutputStreamWrapper> inFlightStream;
+Ptr<OutputStreamWrapper> qlenStream;
 uint32_t cWndValue;
 uint32_t ssThreshValue;
 uint32_t NODE_ID;
@@ -134,7 +135,7 @@ uint32_t NODE_ID;
 static void
 SsThreshTracer (uint32_t oldval, uint32_t newval)
 {
-  NS_LOG_DEBUG("Tracer SsThreshTracer() Moving ssth from " << oldval << " to " << newval);
+  // NS_LOG_DEBUG("Tracer SsThreshTracer() Moving ssth from " << oldval << " to " << newval);
   if (firstSshThr)
     {
       *ssThreshStream->GetStream () << "0.0 " << oldval << std::endl;
@@ -303,6 +304,21 @@ SinkRx (Ptr<const Packet> p, const Address &ad) // copy func from topology-examp
   // std::cout << "Tracer SinkRx() dst: " << ipv4.GetDestination () << std::endl;
 }
 
+void
+TcPacketsInQueueTrace (uint32_t oldValue, uint32_t newValue)
+{
+  std::cout << "TcPacketsInQueue " << oldValue << " to " << newValue << std::endl;
+}
+
+void
+DevicePacketsInQueueTrace (uint32_t oldValue, uint32_t newValue)
+{
+  NS_LOG_DEBUG( "DevicePacketsInQueue " << oldValue << " to " << newValue );
+  *qlenStream->GetStream () << Simulator::Now ().GetSeconds () << " " << newValue << std::endl;
+}
+
+
+
 // Main function
 //
 
@@ -319,7 +335,7 @@ main (int argc, char *argv[])
   int num_flows = -1;               //随机流数量: -1 不限制randomflow数量, 其他值:限制randomflow数量
   bool flow_monitor = true;         // 是否记录 flow_monitor
   bool pcap = false;                // 是否记录 pcap
-  bool ascii_trace = false;         // 是否记录 ascii trace 
+  bool ascii_trace = false;         // 是否记录 ascii trace
   float start_time = 0.1;           // 客户端发起时间, tracer 调度与它有关
 
   int k = 6;			                 // default number of ports per switch
@@ -530,11 +546,13 @@ main (int argc, char *argv[])
 //=========== Creation of Node Containers ===========//
 //
   //std::array < Ptr< NodeContainer >, num_group > core{ CreateObject< NodeContainer >() };
+  NS_LOG_INFO("生成 Core nodes ");
   NodeContainer core[num_group];	// NodeContainer for core switches
   for (i = 0; i < num_group; i++)
     {
       core[i].Create (num_core);
       internet.Install (core[i]);
+      NS_LOG_DEBUG("setup Core switch[i].Get(0) on node id: " << core[i].Get(0)->GetId());
     }
   NodeContainer agg[num_pod];	// NodeContainer for aggregation switches
   for (i = 0; i < num_pod; i++)
@@ -556,7 +574,7 @@ main (int argc, char *argv[])
     }
   NodeContainer host[num_pod][num_bridge];	// NodeContainer for hosts
 
-  NS_LOG_INFO("生成 host nodes ");
+  NS_LOG_INFO("生成 Host nodes ");
   for (i = 0; i < k; i++)
     {
 
@@ -825,6 +843,7 @@ main (int argc, char *argv[])
             }
         }
     }
+
   std::cout << "Finished connecting core switches and aggregation switches  " << "\n";
   std::cout << "------------- " << "\n";
 
@@ -840,7 +859,6 @@ main (int argc, char *argv[])
 
       prefix_file_name += "-" + transport_prot; // 文件名中增加 tcp类型
       NS_LOG_UNCOND("激活 tracing 文件记录 " << prefix_file_name);
-      //
 
       // enable ascii & pacap full tracing
       if (ascii_trace)
@@ -867,6 +885,12 @@ main (int argc, char *argv[])
       Simulator::Schedule (s_time, &TraceNextTx, prefix_file_name + "-next-tx.data");
       Simulator::Schedule (s_time, &TraceInFlight, prefix_file_name + "-inflight.data");
       Simulator::Schedule (Seconds (0.1), &TraceNextRx, prefix_file_name + "-next-rx.data");
+
+      //trace qlen; copy from traffic-control.cc
+      AsciiTraceHelper asciiTraceHelper;
+      qlenStream = asciiTraceHelper.CreateFileStream ((prefix_file_name + "-qlen.data").c_str ());
+      //Config::ConnectWithoutContext("/NodeList/0/$ns3::TrafficControlLayer/RootQueueDiscList/0/PacketsInQueue", MakeCallback (&TcPacketsInQueueTrace));
+      Config::ConnectWithoutContext("/NodeList/0/DeviceList/4/$ns3::PointToPointNetDevice/TxQueue/PacketsInQueue",MakeCallback (&DevicePacketsInQueueTrace));
     }
 
   Ipv4GlobalRoutingHelper::PopulateRoutingTables ();
