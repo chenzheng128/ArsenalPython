@@ -22,6 +22,8 @@
 #include "ns3/ipv4-static-routing-helper.h"
 #include "ns3/ipv4-list-routing-helper.h"
 #include "ns3/ipv4-nix-vector-helper.h"
+// gtk config support 
+#include "ns3/gtk-config-store.h"
 
 /*
  *  Simple point to point links:
@@ -75,8 +77,13 @@ static void SinkRx (Ptr<const Packet> p, const Address &ad) // copy func from to
 int
 main (int argc, char *argv[])
 {
+  bool debug = false;
+  bool gtk_config = true;
   CommandLine cmd;
+  cmd.AddValue ("debug", "debug 增加输出", debug);
+  cmd.AddValue ("gtk_config", "使用 gtk-config 配置属性 ", gtk_config);
   cmd.Parse (argc, argv);
+
 
   //  copy code from tcp-large-transfer
   // Users may find it convenient to turn on explicit debugging
@@ -88,6 +95,10 @@ main (int argc, char *argv[])
   LogComponentEnable ("UdpEchoClientApplication", LOG_LEVEL_INFO);
   LogComponentEnable ("UdpEchoServerApplication", LOG_LEVEL_INFO);
   LogComponentEnable ("NixSimpleExample", LOG_LEVEL_ALL);
+  if (debug)
+    {
+      LogComponentEnable ("Config", LOG_LEVEL_ALL);
+    }
 
   NodeContainer nodes12;
   nodes12.Create (2);
@@ -209,6 +220,14 @@ main (int argc, char *argv[])
   clientApps3.Start (Seconds (20.0));
   clientApps3.Stop (Seconds (20.03)); // 发2个包 , 每 0.1 秒 发一个
 
+  Config::SetDefault ("ns3::TcpL4Protocol::SocketType", TypeIdValue (TcpWestwood::GetTypeId ()));
+
+  if (gtk_config)  // 使用 gtk_config 图形化配置属性
+    {
+      // 代码参考： https://www.nsnam.org/wiki/HOWTO_determine_the_path_of_an_attribute_or_trace_source
+      GtkConfigStore configstore;
+      configstore.ConfigureAttributes();
+    }
 
   NS_LOG_INFO("设置完毕 ... \n进行仿真 ...");
 

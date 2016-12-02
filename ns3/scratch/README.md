@@ -12,6 +12,22 @@
  * node api 例子 `node-apis.cc`
  * routing 例子 `./waf --run scratch/src-nix-simple`
  * Trace例子 TracedValue<int32_t> m_myInt `myfourth.cc`
+ *
+
+### config-store 配置
+首先在 Ubuntu 14.04 下 激活  xml (config store) 与 gtk 支持：
+```
+Install参考: https://www.nsnam.org/wiki/Installation#Ubuntu.2FDebian
+代码参考： https://www.nsnam.org/wiki/HOWTO_determine_the_path_of_an_attribute_or_trace_source
+apt-get install libxml2 libxml2-dev
+apt-get install libgtk2.0-0 libgtk2.0-dev
+```
+然后 `./waf configure |egrep "(xml|gtk)"` 重新配置与编译可, 正常情况看到下面的激活信息
+```
+Checking for 'gtk+-2.0' >= 2.12                                    : yes
+Checking for 'libxml-2.0' >= 2.7                                   : yes
+```
+运行例子 `src-nix-simple.cc `, 即可通过GUI修改 `ns3::NodeListPriv/NodeList/0/ApplicationList/0/MaxPackets` 改变echo发包数量
 
 ## Tutorial 例子
  以 my[first|second|third等].cc 为命名格式
