@@ -360,12 +360,15 @@ int main (int argc, char *argv[])
       Config::SetDefault ("ns3::TcpWestwood::ProtocolType", EnumValue (TcpWestwood::WESTWOODPLUS));
       Config::SetDefault ("ns3::TcpWestwood::FilterType", EnumValue (TcpWestwood::TUSTIN));
     }
+  // #disable TcpMyAlg for common ns3 upstream
+  #if 0
   else if (transport_prot.compare ("TcpMyAlg") == 0) // our Alg
       {
         Config::SetDefault ("ns3::TcpL4Protocol::SocketType", TypeIdValue (TcpMyAlg::GetTypeId ()));
         Config::SetDefault ("ns3::TcpMyAlg::ProtocolType", EnumValue (TcpMyAlg::MYALG));
         Config::SetDefault ("ns3::TcpMyAlg::FilterType", EnumValue (TcpMyAlg::TUSTIN));
       }
+  #endif
   else
     {
       NS_LOG_DEBUG ("Invalid TCP version");

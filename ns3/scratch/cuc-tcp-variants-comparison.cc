@@ -325,11 +325,14 @@ int main (int argc, char *argv[])
     {
       Config::SetDefault ("ns3::TcpL4Protocol::SocketType", TypeIdValue (TcpIllinois::GetTypeId ()));
     }
+  // disable TcpMyAlg for common ns3 upstream
+  #if 0
   else if (transport_prot.compare ("TcpMyAlg") == 0) // MyAlg
   {
       Config::SetDefault ("ns3::TcpL4Protocol::SocketType", TypeIdValue (TcpMyAlg::GetTypeId ()));
       Config::SetDefault ("ns3::TcpWestwood::FilterType", EnumValue (TcpMyAlg::TUSTIN));
   }
+  #endif
   else if (transport_prot.compare ("TcpWestwood") == 0)
     { // the default protocol type in ns3::TcpWestwood is WESTWOOD
       Config::SetDefault ("ns3::TcpL4Protocol::SocketType", TypeIdValue (TcpWestwood::GetTypeId ()));
@@ -479,13 +482,13 @@ int main (int argc, char *argv[])
   // Set up tracing if enabled
   if (tracing)
     {
-      
+
       std::ofstream ascii;
       Ptr<OutputStreamWrapper> ascii_wrap;
-        
+
       prefix_file_name += "-" +  transport_prot; // 文件名中增加 tcp类型
       NS_LOG_UNCOND("激活 tracing 文件记录 " << prefix_file_name);
-      
+
         ascii.open ((prefix_file_name + "-ascii").c_str ());
       ascii_wrap = new OutputStreamWrapper ((prefix_file_name + "-ascii").c_str (),
                                             std::ios::out);
