@@ -37,6 +37,7 @@
 #include "ns3/ipv4-global-routing-helper.h"
 #include "ns3/csma-module.h"
 #include "ns3/ipv4-nix-vector-helper.h"
+#include "ns3/gtk-config-store.h"
 // ns-3.13-API
 // #include "ns3/random-variable.h"
 // ns-3.26-API
@@ -474,11 +475,14 @@ main (int argc, char *argv[])
     {
       Config::SetDefault ("ns3::TcpL4Protocol::SocketType", TypeIdValue (TcpIllinois::GetTypeId ()));
     }
+  // #disable TcpMyAlg for common ns3 upstream 
+  #if 0
   else if (transport_prot.compare ("TcpMyAlg") == 0) // MyAlg
   {
       Config::SetDefault ("ns3::TcpL4Protocol::SocketType", TypeIdValue (TcpMyAlg::GetTypeId ()));
       Config::SetDefault ("ns3::TcpWestwood::FilterType", EnumValue (TcpMyAlg::TUSTIN));
   }
+  #endif
   else if (transport_prot.compare ("TcpWestwood") == 0)
     { // the default protocol type in ns3::TcpWestwood is WESTWOOD
       Config::SetDefault ("ns3::TcpL4Protocol::SocketType", TypeIdValue (TcpWestwood::GetTypeId ()));
@@ -890,7 +894,7 @@ main (int argc, char *argv[])
       AsciiTraceHelper asciiTraceHelper;
       qlenStream = asciiTraceHelper.CreateFileStream ((prefix_file_name + "-qlen.data").c_str ());
       //Config::ConnectWithoutContext("/NodeList/0/$ns3::TrafficControlLayer/RootQueueDiscList/0/PacketsInQueue", MakeCallback (&TcPacketsInQueueTrace));
-      Config::ConnectWithoutContext("/NodeList/0/DeviceList/4/$ns3::PointToPointNetDevice/TxQueue/PacketsInQueue",MakeCallback (&DevicePacketsInQueueTrace));
+      Config::ConnectWithoutContext("/NodeList/*/DeviceList/*/$ns3::PointToPointNetDevice/TxQueue/PacketsInQueue",MakeCallback (&DevicePacketsInQueueTrace));
     }
 
   Ipv4GlobalRoutingHelper::PopulateRoutingTables ();
@@ -905,6 +909,10 @@ main (int argc, char *argv[])
   Ipv4GlobalRoutingHelper g;
   g.PrintRoutingTableAllAt (Seconds (0.1), routingStream);
 #endif
+
+	//
+	GtkConfigStore configstore;
+  configstore.ConfigureAttributes();
 
   std::cout << "Start Simulation.. " << "\n";
 
