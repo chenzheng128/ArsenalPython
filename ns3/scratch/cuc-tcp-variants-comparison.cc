@@ -144,6 +144,9 @@ NextRxTracer (SequenceNumber32 old, SequenceNumber32 nextRx)
   *nextRxStream->GetStream () << Simulator::Now ().GetSeconds () << " " << nextRx << std::endl;
 }
 
+/*
+ These SocketList TraceSource are defined in ns3::TcpSocketBase
+*/
 static void
 TraceCwnd (std::string cwnd_tr_file_name)
 {
