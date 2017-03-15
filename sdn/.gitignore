@@ -1,0 +1,11 @@
+*/out/*
+
+mininet-tests/cpuiso/cpu/cpumonitor
+mininet-tests/cpuiso/cpu/steal_cpu
+mininet-tests/cpuiso/cpu/timer
+mininet-tests/cpuiso/cpu/cpu-stress
+mininet-tests/cpuiso/cpu/gettimeofday
+
+mininet-tests/udping/results/
+mininet-tests/udping/udping
+
