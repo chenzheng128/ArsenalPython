@@ -1,4 +1,5 @@
-#!/usr/bin/python
+#!/usr/bin/env python
+#coding: utf-8
 
 import fileinput
 from json import loads
@@ -19,6 +20,7 @@ from lib.plot import colorGenerator
 from lib.helper import avg, stdev
 
 def sched_for(indir):
+    # cfs目录对应-bwc / none目录对应-default
     if 'cfs' in indir:
 	return 'bwc'
     if 'none' in indir:
@@ -30,13 +32,14 @@ def sched_for(indir):
 
 def plot_pingpong(plotopts):
     fig = plt.figure( 1 )
-    fig.canvas.set_window_title( 'Mininet: ' + 
+    fig.canvas.set_window_title( 'Mininet: ' +
                                 str( plotopts.args ) )
     # plt.title('Latency test (UDP ping)')
     plt.ylabel( 'Round-trip latency (ms)' )
     plt.xlabel( 'No. of hosts' )
     cgen = colorGenerator()
     if plotopts.box:
+        # 绘制 box 图
         for indir in plotopts.args:
             x, y = [], []
             widths = []
@@ -51,6 +54,7 @@ def plot_pingpong(plotopts):
         plt.grid( True )
         # plt.ylim(ymin=0.0, ymax=0.1)
     else:
+        # 绘制 bar 图
         for indir in plotopts.args:
             x, y, yerr, ymin, ymax, ysd = [], [], [], [], [], []
             widths = []
@@ -87,7 +91,7 @@ def parsePing(infile):
     f.close()
     # print ping_stats
     return ping_stats
-        
+
 def readData( files ):
     "Read input data from pair_intervals run"
     results = []
@@ -114,10 +118,10 @@ def parseOptions():
     "Parse command line options"
     parser = OptionParser( 'usage: %prog [options] [input files]' )
     parser.add_option( '-d', '--dir', dest='dir',
-                      type='string', default='', 
+                      type='string', default='',
                       help='save plots in the directory "dir"' )
     parser.add_option( '-p', '--prefix', dest='prefix',
-                      type='string', default='', 
+                      type='string', default='',
                       help='custom prefix for saved figures' )
     parser.add_option( '-c', '--counts', dest='counts',
         action='callback', callback=intListCallback, default=[ 2 ],

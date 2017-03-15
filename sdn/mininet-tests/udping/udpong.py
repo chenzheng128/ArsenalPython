@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+#coding: utf-8
 
 from optparse import OptionParser
 from time import sleep, time
@@ -64,9 +65,12 @@ class PingPongTopo(Topo):
         hosts = [ 'h%s' % i  for i in range(1, N+1) ]
         for h in hosts:
             #self.add_host(h)
+
             ### Change for Mininet 2.3.0
             self.addHost(h)
+
         #self.add_link( hosts[0], hosts[1] )
+
         ### Change for Mininet 2.3.0
         self.addLink( hosts[0], hosts[1] )
 
@@ -74,6 +78,7 @@ def pingpongtest(opts):
     "UDP ping latency test"
     cpustress = cpuStressName()
     cpumonitor = cpuMonitorName()
+    # checkForExec() 一个帮助函数检查命令是否存在 (CPUIsolationLib.py)
     udping = checkForExec( 'udping', '.' )
     results = []
     #initOutput( opts.outfile, opts )
@@ -82,6 +87,7 @@ def pingpongtest(opts):
 
     info('*** killing off any cpu stress processes\n')
     quietRun('pkill -9 -f %s > /dev/null' % cpustress)
+    # 使用 pgrep 查看进程id
     print quietRun('pgrep cpu')
 
     info( "*** running ping test" )
@@ -102,6 +108,8 @@ def pingpongtest(opts):
         # For the "loaded" configuration we run stress procs everywhere;
         # Otherwise they don't run on the udping client or server
         start = 1 if opts.loaded else 3
+
+        # 在hosts 上运行 cpustress 命令(消耗 cpu 资源?)
         for i in xrange(start, n+1):
             server = net.get( 'h%s' % i )
             scmd = cpustress
@@ -123,6 +131,8 @@ def pingpongtest(opts):
 
         info('*** Running udping client for %s pings\n' % opts.pings)
         start = time()
+
+        # 在 h1 主机上 运行 udping 命令, 将结果存储在 outdir/u-x 文件中
         pout = h1.cmd('%s %s %s' % (udping, h2.IP(), opts.pings))
         end = time()
         if opts.outdir:
