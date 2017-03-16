@@ -1,9 +1,14 @@
 */out/*
 
+
+
 cs144_bufferbloat/http/nohup.out
 cs144_bufferbloat/index.html
 cs144_bufferbloat/iperf-recv.txt
 cs144_bufferbloat/iperf.txt
+
+# defaut ignore mininet-tests results
+mininet-tests/*/results
 
 mininet-tests/cpuiso/cpu/cpumonitor
 mininet-tests/cpuiso/cpu/steal_cpu
