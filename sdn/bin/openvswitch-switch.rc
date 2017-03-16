@@ -1,0 +1,30 @@
+#!/bin/bash
+function usage(){
+    echo "$0 (start | stop | restart)"
+}
+if [ $# -eq 0 ] ; then
+  usage
+else
+  case $1 in
+  start)
+	modprobe openvswitch
+
+    #ovsdb 增加pidfile监听,
+    #  便于后续控制 sudo ovs-appctl -t ovsdb-server ovsdb-server/add-remote ptcp:6632
+	/usr/local/sbin/ovsdb-server --pidfile --remote=ptcp:6632 --remote=punix:/usr/local/var/run/openvswitch/db.sock & #启动服务器
+	/usr/local/sbin/ovs-vswitchd & #启动交换机
+	/usr/local/bin/ovs-vsctl show  #查看交换机状态
+	;;
+  stop)
+	pkill ovs-vswitchd
+	pkill ovsdb-server
+	;;
+  restart)
+    $0 stop
+    $0 start
+    ;;
+  *)
+    usage
+    ;;
+  esac
+fi

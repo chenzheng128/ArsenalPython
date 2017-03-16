@@ -17,9 +17,20 @@ sudo apt-get -y install python-matplotlib
 
 ## 运行实验
 ### 100pkt
+```
+# 终端1：运行mininet
 sudo ./run.sh
-sudo python exp_monitor.py --exp out/100pkt
-./plot_figures.sh out/100pkt
+mininet> h1 ./iperf.sh
+mininet> h2 wget http://10.0.0.1 # 等候iperf约70秒时
+
+# 终端2: 监控队列
+sudo python exp_monitor.py --exp out/100pkt  
+
+# 终端3: 查看iperf数据
+tail -f ./iperf-recv.txt ，等候约70秒时
+Ctrl-C
+./plot_figures.sh out/100pkt #绘图
+```
 
 ### 20pkt
 sudo ./run-minq.sh

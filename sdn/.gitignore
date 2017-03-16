@@ -1,5 +1,10 @@
 */out/*
 
+cs144_bufferbloat/http/nohup.out
+cs144_bufferbloat/index.html
+cs144_bufferbloat/iperf-recv.txt
+cs144_bufferbloat/iperf.txt
+
 mininet-tests/cpuiso/cpu/cpumonitor
 mininet-tests/cpuiso/cpu/steal_cpu
 mininet-tests/cpuiso/cpu/timer
@@ -8,4 +13,3 @@ mininet-tests/cpuiso/cpu/gettimeofday
 
 mininet-tests/udping/results/
 mininet-tests/udping/udping
-
