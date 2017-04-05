@@ -1,4 +1,5 @@
 #!/usr/bin/python
+#coding:utf-8
 
 "CS244 Assignment 1: Parking Lot"
 
@@ -159,7 +160,7 @@ def stop_tcpprobe():
 def run_dasdn_expt(net, n):
     "Run experiment"
 
-    seconds = args.time
+    base_seconds = args.time
 
     # Start the bandwidth and cwnd monitors in the background
     monitors = []
@@ -195,23 +196,51 @@ def run_dasdn_expt(net, n):
     waitListening(clients[0], recvr, port)
 
     # Start the client iperfs
-    cmd = ['iperf',
-           '-c', recvr.IP(),
-           '-p', port,
-           '-t', seconds,
-           '-i', 1,  # reporting interval
-           '-Z reno',  # use TCP Reno
-           '-yc']   # report output as comma-separated values
-    outfile = {}
-    for c in clients:
-        sleep(5)
+
+
+    # 创建5个节点的可变时间 (n)
+    trans_seconds = [base_seconds, base_seconds*0.5, base_seconds*2, base_seconds*1.5, base_seconds]
+    trans_num = [base_seconds, base_seconds*0.5, base_seconds*2, base_seconds*1.5, base_seconds]
+    waste_times = [0, 0, 5, 0, 0] # 是否存在空闲时间
+    # 创建 n 个节点的固定时间
+    # trans_seconds = [base_seconds] * n
+    # waste_times = [0] * n  # 无空闲时间
+
+    if (len(trans_seconds) < n): # 检查节点时间长度
+        output("节点可变时间的数据不足，长度 %d < n(%d) , exit ... " %(len(trans_seconds), n))
+        exit()
+
+    for i in range(n):
+        # for c in clients:
+        c = clients[i]
+        seconds = trans_seconds[i]
+        waste_time = waste_times[i]
+
+        sleep(1+waste_time)
+
+        cmd = ['iperf',
+               '-c', recvr.IP(),
+               '-p', port,
+               '-t', seconds ,  # change -t seconds to -d num_bytes seconds * 75000000
+               '-i', 1,  # reporting interval
+               '-Z reno',  # use TCP Reno
+               '-yc']   # report output as comma-separated values
+        outfile = {}
+
         outfile[c] = '%s/iperf_%s.txt' % (args.dir, c.name)
         # Ugh, this is a bit ugly....
         redirect = ['>', outfile[c]]
-        c.sendCmd(cmd + redirect, printPid=False)
+        c.sendCmd(cmd + redirect, printPid=False) # background cmd
+        # c.cmd(cmd + redirect, printPid=False)  # foreground cmd
+
+        output(' client %s connect with %d seconds, waste %d seconds ..\n' % (c, seconds, waste_time))
+        #sleep(seconds)
+        #output(' client %s start ... \n' % c )
+        progress(seconds) # 读秒等待
+
 
     # Count down time
-    progress(seconds)
+    # progress(seconds * n)
 
     # Wait for clients to complete
     # If you don't do this, iperfs may keep running!

@@ -25,22 +25,29 @@ bw=100
 # client is connected to port 2 on its switch.
 
 #for n in 1 2 3 4 5; do
-for n in 3; do
-    dir=$rootdir/n$n
+for n in 5; do
+    dir=$rootdir-n$n
+		# 运行实验
     sudo python dasdn.py --bw $bw \
         --dir $dir \
-        -t 30 \
+        -t 10 \
         -n $n
+		# 清除 不需要的 eth99 数据
+		sudo sed -e '/s2-eth99/d' $dir/bwm.txt > $dir/bwm2.txt
+		# 绘图
     sudo python ../util/plot_rate.py --rx \
         --maxy $bw \
         --xlabel 'Time (s)' \
         --ylabel 'Rate (Mbps)' \
         -i 's2-eth*' \
-        -f $dir/bwm.txt \
+        -f $dir/bwm2.txt \
         -o $dir/rate.png
 #    sudo python ../util/plot_tcpprobe.py \
 #        -f $dir/tcp_probe.txt \
 #        -o $dir/cwnd.png
+		# 手动重新绘图
+		# cd dasdn-Apr02-22\:45-n5-fix/
+		# bw=100; sudo python ../../../util/plot_rate.py --rx         --maxy $bw         --xlabel 'Time (s)'         --ylabel 'Rate (Mbps)'         -i 's2-eth*'  -f bwm2.txt -o rate.png
 done
 
 echo "Started at" $start
