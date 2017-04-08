@@ -25,13 +25,14 @@ bw=100
 # client is connected to port 2 on its switch.
 
 #for n in 1 2 3 4 5; do
-for n in 5; do
+for n in 2; do
     dir=$rootdir-n$n
 		# 运行实验
     sudo python dasdn.py --bw $bw \
         --dir $dir \
 				-n $n \
 				--switch_bw \
+				--cli \
 				-t 10
 				#-m 114
 				#-m 114

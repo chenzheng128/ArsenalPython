@@ -23,6 +23,14 @@ import argparse
 import os
 from util.monitor import monitor_cpu, monitor_qlen, monitor_devs_ng
 
+import threading
+from util_qdisc import os_popen, port_default_config, class_switch
+
+# 记录每个会话启动时间的全局变量
+TRANS_SECONDS = [] # 传输时间 -t 使用
+TRANS_NUMS = []  # 传输数据量 -d 使用
+WASTE_TIMES = [] # 空闲时间
+
 
 def cprint(s, color, cr=True):
     """Print in color
@@ -57,7 +65,19 @@ parser.add_argument('--time', '-t',
                     dest="time",
                     type=int,
                     help="Duration of the experiment.",
-                    default=60)
+                    default = -1)
+                    # default=60)
+
+parser.add_argument('--num_mb', '-m',
+                    dest="num_mb",
+                    type=int,
+                    help="number of mega bytes to transmit",
+                    default=100)
+
+parser.add_argument('--switch_bw', '-s',
+                    action='store_true',
+                    help='switch bw during transmission',
+                    default=False)
 
 # Expt parameters
 args = parser.parse_args()
@@ -157,10 +177,39 @@ def start_tcpprobe():
 def stop_tcpprobe():
     os.system("killall -9 cat; rmmod tcp_probe &>/dev/null;")
 
+def monitor_thread_switch_bw():
+    """
+    线程 monitor_thread_switch_bw() 在 [10, 20] 将调整带宽从 50m 到 100m , 然后恢复
+    :return:
+    """
+    print 'thread %s is running...' % threading.current_thread().name
+    sleep(10)
+    cprint ('thread %s bw ctl start...' % threading.current_thread().name, 'red')
+    # do bw ctl start, duration [10, 20]
+    print ("switch bw from 50 to 100")
+    class_switch("s2-eth99","50mbit" ,"100mbit", 10)
+    # do bw ctl release
+    cprint ('thread %s ended.' % threading.current_thread().name, 'red')
+
 def run_dasdn_expt(net, n):
     "Run experiment"
+    print 'thread %s is running...' % threading.current_thread().name
 
-    base_seconds = args.time
+
+    # 创建5个节点的可变时间 (n)
+    if args.time !=-1:
+        TRANS_SECONDS = [args.time*0.5, args.time, args.time*0.5, args.time*1.5, args.time]
+        if (len(TRANS_SECONDS) < args.n): # 检查节点时间长度
+            output("节点可变时间的数据不足，长度 %d < n(%d) , exit ... " %(len(TRANS_SECONDS), args.n))
+            exit()
+    else:
+        TRANS_NUMS = [args.num_mb*0.5, args.num_mb, args.num_mb*1.5, args.num_mb*2, args.num_mb*0.5]
+
+    WASTE_TIMES = [0, 0, 5, 0, 0] # 是否存在空闲时间
+
+    print 'len: WASTE_TIMES %d' % len(WASTE_TIMES)
+    print 'len: TRANS_SECONDS %d' % len(TRANS_SECONDS)
+
 
     # Start the bandwidth and cwnd monitors in the background
     monitors = []
@@ -195,49 +244,46 @@ def run_dasdn_expt(net, n):
 
     waitListening(clients[0], recvr, port)
 
-    # Start the client iperfs
-
-
-    # 创建5个节点的可变时间 (n)
-    trans_seconds = [base_seconds, base_seconds*0.5, base_seconds*2, base_seconds*1.5, base_seconds]
-    trans_num = [base_seconds, base_seconds*0.5, base_seconds*2, base_seconds*1.5, base_seconds]
-    waste_times = [0, 0, 5, 0, 0] # 是否存在空闲时间
-    # 创建 n 个节点的固定时间
-    # trans_seconds = [base_seconds] * n
-    # waste_times = [0] * n  # 无空闲时间
-
-    if (len(trans_seconds) < n): # 检查节点时间长度
-        output("节点可变时间的数据不足，长度 %d < n(%d) , exit ... " %(len(trans_seconds), n))
-        exit()
 
     for i in range(n):
         # for c in clients:
         c = clients[i]
-        seconds = trans_seconds[i]
-        waste_time = waste_times[i]
+        waste_time = WASTE_TIMES[i]
 
         sleep(1+waste_time)
 
         cmd = ['iperf',
                '-c', recvr.IP(),
                '-p', port,
-               '-t', seconds ,  # change -t seconds to -d num_bytes seconds * 75000000
                '-i', 1,  # reporting interval
                '-Z reno',  # use TCP Reno
-               '-yc']   # report output as comma-separated values
+               #'-yc', # report output as comma-separated values
+               ]
+
         outfile = {}
 
         outfile[c] = '%s/iperf_%s.txt' % (args.dir, c.name)
         # Ugh, this is a bit ugly....
         redirect = ['>', outfile[c]]
-        c.sendCmd(cmd + redirect, printPid=False) # background cmd
-        # c.cmd(cmd + redirect, printPid=False)  # foreground cmd
 
-        output(' client %s connect with %d seconds, waste %d seconds ..\n' % (c, seconds, waste_time))
-        #sleep(seconds)
-        #output(' client %s start ... \n' % c )
-        progress(seconds) # 读秒等待
+        if args.time != -1 :
+            seconds = TRANS_SECONDS[i]
+            cmd += ['-t', seconds ]  # change -t seconds to -d num_bytes seconds * 75000000
+            output(cmd , "\n")
+            c.sendCmd(cmd + redirect, printPid=False) # background cmd
+            output(' client %s connect with %d seconds, waste %d seconds ..\n' % (c, seconds, waste_time))
+            #sleep(seconds)
+            #output(' client %s start ... \n' % c )
+            progress(seconds) # 读秒等待
+        else:
+            num_mb = TRANS_NUMS[i]
+            cmd += ['-d', "%sM" % (num_mb) ]  # change -t seconds to -d num_bytes seconds * 75000000
+            output(cmd , "\n")
+            c.cmd(cmd + redirect, printPid=False)  # foreground cmd
 
+    # Start command line for debug
+    if args.cli:
+        CLI(net)
 
     # Count down time
     # progress(seconds * n)
@@ -282,16 +328,38 @@ def main():
     cprint("*** Dumping network connections:", "green")
     dumpNetConnections(net)
 
+    cprint("*** Setting default port config", "green")
+    # 设置默认的端口带宽策略
+    port_default_config("s2-eth99", bw=50, tx_queue_len=10)
+
     cprint("*** Testing connectivity", "blue")
 
     net.pingAll()
 
-    if args.cli:
+    # if args.cli:
         # Run CLI instead of experiment
-        CLI(net)
-    else:
+    #    CLI(net)
+    #else:
+
+
+    if True:
         cprint("*** Running experiment", "magenta")
-        run_dasdn_expt(net, n=args.n)
+
+        print 'thread %s is running...' % threading.current_thread().name
+        # Start Bandwith control thread to Simulation SDN Ctl
+        if args.switch_bw:
+            t1 = threading.Thread(target=monitor_thread_switch_bw, name='ThreadBwCtl')
+            t1.start()
+
+        t2 = threading.Thread(target=run_dasdn_expt, args=(net, args.n), name='ThreadRunExpt')
+        t2.start()
+
+        if args.switch_bw: # t1.join需要放在  t2.join  cli 之前
+            t1.join()
+        t2.join()
+
+
+
 
     net.stop()
     end = time()

@@ -10,6 +10,7 @@ ecn 端口cmd修改 tc qdisc 的快捷脚本
 TODO: 这里的 popen().readlines() 由于没有执行 fd.close() 存在内存泄露问题, 不宜大量调用.
 """
 
+import time
 import os
 import sys
 from mininet.log import MininetLogger, debug, info, warn, error
@@ -22,7 +23,7 @@ def os_popen(cmd):
     fd = os.popen(cmd)
     fd.close()
 
-def port_default_config(port, bw=50, tx_queue_len=100, use_filter=False):
+def port_default_config(port, bw=100, tx_queue_len=100, use_filter=False):
     os_popen("tc qdisc del dev %s root" % port)
     os.popen("tc qdisc add dev %s root handle 1: htb default 2" % port)  # 将流量默认到 2 号接口上
     os_popen("tc class add dev %s parent 1: classid 1:fffe htb rate 10000mbit burst 1250b cburst 1250b" % port)
@@ -54,6 +55,20 @@ def class_change(port, rate):
     os_popen("tc class change dev %s parent 1:fffe classid 1:2 htb rate %s" % (port, rate))
     os_popen("tc class change dev %s parent 1:fffe classid 1:3 htb rate %s" % (port, rate))
 
+def class_switch(port, orig_rate, new_rate, seconds):
+    """
+    :param port:
+    :param orig_rate:
+    :param new_rate:
+    :param seconds:
+    :return:
+    # 在一定时间内 time 修改端口速率并恢复
+    使用方法 class_switch("s2-eth99","50mbit" ,"100mbit", 10)
+    """
+
+    class_change(port, new_rate)
+    time.sleep(seconds)
+    class_change(port, orig_rate)
 
 def handle_change(port):
     # handle_change_prio(port, tx_queue_len)
@@ -123,10 +138,7 @@ def class_change_switch_port(rate):
     class_show("s1-eth3")
 
 
-def class_change(port, rate):
-    os_popen("tc class change dev %s parent 1:fffe classid 1:1 htb rate %s" % (port, rate))
-    os_popen("tc class change dev %s parent 1:fffe classid 1:2 htb rate %s" % (port, rate))
-    os_popen("tc class change dev %s parent 1:fffe classid 1:3 htb rate %s" % (port, rate))
+
 
 
 def class_show(port):
