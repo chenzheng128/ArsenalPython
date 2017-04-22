@@ -18,3 +18,5 @@ mininet-tests/cpuiso/cpu/gettimeofday
 
 mininet-tests/udping/results/
 mininet-tests/udping/udping
+
+mininet-tests/pairs/packetcount
