@@ -24,6 +24,8 @@ sudo ./run-debug.sh # 运行2个节点部分实验（时间短），进入 CLI�
 
 线程 monitor_thread_switch_bw() 在 [10, 20] 将调整带宽从 50m 到 100m , 然后恢复
 
+sudo ./run-no-switch-bw.sh # 不切换带宽的测试
+
 # 绘图结果
 ./results/dasdn-Mar16-23\:10/rate.png
 

@@ -27,7 +27,7 @@ bw=100
 #for n in 1 2 3 4 5; do
 for n in 5; do
     dir=$rootdir-n$n
-		# 运行实验
+		# 运行实验 的 主要参数区别
     sudo python dasdn.py --bw $bw \
         --dir $dir \
 				-n $n \

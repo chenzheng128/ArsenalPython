@@ -25,15 +25,16 @@ bw=100
 # client is connected to port 2 on its switch.
 
 #for n in 1 2 3 4 5; do
-for n in 2; do
+for n in 5; do
     dir=$rootdir-n$n
 		# 运行实验 的 主要参数区别
     sudo python dasdn.py --bw $bw \
         --dir $dir \
 				-n $n \
-				--switch_bw \
-				--cli \
 				-t 10
+				# -m 10
+
+				# --switch_bw \
 				#-m 114
 				#-m 114
 
