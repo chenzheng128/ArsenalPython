@@ -61,3 +61,8 @@ ns3/.cproject
 ns3/.project
 ns3/.settings
 ns3/scratch/.python-version
+
+gurobi/*/.ipynb_checkpoints/
+gurobi/*/gurobi.log
+gurobi/python-1-webinar-materials/demo2.mps
+
