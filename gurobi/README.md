@@ -13,15 +13,27 @@ conda list gurobi
 
 Jupyter motebooks # 启动 notebook 环境
 ```
-### 其他资料参考 Evernote: gurobi  Webinar  Python
+### 其他资料 Slides 参考 Evernote: gurobi  Webinar  Python
 
 ### Python I: Introduction to Modeling with Python
 
 This 55 minute video, part one of a three-part series, presents an introduction to using Python, Gurobi and Jupyter Notebooks. It covers the basics of model-building, including working with decision variables, constraints, objective function, sums and for-all loops.
 
+* demo1 读文件解模型
+* demo2 创建简单模型
+* demo3 工厂规划 (车床使用 货物存储 销售等)
+
 ### Python II: Advanced Algebraic Modeling with Python and Gurobi
 
 This one-hour video, part two of a three-part series, covers more advanced topics including data structures and loops, sum and for-all expressions, working with large data sets and building large-scale, high-performance applications using the Gurobi Python interface.
+
+Code Examples - http://www.gurobi.com/resources/examples/example-models-overview •
+
+Functional(code)examples
+ • Modelingexamples
+
+* netflow.ipynb 网络货物流问题 mcf
+* workforce.ipynb 工人排班问题
 
 ### Python III: Optimization and Heuristics
 
