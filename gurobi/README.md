@@ -43,5 +43,5 @@ This one-hour video, part three of a three-part series, covers one capability of
 
 * Optimization_and_Heuristics.ipynb 视频配套 notebook (禁用了 inline 绘图)
 * mining35.py 备份原始 mining.py 代码, 需要在 python35 下运行
-* mining.py 原始代码, 需要修改为 python27 下执行
+* mining.py 修改为 python27 下执行
 * tsp2.py 旅行商问题代码

@@ -49,7 +49,7 @@ def obj_val(x, y, z, Xmax, Ymax, Zmax, La, Lb, Lc):
   varObj *= 0.9 + 0.2 * random.random()
   return varObj
 
-def objpre_process_blocks(model:Model):
+def objpre_process_blocks(model):
   '''
   Eliminate blocks at the bottom of the pit with negative objective
   value.  Once a block is eliminated, we update the precedences (by
@@ -84,7 +84,7 @@ def objpre_process_blocks(model:Model):
     print('Preprocessing removed %d blocks %d vars' % (nBlocks - newlen, model._Tmax * (nBlocks - newlen) ))
   return None
 
-def timepre_process_blocks(model:Model):
+def timepre_process_blocks(model):
   '''
   Compute the minimum `time` required to mine a block; this depend on
   the weight, the precedences, and the knapsack capacity; essentially,
@@ -115,14 +115,14 @@ def timepre_process_blocks(model:Model):
     print('Remove %d time-blocks' % count)
   return None
 
-def greedy_heur(model:Model, Val, display):
+def greedy_heur(model, Val, display):
   '''
   Build a greedy solution by putting in the best possible `available' block
   into the current solution and time
   '''
   # build heap of available blocks
   if display > 0:
-    print('Building solution ... ', end='')
+    print('Building solution ... ')
   sys.stdout.flush()
   objVal = 0
   OutDegree = { x : 0 for x in model._Blocks}
@@ -207,7 +207,7 @@ def greedy_heur(model:Model, Val, display):
     print(pycol.Style.RESET_ALL)
   return None
 
-def rolling_heur(model:Model, display, deltaT=1):
+def rolling_heur(model, display, deltaT=1):
   '''
   Given a model, build a solution using a rolling time heuristic
   deltaT   controls how many integer periods to consider
@@ -237,7 +237,7 @@ def rolling_heur(model:Model, display, deltaT=1):
       else:
         model._Vars[x].setAttr('VType',GRB.BINARY)
     # these constraints collapse periods curt+deltaT..._Tmax-1 into one
-    extra= model.addConstrs((model._Vars[(x[0],x[1],x[2],t)] - 
+    extra= model.addConstrs((model._Vars[(x[0],x[1],x[2],t)] -
                              model._Vars[(x[0],x[1],x[2],t+1)] == 0
                               for x in model._Blocks
                               for t in range(max(curt + deltaT,model._Tlo[x]),
@@ -251,7 +251,7 @@ def rolling_heur(model:Model, display, deltaT=1):
       break;
     # display some info
     if display > 0:
-      print('Rolling Horizon Period %d/%d current value %g bound %g %.2f seconds' % 
+      print('Rolling Horizon Period %d/%d current value %g bound %g %.2f seconds' %
             (curt, model._Tmax-1, model.ObjVal, model.ObjBound,
              time.time() - model._start_time))
       sys.stdout.flush()
@@ -271,7 +271,7 @@ def rolling_heur(model:Model, display, deltaT=1):
   else:
     print(pycol.Fore.RED)
     print(lineseparator)
-    print('Rolling Horizon Heuristic done, value %g, %.2f seconds' % 
+    print('Rolling Horizon Heuristic done, value %g, %.2f seconds' %
           (model.ObjVal, time.time() - model._start_time))
     print(lineseparator)
     print(pycol.Style.RESET_ALL)
@@ -292,7 +292,7 @@ def rolling_heur(model:Model, display, deltaT=1):
   # done
   return None
 
-def improve_heur(model:Model, curX, display, deltaT=1):
+def improve_heur(model, curX, display, deltaT=1):
   '''
   Given a model-vars solution, do a Local Search heuristic forward
   and backward pass by fixing all but deltaT+1 time periods
@@ -372,7 +372,7 @@ def improve_heur(model:Model, curX, display, deltaT=1):
     sys.stdout.flush()
   return None
 
-def FormulateOpenPit(model:Model, UsePreprocess=1, UseGreedy=1, UseImprove=1,
+def FormulateOpenPit(model, UsePreprocess=1, UseGreedy=1, UseImprove=1,
                      UseCallback=1, UseRolling=1, Xmax=20, Ymax=20, Zmax=15, Tmax=15,
                      La=4, Lb=4, Lc=1, DiscountRate=0.15, deltaT=3, display=2):
   '''
@@ -393,14 +393,14 @@ def FormulateOpenPit(model:Model, UsePreprocess=1, UseGreedy=1, UseImprove=1,
                         ( 0,-1, 1),
                         (-1, 0, 1)]
 
-  print('Building grid blocks ... ', end='')
+  print('Building grid blocks ... ')
   model._Blocks = {(x,y,z) for x in range(model._Xmax)
                            for y in range(model._Ymax)
                            for z in range(model._Zmax)}
   print('done (%d added)' % len(model._Blocks))
   model._Obj    = { x : obj_val(x[0], x[1], x[2], model._Xmax, model._Ymax,
                                 model._Zmax, model._La, model._Lb, model._Lc)
-                        for x in model._Blocks} 
+                        for x in model._Blocks}
 
   model._Extract = len(model._Blocks) * 1.0 / (model._Tmax * 2.2)
   model._Mining = model._Extract / 1.2
@@ -421,10 +421,10 @@ def FormulateOpenPit(model:Model, UsePreprocess=1, UseGreedy=1, UseImprove=1,
 
   model._maxObj = -1e100
   model._minObj = 1e100
-  print('Add variables and objective function ... ', end='')
+  print('Add variables and objective function ... ')
   sys.stdout.flush()
   allKeys = {(x[0],x[1],x[2],t) for x in model._Blocks
-                                for t in range(model._Tlo[x],model._Tmax)}
+                                for t in range(int(model._Tlo[x]),int(model._Tmax))}
   model._Vars = model.addVars(allKeys, vtype=GRB.BINARY, name='B')
   model._greedyx = {x : 0 for x in model._Vars}
   for key in model._Vars:
@@ -441,13 +441,13 @@ def FormulateOpenPit(model:Model, UsePreprocess=1, UseGreedy=1, UseImprove=1,
       model._minObj = model._Obj[x]
     if model._Obj[x] > model._maxObj:
       model._maxObj = model._Obj[x]
-  print('done (added %d vars obj range [%g,%g])' % 
+  print('done (added %d vars obj range [%g,%g])' %
         (len(model._Vars), model._minObj, model._maxObj))
   model.update()
-  
+
   # Add Precedences
   count = 0
-  print('Adding precedences ... ', end='')
+  print('Adding precedences ... ')
   sys.stdout.flush()
   for key in model._Vars:
     if key[3] + 1 < model._Tmax:
@@ -463,7 +463,7 @@ def FormulateOpenPit(model:Model, UsePreprocess=1, UseGreedy=1, UseImprove=1,
 
   # add capacity constraint
   linExpr = LinExpr()
-  print('Adding knapsack capacities ... ', end='')
+  print('Adding knapsack capacities ... ')
   sys.stdout.flush()
   count = 0
   for t in range(model._Tmax):
@@ -511,7 +511,7 @@ def FormulateOpenPit(model:Model, UsePreprocess=1, UseGreedy=1, UseImprove=1,
 
   return None
 
-def OpenPitCallback(model:Model, where):
+def OpenPitCallback(model, where):
   if model._UseCallback == 0:
     return None
   if where == GRB.Callback.POLLING:
@@ -527,7 +527,7 @@ def OpenPitCallback(model:Model, where):
   elif where == GRB.Callback.MIPNODE:
     if model.cbGet(GRB.Callback.MIPNODE_STATUS) == GRB.Status.OPTIMAL:
       nodex = model.cbGetNodeRel(model._Vars)
-      greedyval = {x : model._Tmax - 
+      greedyval = {x : model._Tmax -
                        0.1* (model._Obj[x] - model._minObj) /
                             (model._maxObj - model._minObj + 1e-6)
                        for x in model._Blocks}
@@ -542,7 +542,7 @@ def OpenPitCallback(model:Model, where):
     pass
   return None
 
-def print_stats(model:Model):
+def print_stats(model):
   '''
   Print solution bound and value (if feasible solution found) information
   '''
@@ -578,7 +578,7 @@ def print_stats(model:Model):
             if model._Obj[x[0:-1]] > 0:
               results['Plant'][x[3]]  += model._Weight[x[0:-1]]
       print(DataFrame(results).set_index('Time')[['Obj','Obj%','Truck','Plant','Blocks']])
-      print('Capacities: %g %g Blocks: %d Time Periods: %d' % 
+      print('Capacities: %g %g Blocks: %d Time Periods: %d' %
             (model._Extract, model._Mining, len(model._Blocks), model._Tmax))
     else:
       print('Model bound: %.3f, No solution found' % model.ObjBound)
