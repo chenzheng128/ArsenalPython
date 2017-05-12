@@ -1,10 +1,4 @@
-
-
-## Videos on Modeling with Gurobi and Python
-
-三个 python webinar 的代码资料
-
-### Env 运行环境
+## Env 运行环境
 ```
 pyenv version
 # anaconda2-4.3.1
@@ -13,6 +7,18 @@ conda list gurobi
 
 Jupyter motebooks # 启动 notebook 环境
 ```
+
+## folders
+* `examples-python` 官方 Python API 代码
+* `python-1-webinar-materials` Webinar Python I
+* `python-2-webinar-materials` Webinar Python II
+* `python-3-webinar-materials` Webinar Python II
+
+## Videos on Modeling with Gurobi and Python
+
+三个 python webinar 的代码资料
+
+
 ### 其他资料 Slides 参考 Evernote: gurobi  Webinar  Python
 
 ### Python I: Introduction to Modeling with Python
@@ -43,5 +49,5 @@ This one-hour video, part three of a three-part series, covers one capability of
 
 * Optimization_and_Heuristics.ipynb 视频配套 notebook (禁用了 inline 绘图)
 * mining35.py 备份原始 mining.py 代码, 需要在 python35 下运行
-* mining.py 修改为 python27 下执行
+* mining.py 修改 mining.py 为 python27 下执行
 * tsp2.py 旅行商问题代码
