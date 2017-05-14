@@ -8,7 +8,7 @@ conda list gurobi
 Jupyter motebooks # 启动 notebook 环境
 ```
 
-## folders
+## File & folders
 * `examples-python` 官方 Python API 代码
 * `python-1-webinar-materials` Webinar Python I
 * `python-2-webinar-materials` Webinar Python II
