@@ -17,6 +17,7 @@ Jupyter notebooks # 启动 notebook 环境
   * `multiobj.ipynb` 多目标优化 （TODO: 搞清楚具体优化目标。)
   * `food-manufacture-[i|ii].ipynb` 生产熬油(版本i|ii)
   * `factory-planning-[i|ii].ipynb` 工厂生产(版本i|ii)
+  * `manpower-planning.ipynb` 工厂人员Staffing问题
 * python
   * `python $xxx$.py` 执行对应的 python 代码, 可获取标准结果
 
