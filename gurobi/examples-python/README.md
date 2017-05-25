@@ -18,6 +18,7 @@ Jupyter notebooks # 启动 notebook 环境
   * `food-manufacture-[i|ii].ipynb` 生产熬油(版本i|ii)
   * `factory-planning-[i|ii].ipynb` 工厂生产(版本i|ii)
   * `manpower-planning.ipynb` 工厂人员Staffing问题
+  * `mining.ipynb` production 生产问题。 使用多周期生产规划5年挖矿计划。公司拥有不同的矿产，生产的数量不同。目标是创建最优化的生产计划，以最大化收益。
 * python
   * `python $xxx$.py` 执行对应的 python 代码, 可获取标准结果
 
