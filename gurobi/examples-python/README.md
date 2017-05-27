@@ -16,16 +16,22 @@ Source: http://www.gurobi.com/resources/examples/example-models-overview
 * notebook
   * `diet.ipynb` 每日食物营养摄入均衡
   * `multiobj.ipynb` 多目标优化 （TODO: 搞清楚具体优化目标。)
-*
   * `food-manufacture-[i|ii].ipynb` 生产熬油(版本i|ii)
   * `factory-planning-[i|ii].ipynb` 工厂生产(版本i|ii)
   * `manpower-planning.ipynb` 工厂人员Staffing问题
   * `mining.ipynb` production 生产问题。 使用多周期生产规划5年挖矿计划。公司拥有不同的矿产，生产的数量不同。目标是创建最优化的生产计划，以最大化收益。
   * `refinery.ipynb` 解决生产规划问题。 公司采购两种原油(crude oil)，可以生产汽油(gasoline)，航空汽油(jet fuel)，或普通油. 目标是创建生产计划以最大化收益。
-  * `InteractiveModelExamples.ipynb` 记录交互式代码例子
+* InteractiveModelExamples
+  * `InteractiveModelExamples.ipynb` 记录交互式代码整体文档
+  * `interactive-open-pit-mining.py.ipynb` 通用 project selection 项目选择问题，项目之间存在依赖关系。 对挖矿问题进行求解，不同采矿点存在依赖关系。
+  * `interactive-offshore-wind-farming.ipynb` 通用 fixed charge network flow 网络流问题，通信网络或运输网络的规划；解决水下电缆的安置问题；从风车收集电力
+  * `interactive-traveling-salesman-problem.ipynb` 经典的TSP组合优化问题
+  * `interactive-cell-tower-coverage.ipynb` 用的 covering problem 覆盖问题; 在预算受限的情况下规划蜂窝电话塔的位置以完成最大人群覆盖。
+  * `interactive-facility-location.ipynb` 通用 facility location problem 生产问题，包括供应链，物流，运输问题等。 交互式例子为英国通过库房供应超级市场的选址问题。
+  *
 * python
   * `python $xxx$.py` 执行对应的 python 代码, 可获取标准结果
-
+* Mathjax分段函数例子： http://blog.csdn.net/u012302219/article/details/51452649
 
 ## 模型描述
 
