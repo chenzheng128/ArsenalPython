@@ -22,11 +22,12 @@ We don't need [a lot of libraries](https://github.com/vinta/awesome-python). We 
 * [pytesseract](https://github.com/madmaze/pytesseract) - A wrapper for Google Tesseract OCR.
 
 #### Chinese Word Segmentation
-* [jieba](https://github.com/fxsjy/jieba) - Chinese Words Segmentation Utilities.
-  + `jieba.ipynb` 首页文档代码
+* [jieba](https://github.com/fxsjy/jieba) - 中文分词 Chinese Words Segmentation Utilities.
+  + `jieba.ipynb` 首页文档代码; 安装 `pip install jieba`
 
 #### Concurrency and Networking
-* [gevent](http://www.gevent.org/) - A coroutine-based Python networking library that uses [greenlet](https://github.com/python-greenlet/greenlet).
+* [gevent](http://www.gevent.org/) - 基于协程 (用户态的多线程) 的网络库 A coroutine-based Python networking library that uses [greenlet](https://github.com/python-greenlet/greenlet).
+  + `gevent.ipynb` 官方文档代码; 安装 `pip install gevent greenlet`
 
 #### HTTP Request
 * [requests](https://github.com/kennethreitz/requests) - Python HTTP requests for humans.
