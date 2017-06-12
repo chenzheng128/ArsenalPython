@@ -31,6 +31,7 @@ We don't need [a lot of libraries](https://github.com/vinta/awesome-python). We 
 
 #### HTTP Request
 * [requests](https://github.com/kennethreitz/requests) - Python HTTP requests for humans.
+  + `requests.ipynb` requests 库使用
 
 #### Web Crawling
 * [Scrapy](http://scrapy.org/) - A fast high-level screen scraping and web crawling framework.
