@@ -38,7 +38,8 @@ We don't need [a lot of libraries](https://github.com/vinta/awesome-python). We 
 
 #### Web Content Extracting
 * [newspaper](https://github.com/codelucas/newspaper) - News extraction, article extraction and content curation in Python.
-
+  + python2 上安装成功. 但是运行失败, 找不到 `stopwords-nlp-en.txt` 文件. 应该要升级到 python3 才能使用.
+  + requirements.txt: 由于使用到了许多包, 建议安装在 virtualenv下 (检查 https://github.com/codelucas/newspaper/blob/master/requirements.txt 会修改一些默认的包版本)
 #### Scientific Computing
 * [scipy](https://github.com/scipy/scipy) - An open-source software for mathematics, science, and engineering. statistics, optimization, integration, linear algebra, Fourier transforms, signal and image processing, ODE solvers, and more.
 
