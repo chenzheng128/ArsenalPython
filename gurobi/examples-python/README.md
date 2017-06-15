@@ -28,6 +28,7 @@ Source: http://www.gurobi.com/resources/examples/example-models-overview
   * `interactive-traveling-salesman-problem.ipynb` 经典的TSP组合优化问题
   * `interactive-cell-tower-coverage.ipynb` 用的 covering problem 覆盖问题; 在预算受限的情况下规划蜂窝电话塔的位置以完成最大人群覆盖。
   * `interactive-facility-location.ipynb` 通用 facility location problem 生产问题，包括供应链，物流，运输问题等。 交互式例子为英国通过库房供应超级市场的选址问题。
+  * `interactive-production-scheduling.ipynb` 简单的生产规划问题，采用 piecewise-linear 目标函数。TODO: piecewise-linear 函数的作用。
   * `interactive-kidney-exchange.ipynb` 器官移植问题, 在捐助者和病人之间进行配型.
 * python
   * `python $xxx$.py` 执行对应的 python 代码, 可获取标准结果
