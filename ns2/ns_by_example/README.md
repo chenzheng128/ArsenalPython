@@ -30,10 +30,12 @@ Source: http://nile.wpi.edu/NS/
   * Trace Analysis Utilities
       + `column.sh` `stats.pl` `jitter.sh`
 
-- Extending NS : 
+- Extending NS :
   * OTcl Linkage:
     +  扩展代码 Makefile 在 OBJ_CC 最后一行追加 `ex-linkage.o \ $(OBJ_STL)` , 复制代码 `cp ../ex-linkage.cc /opt/coding/ns-allinone-2.35/ns-2.35/`, `make` 进行编译
     + 执行脚本 `ns ../ex-linkage.tcl`
+  * Add New Application and Agent
+    + `cp ../udp-mm.cc ../udp-mm.h ../mm-app.cc ../mm-app.h /opt/coding/ns-allinone-2.35/ns-2.35/`
 - More Examples : 版本不兼容, 运行不起来
 
 几个可参考的拓扑图
