@@ -26,11 +26,14 @@ Source: http://nile.wpi.edu/NS/
     + post01: `ns ../post01_ns-simple-trace.tcl` 写入 trace 文件 `out.tr` [文件格式说明](http://nile.wpi.edu/NS/analysis.html)
       + `../post01_trace2jitter.sh jitter10.txt` 通过 `out.tr` 生成抖动数据文件
       + `../../../ns3/scratch/my_plot_helper.py jitter10.txt` 将抖动数据文件可视化绘制 plot
-    + post02: `ns ../post02_red.tcl` 对 RED 队列进行监控, 并使用 xgraph 直接绘制结果. 在数据文件`temp.queue`中存储了两个数据 queue/ave_queue 并进行绘图. 
+    + post02: `ns ../post02_red.tcl` 对 RED 队列进行监控, 并使用 xgraph 直接绘制结果. 在数据文件`temp.queue`中存储了两个数据 queue/ave_queue 并进行绘图.
   * Trace Analysis Utilities
       + `column.sh` `stats.pl` `jitter.sh`
 
-- Extending NS : 没说清楚扩展代码 Makefile 修改哪里
+- Extending NS : 
+  * OTcl Linkage:
+    +  扩展代码 Makefile 在 OBJ_CC 最后一行追加 `ex-linkage.o \ $(OBJ_STL)` , 复制代码 `cp ../ex-linkage.cc /opt/coding/ns-allinone-2.35/ns-2.35/`, `make` 进行编译
+    + 执行脚本 `ns ../ex-linkage.tcl`
 - More Examples : 版本不兼容, 运行不起来
 
 几个可参考的拓扑图
