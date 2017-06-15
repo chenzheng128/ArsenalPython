@@ -1,5 +1,22 @@
 #!/usr/bin/env python
 #coding: utf-8
+
+#Usage
+# 将文本文件绘制成图形
+# ../../../ns3/scratch/my_plot_helper.py jitter.txt
+# jitter.txt 的格式如下
+# 时间 数值
+"""
+0	0.138706
+1	0.008000
+2	0.008000
+3	0.008000
+4	0.008000
+5	0.008000
+6	0.008000
+"""
+
+# INSTALL
 # Ubuntu
 #  sudo apt-get install python-matplotlib  # 安装 matplotlib
 # OSX

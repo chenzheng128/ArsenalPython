@@ -20,12 +20,13 @@ Source: http://nile.wpi.edu/NS/
     + basic02: `ns ../basic02_ex-otcl.tcl` 简单的类 (Mom & Kid)
   * Simple Simulation Example
     + basic03: `ns ../basic03_ns-simple.tcl` 简单 simulation 拓扑(4个节点)例子, 生成 `out.nam`
-       * 需要安装 `nam` 并激活 xwindows (MacOSX: SqureZ) 
+       * 需要安装 `nam` 并激活 xwindows (MacOSX: SqureZ)
 - Post Simulation 结果分析
   * Trace Analysis Example
     + post01: `ns ../post01_ns-simple-trace.tcl` 写入 trace 文件 `out.tr` [文件格式说明](http://nile.wpi.edu/NS/analysis.html)
-    + `../post01_trace2jitter.sh` 通过 `out.tr` 生成 `jitter.txt`
-    + post02: `ns ../post02_red.tcl`
+      + `../post01_trace2jitter.sh jitter10.txt` 通过 `out.tr` 生成抖动数据文件
+      + `../../../ns3/scratch/my_plot_helper.py jitter10.txt` 将抖动数据文件可视化绘制 plot
+    + post02: `ns ../post02_red.tcl` 对 RED 队列进行监控, 并使用 xgraph 直接绘制结果. 在数据文件`temp.queue`中存储了两个数据 queue/ave_queue 并进行绘图. 
   * Trace Analysis Utilities
       + `column.sh` `stats.pl` `jitter.sh`
 
