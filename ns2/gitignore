@@ -1,25 +1,26 @@
 ### gen build files
 
-depcomp
-Makefile
-autoconf.h
+.depcomp
+# depcomp
+# Makefile
+# autoconf.h
 config.status
 config.log
 gen/
 .deps
 
 
-### build folders 
+### build folders
 
 sgb/
 dei80211mr-1.1.4/
 share/
 bin/
-lib/
-include/
+# lib/
+# include/
 autom4te.cache/
 
-### tmp files 
+### tmp files
 
 *.o
 *.a
@@ -33,7 +34,7 @@ autom4te.cache/
 # *.status
 
 
-### binary and gen files 
+### binary and gen files
 
 nam-1.15/nam
 
@@ -87,13 +88,13 @@ tclcl-1.20/config.h
 tclcl-1.20/config.status
 tclcl-1.20/config.h
 
-### ignore build files  
+### ignore build files
 
 out.nam
 out.tr
 *.tr
 
-### ignore xgraph build files 
+### ignore xgraph build files
 xgraph-12.2/xgraph
 xgraph-12.2/config.status
 xgraph-12.2/configure
@@ -118,7 +119,3 @@ ns-2.35/tcl/test/t
 ns-2.35/tcl/test/t1
 ns-2.35/tcl/test/t2
 ns-2.35/tcl/test/srr_out.txt
-
-
-
-

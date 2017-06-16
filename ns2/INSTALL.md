@@ -43,16 +43,19 @@ git branch -n master-20170715
 # 删除所有代码
 rm -rf ../ns-allinone-2.35-github/*
 # 复制所有原始代码
-cp -r ../ns-allinone-2.35-orig/*
+cp -r ../ns-allinone-2.35-orig/* .
 cp $DST_DIR/gitignore .gitignore
+
 # 重新提交
 git commit -m "init with .gitignore"
 
 ### P.2  修复 ubutu 14.04 补丁，并编译安装
 cp $DST_DIR/ls.h ns-2.35/linkstate/ls.h
-
 # 修复decomp链接
 ln -sf /usr/share/automake-1.14/depcomp xgraph-12.2/depcomp
+
+git commit -am "ubuntu14.04 patched"
+
 
 # 删除旧的ns程序
 sudo rm -rf /usr/local/bin/ns
@@ -64,6 +67,9 @@ sudo ./install
 which ns; which nam;
 # 测试
 cd ns-2.35; ./validate
+
+# 提交 ubuntu 14.04 下编译出的一些文件
+git commit -am "ubuntu14.04 builded"
 ```
 
 #### 设定PATH等环境变量
