@@ -4,8 +4,9 @@ http://www-sop.inria.fr/planete/software/ns-doc/ns-current/HIER.html
 
 
 # NS by Example 代码
-### !!!这个教程不推荐, 因为ns版本过低, 代码位置不够准确!!!
-### 结果, 这个文档就是不错的了, 其他文档更老旧, 真是古董一样的 ns2 啊~
+
+本来以为这个教程不推荐, 因为ns版本过低, 代码位置不够准确
+结果, 这个文档就是不错的了, 其他文档更老旧, 真是古董一样的 ns2 啊~
 
 (在某个不起眼的地方注明了在 (Tested with ns-2.1b8a, ns-2.1b9a and ns-2.26 测试通过 )
 
@@ -31,11 +32,21 @@ Source: http://nile.wpi.edu/NS/
       + `column.sh` `stats.pl` `jitter.sh`
 
 - Extending NS :
+  - 下面扩展代码的通用步骤包括:
+    * `cd ns-2.35;`, 在 `Makefile` 的 `OBJ_CC` 的最后一行追加 `youcode.o \ $(OBJ_STL)`, 对应复制过去 `yourcode.cc`
+    * 执行 `make` 编译. 需要时执行 `make clean;`
+    * 执行 `ns your-ex.tcl` 测试
   * OTcl Linkage:
-    +  扩展代码 Makefile 在 OBJ_CC 最后一行追加 `ex-linkage.o \ $(OBJ_STL)` , 复制代码 `cp ../ex-linkage.cc /opt/coding/ns-allinone-2.35/ns-2.35/`, `make` 进行编译
+    + 扩展代码 Makefile 在 OBJ_CC 最后一行追加 `ex-linkage.o \ $(OBJ_STL)` ,
+    + 复制代码 `cp ../ex-linkage.cc /opt/coding/ns-allinone-2.35/ns-2.35/`, `make` 进行编译
     + 执行脚本 `ns ../ex-linkage.tcl`
   * Add New Application and Agent
     + `cp ../udp-mm.cc ../udp-mm.h ../mm-app.cc ../mm-app.h /opt/coding/ns-allinone-2.35/ns-2.35/`
+    + 按教程需要修改 5 处代码, 参 [文档](http://nile.wpi.edu/NS/new_app_agent.html) [github代码](https://github.com/chenzheng128/ns-allinone-2.35/commit/5015896cdcd3bee620da6ee3a01a376f4b4ed244)
+    + `ns ../ex-mm-app.tcl` 执行测试
+  * Add New Queue
+    + `output $ cp ../dtrr-queue.cc ../dtrr-queue.h  /opt/coding/ns-allinone-2.35/ns-2.35/`
+    +  
 - More Examples : 版本不兼容, 运行不起来
 
 几个可参考的拓扑图
