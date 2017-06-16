@@ -49,6 +49,9 @@ Source: http://nile.wpi.edu/NS/
     +  参 [github代码](https://github.com/chenzheng128/ns-allinone-2.35/commit/971539d36cfd5701d8cdd6a2862c663a11f90188)
     +  `ns ../ex-dtrr-queue.tcl` 执行测试
 - More Examples : 
+  + LAN: 运行失败, 错误 invalid command name "Mac/Csma/Ca". mac-csma.cc 未编译. 但加上 `mac/mac-csma.o` 还是有很多编译错误
+  + Multicasting : 修改兼容 2.35 `ex-mcast.tcl`
+  + Web Server: 修改兼容 2.35 `ex-web.tcl`
 
 几个可参考的拓扑图
 

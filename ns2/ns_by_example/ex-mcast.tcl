@@ -33,12 +33,12 @@ set cbr0 [new Application/Traffic/CBR]
 set udp0 [new Agent/UDP]
 $cbr0 attach-agent $udp0
 $ns attach-agent $n1 $udp0
-$udp0 set dst_ 0x8001
+$udp0 set dst_port_ 0x8001
 
 set cbr1 [new Application/Traffic/CBR]
 set udp1 [new Agent/UDP]
 $cbr1 attach-agent $udp1
-$udp1 set dst_ 0x8002
+$udp1 set dst_port_ 0x8002
 $udp1 set class_ 1
 $ns attach-agent $n3 $udp1
 

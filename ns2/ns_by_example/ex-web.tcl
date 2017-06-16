@@ -1,12 +1,13 @@
 # Polly Huang 8-7-98
 
 # Initial setup
-source ~/ns-allinone-2.1b4a/ns-2/tcl/http/http-mod.tcl
-source dumbbell.tcl
+#source ~/ns-allinone-2.1b4a/ns-2/tcl/http/http-mod.tcl
+source /opt/coding/ns-allinone-2.35/ns-2.35/tcl/http/http-mod.tcl
+source ../dumbbell.tcl
 global num_node n
 
 set ns [new Simulator]
-$ns set-address 7 24     ;# set-address <bits for node address> <bits for port>
+# $ns set-address 7 24     ;# set-address <bits for node address> <bits for port>
 
 # set up colors for nam 
 for {set i 1} {$i <= 30} {incr i} {
