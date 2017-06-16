@@ -46,8 +46,9 @@ Source: http://nile.wpi.edu/NS/
     + `ns ../ex-mm-app.tcl` 执行测试
   * Add New Queue
     + `output $ cp ../dtrr-queue.cc ../dtrr-queue.h  /opt/coding/ns-allinone-2.35/ns-2.35/`
-    +  
-- More Examples : 版本不兼容, 运行不起来
+    +  参 [github代码](https://github.com/chenzheng128/ns-allinone-2.35/commit/971539d36cfd5701d8cdd6a2862c663a11f90188)
+    +  `ns ../ex-dtrr-queue.tcl` 执行测试
+- More Examples : 
 
 几个可参考的拓扑图
 
