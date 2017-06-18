@@ -8,6 +8,9 @@ Source: http://nile.wpi.edu/NS/
 ## tutorial
 * Tutorial: https://www.isi.edu/nsnam/ns/tutorial/
 
+## the-ns-manual
+* the-ns-manual: https://www.isi.edu/nsnam/ns/tutorial/
+
 ## NS2 参考教程资料
 * ns by examples: http://nile.wpi.edu/NS/
 * Tutorial: https://www.isi.edu/nsnam/ns/tutorial/
