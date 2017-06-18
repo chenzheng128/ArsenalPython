@@ -53,7 +53,7 @@ sdn/iproute2
 
 .DS_Store
 
-ns2/ns_by_example/output/
+ns2/*/output/
 
 # ns3 output end eclipse project files
 ns3/practical_csocket2/output/
@@ -67,3 +67,5 @@ gurobi/*/gurobi.log
 gurobi/python-1-webinar-materials/demo2.mps
 gurobi/python-2-webinar-materials/netflow.lp
 gurobi/python-2-webinar-materials/netflow.mps
+
+
