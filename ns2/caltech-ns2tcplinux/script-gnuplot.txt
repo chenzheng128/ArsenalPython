@@ -1,0 +1,7 @@
+set term png
+set out "cwnd.png"
+set xrange [0:500]
+set yrange [0:2500]
+plot "result0" u 1:2 w li
+
+

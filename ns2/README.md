@@ -5,11 +5,17 @@ Source: http://nile.wpi.edu/NS/
 
 运行代码: `cd out; ns ../xxx.tcl` 
 
+不错的入门材料
+
 ## tutorial
 * Tutorial: https://www.isi.edu/nsnam/ns/tutorial/
 
+
 ## the-ns-manual
 * the-ns-manual: https://www.isi.edu/nsnam/ns/tutorial/
+
+## caltech-ns2tcplinux
+A Linux TCP implementation for NS2: http://netlab.caltech.edu/projects/ns2tcplinux/ns2linux/index.html
 
 ## NS2 参考教程资料
 * ns by examples: http://nile.wpi.edu/NS/
