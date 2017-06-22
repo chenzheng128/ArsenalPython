@@ -1,0 +1,6 @@
+ls *.tar.gz > dir
+sed "s/^/tar xzf /" dir > dir2
+sh ./dir2
+mkdir data
+sed "s/\.tar\.gz//" dir | sed "s/^/mv /" | sed "s/$/\/data\/* data/" > dir3
+sh ./dir3

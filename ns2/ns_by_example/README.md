@@ -21,7 +21,9 @@ Source: http://nile.wpi.edu/NS/
   * Trace Analysis Example
     + post01: `ns ../post01_ns-simple-trace.tcl` 写入 trace 文件 `out.tr` [文件格式说明](http://nile.wpi.edu/NS/analysis.html)
       + `../post01_trace2jitter.sh jitter10.txt` 通过 `out.tr` 生成抖动数据文件
-      + `../../../ns3/scratch/my_plot_helper.py jitter10.txt` 将抖动数据文件可视化绘制 plot
+      + 将抖动数据文件可视化绘制 plot
+        * Mac 下用: `../../../ns3/scratch/my_plot_helper.py jitter10.txt` 
+        * Linux下难看但是简单一点: `xgraph jitter10.txt` 
     + post02: `ns ../post02_red.tcl` 对 RED 队列进行监控, 并使用 xgraph 直接绘制结果. 在数据文件`temp.queue`中存储了两个数据 queue/ave_queue 并进行绘图.
   * Trace Analysis Utilities
       + `column.sh` `stats.pl` `jitter.sh`

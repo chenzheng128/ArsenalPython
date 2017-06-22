@@ -9,7 +9,7 @@ $ns color 2 Red
 set nf [open out.nam w]
 $ns namtrace-all $nf
 
-# 不同于 ns-simple.tcl 的地方, 这里打开了 trace 文件
+# 不同于 basic03_ns-simple.tcl 的地方, 这里打开了 trace 文件
 #Open the Trace file
 set tf [open out.tr w]
 $ns trace-all $tf
@@ -22,6 +22,8 @@ proc finish {} {
         close $nf
         #Close the Trace file
         close $tf
+
+        # 注释这里可以禁止 nam 运行， 便于在 shell 中批量执行程序
         #Execute NAM on the trace file
         exec nam out.nam &
         exit 0

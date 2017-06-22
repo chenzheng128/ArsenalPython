@@ -1,21 +1,32 @@
 # ns2 codes
 
+没有特殊说明的话，使用的 ns 版本为 https://github.com/chenzheng128/ns-allinone-2.35/releases/tag/v20170617 的代码, 安装说明参考 `INSTALL.md`
+
+ns 代码目录放在 `/opt/coding/ns-allinone-2.35` 中. 一般在output目录中运行上级目录的 tcl 代码: `cd output;` , 便于收集 trace 文件
+* `make` 编译后运行: `/opt/coding/ns-allinone-2.35/ns-2.35/ns ../xxx.tcl`
+* `make install` 安装后运行：`ns ../xxx.tcl`
+
 ## ns-by-examples
 Source: http://nile.wpi.edu/NS/
-
-运行代码: `cd out; ns ../xxx.tcl` 
 
 不错的入门材料
 
 ## tutorial
 * Tutorial: https://www.isi.edu/nsnam/ns/tutorial/
 
-
 ## the-ns-manual
 * the-ns-manual: https://www.isi.edu/nsnam/ns/tutorial/
 
 ## caltech-ns2tcplinux
 A Linux TCP implementation for NS2: http://netlab.caltech.edu/projects/ns2tcplinux/ns2linux/index.html
+
+## tcpsuit
+TCP Evaluation Suite
+Evaluating New Congestion Control Schemes and Its Impact on Standard TCP NewReno
+
+ucla 的 这个 patch 和 ns2tcplinux 很想, 不知道有何关系
+
+Source: http://netlab.cs.ucla.edu/tcpsuite/
 
 ## NS2 参考教程资料
 * ns by examples: http://nile.wpi.edu/NS/

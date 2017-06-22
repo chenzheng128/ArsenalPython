@@ -1,0 +1,17 @@
+set terminal png 
+set output 'links.png'
+set yrange [0:900]
+set xrange [0:7]
+
+set data style boxes
+set border 6
+set boxwidth 0.4
+set xtics ("HS+RENO" 2.2, "HS+HS" 5.4)
+set ylabel "Average Throughput All Core Links"
+set grid
+plot 'links.dat' using ($1-0.8):($2) fs solid 1 title "RenoReno",\
+'links.dat' using ($1-0.4):($3) fs solid 2 title "Compound",\
+'links.dat' using ($1):($4) fs solid 3 title "Cubic",\
+'links.dat' using ($1+0.4):($5) fs solid 4 title "Htcp",\
+'links.dat' using ($1+0.8):($6) fs solid 5 title "WWar",\
+'links.dat' using ($1+1.2):($7) fs solid 6 title "Areno"

@@ -1,0 +1,25 @@
+set terminal png
+set output 'ef.png'
+set ylabel 'Utilization Ratio (G)'
+set xlabel 'Throughput Ratio (L)'
+set size 0.7,0.7
+set x2tics (1 1)
+set grid noxtics x2tics
+set y2tics (1 1)
+set grid noxtics y2tics
+set label "0%" at 0.419305,4.27687
+set label "20%" at 0.433159,3.19578
+set label "40%" at 0.403297,3.6956
+set label "0%" at 0.455434,3.63429
+set label "20%" at 0.47803,2.83867
+set label "40%" at 0.407418,3.23533
+set label "0%" at 0.56926,4.18073
+set label "20%" at 0.547781,3.18765
+set label "40%" at 0.469445,3.5299
+set label "0%" at 0.330178,4.00007
+set label "20%" at 0.320573,3.07371
+set label "40%" at 0.256687,3.59637
+set label "0%" at 0.963606,4.10098
+set label "20%" at 0.945891,2.82697
+set label "40%" at 0.80745,2.69054
+plot 'compoundreno.dat' u 4:2 title 'compound' with linespoints 2,'cubicreno.dat' u 4:2 title 'cubic' with linespoints 3,'htcpreno.dat' u 4:2 title 'htcp' with linespoints 4,'wwarreno.dat' u 4:2 title 'wwar' with linespoints 5,'arenoreno.dat' u 4:2 title 'areno' with linespoints 6

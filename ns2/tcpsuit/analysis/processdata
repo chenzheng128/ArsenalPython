@@ -1,0 +1,17 @@
+mkdir data2
+mkdir data3
+maxlink=6
+maxflow=140
+maxlflow=40
+echo "processthr.tcl"
+$NSDIR/ns processthr.tcl $maxlink $maxflow $maxlflow > processthr.txt
+echo "hsflow.tcl"
+$NSDIR/ns hsflows.tcl $maxlink $maxflow $maxlflow > hsflows.txt
+echo "link.tcl"
+$NSDIR/ns link.tcl > links.txt
+echo "comp-sep.tcl"
+$NSDIR/ns comp-sep.tcl $maxlink $maxflow $maxlflow > comp-sep.txt
+echo "comp-mix.tcl"
+$NSDIR/ns comp-mix.tcl $maxlink $maxflow $maxlflow > comp-mix.txt
+echo "ef.sh"
+sh ./ef.sh

@@ -1,0 +1,19 @@
+TCP Evaluation Suite
+Authors: Hideyuki Shimonishi (NEC-Japan)
+         Cesar Marcondes (UCLA)
+         M.Y. Sanadidi (UCLA)
+         Mario Gerla (UCLA)
+         Padmanabhan Vasu (UCLA)
+
+Please, follow instruction described in website.
+http://netlab.cs.ucla.edu/tcpsuite/
+
+Enjoy and please contribute,
+Cesar Marcondes, UCLA
+
+DISCLAIMER:
+
+The original codes were developed by HIDEyuki Shimonishi, 
+NEC Corp, and were donated by the company to the community. 
+The codes are now being developed and maintained by both
+UCLA and NEC.

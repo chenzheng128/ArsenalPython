@@ -15,6 +15,8 @@ proc finish {} {
         $ns flush-trace
         close $nf                   
         close $tf
+
+        # 注释这里以禁止 nam 运行， 便于在 shell 中批量执行程序
         exec nam out.nam &               
 	exec grep  "a" red-queue.tr > ave.tr
 	exec grep  "Q" red-queue.tr > cur.tr
