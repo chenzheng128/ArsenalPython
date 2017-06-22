@@ -1,4 +1,4 @@
-NSDIR="/home/cesar/ns-allinone-2.31/ns-2.31"
+#NSDIR="/home/cesar/ns-allinone-2.31/ns-2.31"
 SAMPLES="1 2 3 4 5 6 7 8 9 10"
 version="1 2 3 4 5 6 7"
 prot1="reno"

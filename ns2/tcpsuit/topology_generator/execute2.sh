@@ -1,4 +1,3 @@
-NSDIR="/home/cesar/ns-allinone-2.31/ns-2.31"
 TOPO="random"
 NW_SIZE="3"
 CAPACITY="1000"
