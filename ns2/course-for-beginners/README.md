@@ -1,14 +1,22 @@
 # NS Simulator Course for Beginners  
 
-原始代码为 2002 年，考虑按 ns-2.35 修改
+
+## Lecture
 
  Lecture Notes, Sept 2002
                          Univ. de Los Andes,
                            Merida, Venezuela
                    Eitan Altman, Tania Jimenez
 
-  NS InterSIM
+Notes: https://www-sop.inria.fr/members/Eitan.Altman/COURS-NS/n3.pdf
 
+### Chaper 1 Introduction
+
+## Toolbox
+
+代码放置于 `toobox` 文件夹中
+
+  NS InterSIM
                       Toolbox for performance evaluation of
                                  INTERNET PROTOCOLS:
 
