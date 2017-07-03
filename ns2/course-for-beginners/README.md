@@ -11,6 +11,7 @@
 Notes: https://www-sop.inria.fr/members/Eitan.Altman/COURS-NS/n3.pdf
 
 ### Chaper 1 Introduction
+* `ch01-basic-tcl.tcl` tcl 语法, 运算, 循环, 函数的基本使用
 
 ## Toolbox
 
