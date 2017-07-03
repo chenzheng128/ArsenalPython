@@ -1,6 +1,6 @@
 set ns [new Simulator]
 
-set tf [open out.tr w] 
+set tf [open out.tr w]
 $ns trace-all $tf
 
 set lambda   30.0
@@ -29,13 +29,13 @@ $link queue-sample-timeout
 
 proc finish {} {
     global ns tf
-    $ns flush-trace 
-    close $tf 
-    exit 0 
-} 
+    $ns flush-trace
+    close $tf
+    exit 0
+}
 
 proc sendpacket {} {
-    global ns src InterArrivalTime pktSize 
+    global ns src InterArrivalTime pktSize
     set time [$ns now]
     $ns at [expr $time + [$InterArrivalTime value]] "sendpacket"
     set bytes [expr round ([$pktSize value])]
@@ -49,4 +49,3 @@ $ns at 0.0001 "sendpacket"
 $ns at $duration "finish"
 
 $ns run
-

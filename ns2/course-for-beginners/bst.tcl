@@ -12,18 +12,18 @@ $ns color 30 purple
 $ns color 31 green
 
 # allocate a multicast address;
-set group [Node allocaddr]                   
+set group [Node allocaddr]
 
 # nod is the number of nodes
-set nod 6                          
+set nod 6
 
 # create multicast capable nodes;
 for {set i 1} {$i <= $nod} {incr i} {
-   set n($i) [$ns node]                      
+   set n($i) [$ns node]
 }
 
 #Create links between the nodes
-$ns duplex-link $n(1) $n(2) 0.3Mb 10ms DropTail 
+$ns duplex-link $n(1) $n(2) 0.3Mb 10ms DropTail
 $ns duplex-link $n(2) $n(3) 0.3Mb 10ms DropTail
 $ns duplex-link $n(2) $n(4) 0.5Mb 10ms DropTail
 $ns duplex-link $n(2) $n(5) 0.3Mb 10ms DropTail
@@ -34,10 +34,10 @@ $ns duplex-link $n(5) $n(6) 0.5Mb 10ms DropTail
 
 # configure multicast protocol;
 BST set RP_($group) $n(2)
-$ns mrtproto BST 
+$ns mrtproto BST
 
-set udp1 [new Agent/UDP]                     
-set udp2 [new Agent/UDP]                    
+set udp1 [new Agent/UDP]
+set udp2 [new Agent/UDP]
 
 $ns attach-agent $n(1) $udp1
 $ns attach-agent $n(2) $udp2
@@ -56,7 +56,7 @@ $udp2 set dst_port_ 1
 $src2 set random_ false
 
 # create receiver agents
-set rcvr [new Agent/LossMonitor]      
+set rcvr [new Agent/LossMonitor]
 
 # joining and leaving the group;
 $ns at 0.6 "$n(3) join-group $rcvr $group"
@@ -79,4 +79,3 @@ proc finish {} {
 }
 
 $ns run
-

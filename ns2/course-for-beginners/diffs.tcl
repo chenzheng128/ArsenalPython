@@ -1,6 +1,6 @@
 set ns [new Simulator] 
 
-# There are several sources each generating many TCP sessions sharing a bottleneck 
+# There are several sources each generating many TCP sessions sharing a bottleneck
 # link and a single destination. Their number is given by the paramter NodeNb
 
 #     S(1) ----- E(1) ----
@@ -15,7 +15,7 @@ set cir0       30000; # policing parameter
 set cir1       30000; # policing parameter
 set pktSize    1000
 set NodeNb       20; # Number of source nodes
-set NumberFlows 160 ; # Number of flows per source node 
+set NumberFlows 160 ; # Number of flows per source node
 set sduration   25; # Duration of simulation
 
 
@@ -26,19 +26,19 @@ $ns color 3 Green
 $ns color 4 Brown
 $ns color 5 Yellow
 $ns color 6 Black
-                   
 
 
-set Out [open Out.ns w];   # file containing transfer 
+
+set Out [open Out.ns w];   # file containing transfer
                            # times of different connections
-set Conn [open Conn.tr w]; # file containing the number of connections 
+set Conn [open Conn.tr w]; # file containing the number of connections
 
 set tf   [open out.tr w];  # Open the Trace file
-$ns trace-all $tf    
+$ns trace-all $tf
 
 #Open the NAM trace file
 set file2 [open out.nam w]
-# $ns namtrace-all $file2 
+# $ns namtrace-all $file2
 
 
 # We define three files that will be used to trace the queue size,
@@ -74,8 +74,8 @@ for {set j 1} {$j<=$NodeNb} { incr j } {
  $qEdC addPolicyEntry [$D id] [$S($j) id] TSW2CM 10 $cir0 0.02
 }
 $qEdC addPolicerEntry TSW2CM 10 11
-$qEdC addPHBEntry  10 0 0 
-$qEdC addPHBEntry  11 0 1 
+$qEdC addPHBEntry  10 0 0
+$qEdC addPHBEntry  11 0 1
 $qEdC configQ 0 0 10 30 0.1
 $qEdC configQ 0 1 10 30 0.1
 
@@ -87,8 +87,8 @@ set qCEd    [[$ns link $Core $Ed] queue]
 $qCEd     meanPktSize $pktSize
 $qCEd set numQueues_   1
 $qCEd set NumPrec       2
-$qCEd addPHBEntry  10 0 0 
-$qCEd addPHBEntry  11 0 1 
+$qCEd addPHBEntry  10 0 0
+$qCEd addPHBEntry  11 0 1
 $qCEd setMREDMode RIO-D
 $qCEd configQ 0 0 15 45  0.5 0.01
 $qCEd configQ 0 1 15 45  0.5 0.01
@@ -101,21 +101,21 @@ for {set j 1} {$j<=$NodeNb} { incr j } {
  $qEC($j) setNumPrec      2
  $qEC($j) addPolicyEntry [$S($j) id] [$D id] TSW2CM 10 $cir1 0.02
  $qEC($j) addPolicerEntry TSW2CM 10 11
- $qEC($j) addPHBEntry  10 0 0 
- $qEC($j) addPHBEntry  11 0 1 
+ $qEC($j) addPHBEntry  10 0 0
+ $qEC($j) addPHBEntry  11 0 1
 # $qEC($j) configQ 0 0 20 40 0.02
  $qEC($j) configQ 0 0 10 20 0.1
  $qEC($j) configQ 0 1 10 20 0.1
 
 $qEC($j) printPolicyTable
 $qEC($j) printPolicerTable
- 
+
  set qCE($j) [[$ns link $Core $E($j)] queue]
  $qCE($j) meanPktSize      40
  $qCE($j) set numQueues_   1
  $qCE($j) setNumPrec      2
- $qCE($j) addPHBEntry  10 0 0 
- $qCE($j) addPHBEntry  11 0 1 
+ $qCE($j) addPHBEntry  10 0 0
+ $qCE($j) addPHBEntry  11 0 1
 # $qCE($j) configQ 0 0 20 40 0.02
  $qCE($j) configQ 0 0 10 20 0.1
  $qCE($j) configQ 0 1 10 20 0.1
@@ -142,18 +142,18 @@ $ns attach-agent $D $tcp_snk($i,$j)
 $ns connect $tcpsrc($i,$j) $tcp_snk($i,$j)
 set ftp($i,$j) [$tcpsrc($i,$j) attach-source FTP]
 } }
-# Generators for random size of files. 
+# Generators for random size of files.
 set rng1 [new RNG]
 $rng1 seed 22
 
 # Random inter-arrival times of TCP transfer at each source i
 set RV [new RandomVariable/Exponential]
 $RV set avg_ 0.2
-$RV use-rng $rng1 
+$RV use-rng $rng1
 
-# Random size of files to transmit 
+# Random size of files to transmit
 set RVSize [new RandomVariable/Pareto]
-$RVSize set avg_ 10000 
+$RVSize set avg_ 10000
 $RVSize set shape_ 1.25
 $RVSize use-rng $rng1
 
@@ -180,28 +180,28 @@ for {set i 1} {$i<=$NodeNb} { incr i } {
 
 for {set j 1} {$j<=$NodeNb} { incr j } {
 set Cnts($j) 0
-}   
+}
 
 # The following procedure is called whenever a connection ends
 Agent/TCP instproc done {} {
-global tcpsrc NodeNb NumberFlows ns RV ftp Out tcp_snk RVSize 
-# print in $Out: node, session, start time,  end time, duration,      
-# trans-pkts, transm-bytes, retrans-bytes, throughput   
-  set duration [expr [$ns now] - [$self set starts] ] 
-  set i [$self set node] 
-  set j [$self set sess] 
-  set time [$ns now] 
+global tcpsrc NodeNb NumberFlows ns RV ftp Out tcp_snk RVSize
+# print in $Out: node, session, start time,  end time, duration,
+# trans-pkts, transm-bytes, retrans-bytes, throughput
+  set duration [expr [$ns now] - [$self set starts] ]
+  set i [$self set node]
+  set j [$self set sess]
+  set time [$ns now]
   puts $Out "$i \t $j \t $time \t\
       $time \t $duration \t [$self set ndatapack_] \t\
       [$self set ndatabytes_] \t [$self set  nrexmitbytes_] \t\
-      [expr [$self set ndatabytes_]/$duration ]"    
+      [expr [$self set ndatabytes_]/$duration ]"
 
 	  # update the number of flows
       countFlows [$self set node] 0
 
 }
 
-# The following recursive procedure updates the number of connections 
+# The following recursive procedure updates the number of connections
 # as a function of time. Each 0.2 it prints them into $Conn. This
 # is done by calling the procedure with the "sign" parameter equal
 # 3 (in which case the "ind" parameter does not play a role). The
@@ -212,9 +212,9 @@ global tcpsrc NodeNb NumberFlows ns RV ftp Out tcp_snk RVSize
 proc countFlows { ind sign } {
 global Cnts Conn NodeNb
 set ns [Simulator instance]
-      if { $sign==0 } { set Cnts($ind) [expr $Cnts($ind) - 1] 
-} elseif { $sign==1 } { set Cnts($ind) [expr $Cnts($ind) + 1] 
-} else { 
+      if { $sign==0 } { set Cnts($ind) [expr $Cnts($ind) - 1]
+} elseif { $sign==1 } { set Cnts($ind) [expr $Cnts($ind) + 1]
+} else {
   puts -nonewline $Conn "[$ns now] \t"
   set sum 0
   for {set j 1} {$j<=$NodeNb} { incr j } {
@@ -231,9 +231,9 @@ puts "in count"
 proc finish {} {
         global ns tf file2
         $ns flush-trace
-        close $file2 
+        close $file2
         exit 0
-}         
+}
 
 $ns at 0.5 "countFlows 1 3"
 $ns at [expr $sduration - 0.01] "$fmon dump"
@@ -242,5 +242,3 @@ $ns at $sduration "finish"
 
 
 $ns run
-
-

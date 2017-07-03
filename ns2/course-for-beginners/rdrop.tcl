@@ -103,7 +103,7 @@ set now [$ns now]
 set cwnd [$tcpSource set cwnd_]
 puts $file "$now $cwnd"
 $ns at [expr $now+$time] "plotWindow $tcpSource $file" }
-$ns at 1.1 "plotWindow $tcp $windowVsTime2"    
+$ns at 1.1 "plotWindow $tcp $windowVsTime2"
 
 # sample the bottleneck queue every 0.1 sec. store the trace in qm.out
 set qmon [$ns monitor-queue $n2 $n3 [open qm.out w] 0.1];

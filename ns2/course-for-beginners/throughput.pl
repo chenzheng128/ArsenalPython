@@ -11,21 +11,21 @@ $clock=0;
 
       open (DATA,"<$infile")
         || die "Can't open $infile $!";
-  
+
     while (<DATA>) {
              @x = split(' ');
 
-#column 1 is time 
+#column 1 is time
 if ($x[1]-$clock <= $granularity)
 {
-#checking if the event corresponds to a reception 
-if ($x[0] eq 'r') 
-{ 
+#checking if the event corresponds to a reception
+if ($x[0] eq 'r')
+{
 #checking if the destination corresponds to arg 1
-if ($x[3] eq $tonode) 
-{ 
+if ($x[3] eq $tonode)
+{
 #checking if the packet type is TCP
-if ($x[4] eq 'tcp') 
+if ($x[4] eq 'tcp')
 {
     $sum=$sum+$x[5];
 }
@@ -37,7 +37,7 @@ else
     print STDOUT "$x[1] $throughput\n";
     $clock=$clock+$granularity;
     $sum=0;
-}   
+}
 }
    $throughput=$sum/$granularity;
     print STDOUT "$x[1] $throughput\n";
@@ -46,4 +46,3 @@ else
 
     close DATA;
 exit(0);
- 

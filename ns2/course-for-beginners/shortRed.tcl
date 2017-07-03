@@ -1,6 +1,6 @@
-set ns [new Simulator] 
+set ns [new Simulator]
 
-# There are several sources each generating many TCP sessions sharing a bottleneck 
+# There are several sources each generating many TCP sessions sharing a bottleneck
 # link and a single destination. Their number is given by the paramter NodeNb
 
 #  	S(1)	    ----
@@ -10,12 +10,12 @@ set ns [new Simulator]
 #  	S(NodeNb)   ----
 
 set Out [open Out.ns w];   # file containing transfer times of different connections
-set Conn [open Conn.tr w]; # file containing the number of connections 
+set Conn [open Conn.tr w]; # file containing the number of connections
 set tf [open out.tr w];    #Open the Trace file
-$ns trace-all $tf    
+$ns trace-all $tf
 
 set NodeNb      6;   # Number od source nodes
-set NumberFlows 253; # Number of flows per source node 
+set NumberFlows 253; # Number of flows per source node
 set sduration    50;  # Duration of simulation
 
 # Queue/RED set thresh_ 5
@@ -34,7 +34,7 @@ set redq [[$ns link $N $D] queue]
 set traceq [open red-queue.tr w]
 $redq trace curq_
 $redq trace ave_
-$redq attach $traceq                                  
+$redq attach $traceq
 
 #Nodes and links
 for {set j 1} {$j<=$NodeNb} { incr j } {
@@ -63,7 +63,7 @@ $ns connect $tcpsrc($i,$j) $tcp_snk($i,$j)
 set ftp($i,$j) [$tcpsrc($i,$j) attach-source FTP]
 } }
 
-# Generators for random size of files. 
+# Generators for random size of files.
 set rng1 [new RNG]
 $rng1 seed 0
 set rng2 [new RNG]
@@ -72,12 +72,12 @@ $rng2 seed 0
 # Random inter-arrival times of TCP transfer at each source i
 set RV [new RandomVariable/Exponential]
 $RV set avg_ 0.3
-$RV use-rng $rng1 
+$RV use-rng $rng1
 
-# Random size of files to transmit 
+# Random size of files to transmit
 set RVSize [new RandomVariable/Pareto]
-$RVSize set avg_ 10000 
-$RVSize set shape_ 1.5 
+$RVSize set avg_ 10000
+$RVSize set shape_ 1.5
 $RVSize use-rng $rng2
 
 # We now define the beginning times of transfers and the transfer sizes
@@ -101,22 +101,22 @@ for {set i 1} {$i<=$NodeNb} { incr i } {
 
 for {set j 1} {$j<=$NodeNb} { incr j } {
 set Cnts($j) 0
-}   
+}
 
 # The following procedure is called whenever a connection ends
 Agent/TCP instproc done {} {
-global tcpsrc NodeNb NumberFlows ns RV ftp Out tcp_snk RVSize 
-# print in $Out: node, session, start time,  end time, duration,      
-# trans-pkts, transm-bytes, retrans-bytes, throughput   
-  set duration [expr [$ns now] - [$self set starts] ] 
+global tcpsrc NodeNb NumberFlows ns RV ftp Out tcp_snk RVSize
+# print in $Out: node, session, start time,  end time, duration,
+# trans-pkts, transm-bytes, retrans-bytes, throughput
+  set duration [expr [$ns now] - [$self set starts] ]
   puts $Out "[$self set node] \t [$self set sess] \t [$self set starts] \t\
       [$ns now] \t $duration \t [$self set ndatapack_] \t\
       [$self set ndatabytes_] \t [$self set  nrexmitbytes_] \t\
-      [expr [$self set ndatabytes_]/$duration ]"    
+      [expr [$self set ndatabytes_]/$duration ]"
   countFlows [$self set node] 0
 }
 
-# The following recursive procedure updates the number of connections 
+# The following recursive procedure updates the number of connections
 # as a function of time. Each 0.2 it prints them into $Conn. This
 # is done by calling the procedure with the "sign" parameter equal
 # 3 (in which case the "ind" parameter does not play a role). The
@@ -127,9 +127,9 @@ global tcpsrc NodeNb NumberFlows ns RV ftp Out tcp_snk RVSize
 proc countFlows { ind sign } {
 global Cnts Conn NodeNb
 set ns [Simulator instance]
-      if { $sign==0 } { set Cnts($ind) [expr $Cnts($ind) - 1] 
-} elseif { $sign==1 } { set Cnts($ind) [expr $Cnts($ind) + 1] 
-} else { 
+      if { $sign==0 } { set Cnts($ind) [expr $Cnts($ind) - 1]
+} elseif { $sign==1 } { set Cnts($ind) [expr $Cnts($ind) + 1]
+} else {
   puts -nonewline $Conn "[$ns now] \t"
   set sum 0
   for {set j 1} {$j<=$NodeNb} { incr j } {
@@ -142,18 +142,16 @@ set ns [Simulator instance]
 
 #Define a 'finish' procedure
 proc finish {} {
-        global ns tf 
+        global ns tf
         $ns flush-trace
 	close $tf
         exec grep  "a" red-queue.tr > ave.tr
-        exec grep  "Q" red-queue.tr > cur.tr            
+        exec grep  "Q" red-queue.tr > cur.tr
         exit 0
-}         
+}
 
 $ns at 0.5 "countFlows 1 3"
 $ns at [expr $sduration - 0.01] "$fmon dump"
 $ns at $sduration "finish"
 
 $ns run
-
-
