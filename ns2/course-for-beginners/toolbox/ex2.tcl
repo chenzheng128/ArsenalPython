@@ -34,20 +34,20 @@ set n4 [$ns node]
 set n5 [$ns node]
 
 #Create links between the nodes
-$ns duplex-link $n0 $n1 0.3Mb 10ms DropTail
+$ns duplex-link $n0 $n2 0.3Mb 10ms DropTail
 $ns duplex-link $n1 $n2 0.3Mb 10ms DropTail
-$ns duplex-link $n2 $n3 0.3Mb 10ms DropTail
-$ns duplex-link $n1 $n4 0.3Mb 10ms DropTail
+$ns simplex-link $n2 $n3 0.3Mb 10ms DropTail
+$ns simplex-link $n3 $n2 0.3Mb 10ms DropTail
+$ns duplex-link $n3 $n4 0.5Mb 10ms DropTail
 $ns duplex-link $n3 $n5 0.5Mb 10ms DropTail
-$ns duplex-link $n4 $n5 0.5Mb 10ms DropTail
 
 #Give node position (for NAM)
-$ns duplex-link-op  $n0 $n1 orient right
-$ns duplex-link-op  $n1 $n2 orient right
-$ns duplex-link-op $n2 $n3 orient up
-$ns duplex-link-op $n1 $n4 orient up-left
-$ns duplex-link-op  $n3 $n5 orient left-up
-$ns duplex-link-op  $n4 $n5 orient right-up
+$ns duplex-link-op  $n0 $n2 orient right-down
+$ns duplex-link-op  $n1 $n2 orient right-up
+$ns simplex-link-op $n2 $n3 orient right
+$ns simplex-link-op $n3 $n2 orient left
+$ns duplex-link-op  $n3 $n4 orient right-up
+$ns duplex-link-op  $n3 $n5 orient right-down
 
 
 #Setup a TCP connection
