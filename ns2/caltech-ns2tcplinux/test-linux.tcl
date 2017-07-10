@@ -1,5 +1,10 @@
 
 #
+# Source: http://netlab.caltech.edu/projects/ns2tcplinux/ns2linux-2.29-linux-2.6.16/scripts/test-linux.tcl
+# documentation: http://netlab.caltech.edu/projects/ns2tcplinux/ns2linux-2.29-linux-2.6.16/
+# 
+# 或者
+#
 # 从 http://netlab.cs.ucla.edu/tcpsuite/ns-linux-2.31.patch 补丁中还原出的代码
 #
 
@@ -136,3 +141,4 @@ $ns at $EndTime+2 "finish"
 puts "start"
 #Run the simulation
 $ns run
+

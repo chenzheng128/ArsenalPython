@@ -18,6 +18,9 @@ Source: http://nile.wpi.edu/NS/
 * the-ns-manual: https://www.isi.edu/nsnam/ns/tutorial/
 
 ## caltech-ns2tcplinux
+
+documentation: http://netlab.caltech.edu/projects/ns2tcplinux/ns2linux-2.29-linux-2.6.16/
+
 A Linux TCP implementation for NS2: http://netlab.caltech.edu/projects/ns2tcplinux/ns2linux/index.html
 
 ## tcpsuit
@@ -36,5 +39,6 @@ Source: http://netlab.cs.ucla.edu/tcpsuite/
 * NS Simulator Course for Beginners: https://www-sop.inria.fr/members/Eitan.Altman/ns.htm (2002年, 好有历史)
 * 自带例子 `./ns-2.35/tcl/ex/`
 * [上千例子](https://drive.google.com/file/d/0B7S255p3kFXNUUpUYWJ6TTdseWc/view)
+* MQ-ECN: 一个不错的ns2代码示范, 含代码与文档: https://github.com/HKUST-SING/MQ-ECN-NS2
 
 
