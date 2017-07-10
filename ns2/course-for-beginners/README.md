@@ -10,18 +10,23 @@
 
 Notes: https://www-sop.inria.fr/members/Eitan.Altman/COURS-NS/n3.pdf
 
-### Chap 01 Introduction
+### Chap. 01 Introduction
 * `ch01-basic-tcl.tcl` tcl 语法, 运算, 循环, 函数的基本使用
 * `ch02.tcl` tcl 语法, 运算, 循环, 函数的基本使用
 
-## Chap 02
+### Chap. 02
 * `ch02.tcl` 初始实验例子, tcp 与 udp 会话
 * `ch02-random.tcl` 随机变量例子
 
-## Chap 03
+### Chap. 03
 * `awk -f ../toolbox/avr.awk out.tr`
 * `awk -f ../toolbox/stdv.awk out.tr`
 * `ns ../ch03.tcl ; xgraph ch03_cwnd.tr` 尝试绘制 cwnd; TODO:图形还不是很正确
+
+## Chap. 04
+* pp. 41-42 计算带宽
+   - 收集trace文件 `ns ../toolbox/ex1.tcl`
+   - 计算并显示带宽 `perl ../toolbox/throughput.pl out.tr 4 1 > thp; xgraph thp`
 
 ## Toolbox
 
