@@ -71,6 +71,7 @@ for this_file in args.filenames: # support multiple file
         plt_handles += [this_handle]
     plt.title(this_file)
     plt.legend(handles=plt_handles)
+    plt.grid(True)
     png_filename = "%s.%s" % (this_file, 'png')
     plt.savefig(png_filename) # 保存文件
     print ("生成了图形文件 %s" % png_filename)
