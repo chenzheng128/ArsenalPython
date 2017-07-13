@@ -10,6 +10,8 @@ from mininet.net import Mininet
 from mininet.log import lg
 from mininet.util import dumpNodeConnections
 
+from mininet.cli import CLI
+
 from subprocess import Popen, PIPE
 from time import sleep, time
 from multiprocessing import Process
@@ -50,6 +52,11 @@ SAMPLE_PERIOD_SEC = 1.0
 
 # Time to wait for first sample, in seconds, as a float.
 SAMPLE_WAIT_SEC = 3.0
+
+def dprint(str):
+    """Print debug strings """
+    if True:
+        print ("debug: %s" % str)
 
 
 def cprint(s, color, cr=True):
@@ -168,7 +175,9 @@ class StarTopo(Topo):
 
 def start_tcpprobe():
     "Instal tcp_pobe module and dump to file"
-    os.system("rmmod tcp_probe; modprobe tcp_probe;")
+    os.system("rmmod tcp_probe;")
+    # 拆分为两行命令, 避免第一行出错
+    os.system("modprobe tcp_probe;")
     Popen("cat /proc/net/tcpprobe > %s/tcp_probe.txt" %
           args.dir, shell=True)
 
@@ -181,14 +190,21 @@ def count_connections():
 
 def set_q(iface, q):
     "Change queue size limit of interface"
-    cmd = ("tc qdisc change dev %s parent 1:1 "
+    # orignal
+    # cmd = ("tc qdisc change dev %s parent 1:1 "
+    # ubuntu 14.04
+    cmd = ("tc qdisc change dev %s parent 5:1 "
            "handle 10: netem limit %s" % (iface, q))
+    dprint (cmd)
     os.system(cmd)
 
 def set_speed(iface, spd):
     "Change htb maximum rate for interface"
-    cmd = ("tc class change dev %s parent 1:0 classid 1:1 "
+    # original 
+    # cmd = ("tc class change dev %s parent 1:0 classid 1:1 "
+    cmd = ("tc class change dev %s root classid 5:1 "
            "htb rate %s burst 15k" % (iface, spd))
+    dprint (cmd)
     os.system(cmd)
 
 def get_txbytes(iface):
@@ -266,7 +282,9 @@ def ok(fraction):
 def format_fraction(fraction):
     "Format and colorize fraction"
     if ok(fraction):
+        # 绿色表示合格
         return T.colored('%.3f' % fraction, 'green')
+    # 红色表示有问题
     return T.colored('%.3f' % fraction, 'red', attrs=["bold"])
 
 def do_sweep(iface):
@@ -387,10 +405,13 @@ def main():
     net.pingAll()
 
     # verify latency and bandwidth of the setup
+    cprint("verify_latency ...", "green")
     verify_latency(net)
     get = net.getNodeByName
     h1, h2, h3 = get('h1', 'h2', 'h3')
-    verify_bandwidth(net, h2, h3)
+
+    cprint("verify_bandwidth (disable for quick debugging )...", "yellow")
+    # verify_bandwidth(net, h2, h3)
 
     # TODO
     # set h1 to the Node object of the receiver host
@@ -409,9 +430,10 @@ def main():
     # CUSTOM_IPERF_PATH, 5001, seconds, args.cong, args.dir,
     # node_name, output_file)
 
-    start_tcpprobe()
+    cprint("start_tcpprobe (disable for error mod_probe tcp_probe;  /proc/net/tcpprobe no found )...", "yellow")
+    # start_tcpprobe()
 
-    cprint("Starting experiment", "green")
+    cprint("Starting %s nodes with %s flows experiment" % (args.n, args.nflows), "green")
     ####################### Begin: Delete Code #######################
     flowindex = -1
     for i in xrange(1, args.n):
@@ -424,6 +446,8 @@ def main():
                    '-yc -Z %s > %s/iperf_%s_%d.txt &' %
                    (CUSTOM_IPERF_PATH, 5001, seconds,
                     args.cong, args.dir, node_name, j))
+            if j == 1: # 仅debug 第一个流的命令
+                dprint (cmd)
             h.cmd(cmd)
             sleep(0.001)
     ####################### End: Delete Code #######################
@@ -431,6 +455,9 @@ def main():
     # TODO: change the interface for which queue size is adjusted
     ret = do_sweep(iface='s0-eth1')
     total_flows = flowindex + 1
+
+    # 激活命令行, 便于调试
+    # CLI(net)
 
     # Store output
     output = "%d %s %.3f\n" % (total_flows, ret, ret * 1500.0)

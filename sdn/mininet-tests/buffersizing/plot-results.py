@@ -45,6 +45,7 @@ def first(lst):
 def second(lst):
     return map(lambda e: e[1], lst)
 
+# - 平均计算方法: 如运行多轮 -r1 -r2 -r3 , 则将数据放入 list 中进行平均
 def avg(lst):
     return sum(lst)/len(lst)
 
@@ -124,6 +125,8 @@ for i in xrange(nruns):
     plt.plot(keys, values,
              lw=1, label=label, color="red")
 
+
+# - 平均计算方法: 如运行多轮 -r1 -r2 -r3 , 则将数据放入 list 中进行平均
 avg_mn = []
 for k in keys:
     avg_mn.append(avg(data[k]))
