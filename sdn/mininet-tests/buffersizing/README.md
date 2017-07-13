@@ -11,6 +11,7 @@
 
 ## 运行方法
 
+1. `build-patched-iperf.sh` 在 $HOME 路径下安装 patched iperf.
 1. `sudo service openvswitch-switch start` 启动 ovs 交换机
 1. `sudo ./buffersizing-sweep.sh` 运行脚本; 在对应的 `result-buffersizing-xxx` trace 目录下生成了 `result.png`
 1. 如果绘图执行失败. 可以 `$rootdir` 重新执行绘图程序
