@@ -27,8 +27,8 @@ echo "<body><cetner><table border=\"1\">" >> ${exp}.html
 echo "<tr><th>TCP_Name </th><th> Figure</th></tr>" >> ${exp}.html
 
 # 这里的循环应当同 run-linux.csh 保持一致, 或是将来集成到 run-linux.csh 中
-for i in bic cubic highspeed htcp hybla reno scalable vegas westwood veno lp yeah illinois compound ;
-do  
+for i in bic cubic highspeed htcp hybla reno scalable vegas westwood veno lp yeah illinois compound cong;
+do
   echo "<tr><td>${i}</td><td><a href=\"${exp}-${i}/cwnd-${i}.png\"><img style=\"width: 512px;height: 192px;\" src=\"${exp}-${i}/cwnd-${i}.png\"/></a></td></tr>" >> ${exp}.html
 done
 echo "</table></center></body></html>" >> ${exp}.html

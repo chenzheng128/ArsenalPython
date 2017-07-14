@@ -4,7 +4,11 @@ A Linux TCP implementation for NS2: http://netlab.caltech.edu/projects/ns2tcplin
 
 在 ubuntu 14.04 (ns-2.35)下复原了 14 个tcp 算法的 cwnd "14 different congestion control algorithms from Linux-2.6.22.6, as listed in the following table. "
 
-备注: 除了 lp 图形不太一致, vegas 缺少一个小峰外, 其他算法的图形都是一致的.
+备注:
+1. 除了 lp 图形不太一致, vegas 缺少一个小峰外, 其他算法的图形都是一致的.
+1. 通过查看 ns 源代码目录 `find . -name tcp_cubic.c`, 增加了 `cong` 算法，图形增加到 15 个。
+1. 基于[ns2 dctcp版本](https://github.com/chenzheng128/ns-allinone-2.35/releases) 对ns2tcplinux代码进行了测试，输出结果一致。说明 dctcp 代码的集成对原有的 Agent/TCP/Linux 没有影响
+
 
 ## 基础环境
 
@@ -16,11 +20,11 @@ ubuntu 14.04 安装绘图用 gnuplot `sudo apt-get install gnuplot-x11`
 以某一组 (例如 1-100-64-900) 实验参数为例
 
 # 进入 output . 可选删除某一组(例如 1-100-64-900)历史结果目录
-cd output; rm -rf ../output/1-100-64-900-*; 
+cd output; rm -rf ../output/1-100-64-900-*;
 # 运行程序收集数据
-../run-linux.sh 
-  
-# 在 MacOSX 打开浏览器看生成的 cwnd 图形; 
+../run-linux.sh
+
+# 在 MacOSX 打开浏览器看生成的 cwnd 图形;
 ../plot_figures.sh 1-100-64-900 & open http://localhost:8888/1-100-64-900.html
 ```  
 
@@ -32,11 +36,14 @@ cd output; rm -rf ../output/1-100-64-900-*;
 
 ## 文件说明
 
+* `xgraph.py` 链接指向-> `ns3/scratch/my_plot_helper.py`
 * `run-linux.sh` 运行脚本 (由`run-linux.csh`重命名而来), 其中的tcp 算法包括 bic cubic highspeed htcp hybla reno scalable vegas westwood veno lp yeah illinois compound  14 种算法; 考虑再追加上 dctcp
 * `plot_figures.sh` 生成汇总页面图形脚本
 * `script-gnuplot.txt` 单独绘图脚本
 * `red.tcl` 拓扑脚本 (用途?)
 # `output\` 结果输出目录
+  - `result0` result0 格式为 $nowtime $cwnd $ack; 查看图形 `xgraph.py result0`
+  - `rate0` rate0 格式为 $nowtime $bw; 查看图形 `xgraph.py rate0`
 
 * `tutorial\` A mini-tutorial for TCP-Linux in NS-2 迷你指南使用 TCP-Linux, 包括
     - 新 `sack1.tcl` 代码

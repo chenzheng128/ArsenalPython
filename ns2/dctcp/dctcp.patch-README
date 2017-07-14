@@ -1,0 +1,18 @@
+This patch applies to ns-2.35 which can be obtained from: http://www.isi.edu/nsnam/ns/ . The patch modifies the following files:
+1) queue/red.cc
+2) tcl/lib/ns-default.tcl
+3) tcp/tcp.cc
+4) tcp/tcp-full.cc
+5) tcp/tcp-full.h
+6) tcp/tcp.h
+
+To apply the patch, copy "dctcp.patch" to the top ns-2.35 folder and enter:
+
+patch -p1 --ignore-whitespace -i dctcp.patch
+
+---------------------------------------------
+
+DCTCP is enabled using: Agent/TCP set dctcp_ true
+
+An example that shows the basic parameter settings is provided at example/simpleDumbbell.tcl .
+

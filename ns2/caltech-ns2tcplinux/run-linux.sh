@@ -1,4 +1,4 @@
-# rename from run-linux.csh to un-linux.sh for .sh bash color highlight 
+# rename from run-linux.csh to un-linux.sh for .sh bash color highlight
 
 for flownum in 1
 #2 8 32 128
@@ -13,7 +13,7 @@ do
 #2 8 32 128
 		do
 			#buffer=`echo "$bw*$onewaydelay*25/1448" | bc`
-			#if [ $buffer -lt 100 ] 
+			#if [ $buffer -lt 100 ]
 			#then
 			#	buffer=100
 			#fi
@@ -27,8 +27,8 @@ do
 #highspeed reno vegas bic htcp cubic westwood hybla scalable
 #htcp westwood cubic highspeed reno vegas
 				#for i in veno lp yeah illinois compound
-				
-				for i in bic cubic highspeed htcp hybla reno scalable vegas westwood veno lp yeah illinois compound ;
+
+				for i in bic cubic highspeed htcp hybla reno scalable vegas westwood veno lp yeah illinois compound cong;
 				do
 					dirname=$flownum-$bw-$onewaydelay-$endtime-$i
 #					rm $dirname -r
@@ -51,12 +51,12 @@ do
 					date >> time_report
 					echo "$edtime - $sttime" | bc >> time_report
 					cat result0 | awk 'BEGIN{old=0}{print $1, ($3-old)*1448*8*2}{old=$3}' > rate0
-					
+
 					# 生成图形
 					gnuplot ../../script-gnuplot.txt;
 					mv cwnd.png cwnd-$i.png;
 					echo "生成 ${dirname}/cwnd-${i}.png 图形"
-					
+
 					cd ..
 				done
 			done

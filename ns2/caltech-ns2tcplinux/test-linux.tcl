@@ -2,7 +2,7 @@
 #
 # Source: http://netlab.caltech.edu/projects/ns2tcplinux/ns2linux-2.29-linux-2.6.16/scripts/test-linux.tcl
 # documentation: http://netlab.caltech.edu/projects/ns2tcplinux/ns2linux-2.29-linux-2.6.16/
-# 
+#
 # 或者
 #
 # 从 http://netlab.cs.ucla.edu/tcpsuite/ns-linux-2.31.patch 补丁中还原出的代码
@@ -18,7 +18,7 @@ set MainBuffer 2000
 #should be 1/4 of BDP
 set BDP 30000
 set EndTime 200
-set MSS 1448 
+set MSS 1448
 
 #constants
 set SideDelay "0ms"
@@ -60,6 +60,7 @@ proc monitor {interval} {
 
     for {set i 0} {$i < $FlowNumber} {incr i 1} {
         set win [open result$i a]
+  # result0 格式为 $nowtime $cwnd $ack
 	puts $win "$nowtime [$tcp($i) set cwnd_] [$tcp($i) set ack_]"
 	close $win
     }
@@ -81,7 +82,7 @@ set br [$ns node]
 
 #Create links between the nodes
 $ns duplex-link $bs $br $MainBW $MainDelay DropTail
-#Set Queue Size of link (bs-br) to 
+#Set Queue Size of link (bs-br) to
 $ns queue-limit $bs $br $MainBuffer
 
 #set tf [open "traceall" "w"]
@@ -100,7 +101,7 @@ for {set i 0} {$i < $FlowNumber} {incr i 1} {
 	$ns queue-limit $sendNode($i) $bs $BDP
 	$ns queue-limit $br $rcvNode($i) $BDP
 
-	#setup sender side	
+	#setup sender side
 	set tcp($i) [new $TCP_Variant]
 	$tcp($i) set packetSize_ $MSS
 	$tcp($i) set window_ $BDP
@@ -110,7 +111,7 @@ for {set i 0} {$i < $FlowNumber} {incr i 1} {
 #        $tcp($i) set windowOption_ $TCP_Name
 
 	$ns attach-agent $sendNode($i) $tcp($i)
-	
+
 	#setup receiver side
 	set sink($i) [new $TCP_ACK_Variant]
 	$sink($i) set generateDSacks_ false
@@ -141,4 +142,3 @@ $ns at $EndTime+2 "finish"
 puts "start"
 #Run the simulation
 $ns run
-
