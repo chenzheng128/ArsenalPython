@@ -29,6 +29,7 @@ do
 				#for i in veno lp yeah illinois compound
 
 				for i in bic cubic highspeed htcp hybla reno scalable vegas westwood veno lp yeah illinois compound cong;
+				# for i in cubic;
 				do
 					dirname=$flownum-$bw-$onewaydelay-$endtime-$i
 #					rm $dirname -r
@@ -46,16 +47,29 @@ do
 					sttime=`cat /proc/uptime | awk '{print $1}'`
 					date > time_report
 					pwd
-					ns ../../test-linux.tcl > txt
+					# ns ../../test-linux.tcl > txt
+					# 打开调试信息
+					ns ../../test-linux.tcl
+					
 					edtime=`cat /proc/uptime | awk '{print $1}'`
 					date >> time_report
 					echo "$edtime - $sttime" | bc >> time_report
-					cat result0 | awk 'BEGIN{old=0}{print $1, ($3-old)*1448*8*2}{old=$3}' > rate0
+					
+					# 使用 awk 通过 result0 中的 ack 计算速率; 1448 是什么?  8是Byte->bit; 2是每 0.5 秒取的数据, 需要按1秒算?
+					# cat result0 | awk 'BEGIN{old=0}{print $1, ($3-old)*1448*8*2}{old=$3}' > rate0
 
-					# 生成图形
+					# xgraph.py 支持 -f 参数后, 不必再拆分数据
+					# cat result0 | cut -d" " -f 1,3 > result0-ack
+					# cat result0 | cut -d" " -f 1,4 > result0-bw
+					
+					# 使用 gnuplot 绘图, 而不是 plot_figures.sh 中的 xgraph.py
+					# cwnd 图形
+					# 使用这个命令可获取和网站一样的图形
 					gnuplot ../../script-gnuplot.txt;
 					mv cwnd.png cwnd-$i.png;
-					echo "生成 ${dirname}/cwnd-${i}.png 图形"
+					mv rate.png rate-${i}.png;
+					echo "生成 ${dirname}/cwnd-${i}.png rate-${i}.png图形"
+					
 
 					cd ..
 				done

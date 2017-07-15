@@ -40,5 +40,6 @@ Source: http://netlab.cs.ucla.edu/tcpsuite/
 * 自带例子 `./ns-2.35/tcl/ex/`
 * [上千例子](https://drive.google.com/file/d/0B7S255p3kFXNUUpUYWJ6TTdseWc/view)
 * MQ-ECN: 一个不错的ns2代码示范, 含代码与文档: https://github.com/HKUST-SING/MQ-ECN-NS2
+* An Introduction to Computer Networks, edition 1.9.2  http://intronetworks.cs.luc.edu/current/html/ns2.html
 
 

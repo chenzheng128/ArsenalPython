@@ -1,0 +1,1 @@
+puts [Class info instances]

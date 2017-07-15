@@ -54,17 +54,32 @@ close $record_config
 #Create a simulator object
 set ns [new Simulator]
 
-proc monitor {interval} {
+proc monitor {interval last_ack} {
     global FlowNumber tcp ns
     set nowtime [$ns now]
 
     for {set i 0} {$i < $FlowNumber} {incr i 1} {
         set win [open result$i a]
-  # result0 格式为 $nowtime $cwnd $ack
-	puts $win "$nowtime [$tcp($i) set cwnd_] [$tcp($i) set ack_]"
-	close $win
+        
+        #增加带宽统计功能
+        #How many bytes have been received by the traffic sinks?
+        #puts [$tcp($i) info vars]
+        #puts [$tcp($i) set cwnd_]
+        #puts [$tcp($i) set ack_]
+        # 这里的 3代码, 不如 awk 一行代码来的清楚
+        # cat result0 | awk 'BEGIN{old=0}{print $1, ($3-old)*1448*8*2}{old=$3}' > rate0
+        set this_ack [$tcp($i) set ack_]
+        set bw0 [expr $this_ack - $last_ack]
+        #Calculate the bandwidth (in MBit/s) and write it to the files 
+        # / $interval 就相当于 * 2, 1448 待解释
+        set rate_interval [expr $bw0 / $interval * 1448 * 8 / 1000000]
+        #Reset the bytes_ values on the traffic sinks
+        
+        # result0 格式为 $nowtime $cwnd $rate $ack
+      	puts $win "$nowtime [$tcp($i) set cwnd_] $rate_interval $this_ack"
+      	close $win
     }
-    $ns after $interval "monitor $interval"
+    $ns after $interval "monitor $interval $this_ack"
 }
 
 
@@ -128,13 +143,12 @@ for {set i 0} {$i < $FlowNumber} {incr i 1} {
 	$ftp($i) set type_ FTP
 
 	$ns at 0 "$tcp($i) select_ca $TCP_Name"
-
 	$ns at 0 "$ftp($i) start"
 	$ns at $EndTime+1 "$ftp($i) stop"
 }
 
 #call the monitor at the end
-$ns at 0 "monitor 0.5"
+$ns at 0 "monitor 0.5 0"
 
 #Call the finish procedure after 1 seconds of simulation time
 $ns at $EndTime+2 "finish"
