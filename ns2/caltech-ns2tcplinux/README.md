@@ -38,7 +38,7 @@ cd output; rm -rf ../output/1-100-64-900-*;
 ## 文件说明
 
 * `run-linux.sh` 运行脚本 (由`run-linux.csh`重命名而来), 其中的tcp 算法包括 bic cubic highspeed htcp hybla reno scalable vegas westwood veno lp yeah illinois compound  14 种算法; 考虑再追加上 dctcp
-* `plot_figures.sh` 生成汇总页面图形脚本
+* `plot_figures.sh` 生成汇总页面图形脚本 
 * `script-gnuplot.txt` 单独绘图脚本; 可改为使用 `plot_figures.sh` 中的 `xgraph.py`
 * `red.tcl` 拓扑脚本 (用途?) 暂时没用到
 # `output\` 结果输出目录

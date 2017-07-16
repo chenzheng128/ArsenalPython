@@ -2,7 +2,7 @@
  * 创建软连接到外部的scratch目录, 例如 `ln -sf /Users/chen/PycharmProjects/ArsenalPython/ns3/scratch .`
  * 跳过例子之后的编译变得很迅猛 `./waf configure && ./waf`
  * tcp参数实验 `./waf --run "my-tcp-variants-comparison"`
- * 实验结果绘图 `./scratch/my_plot_helper.py`
+ * 实验结果绘图 `./scratch/my_plot_helper.py` 创建链接为 `xgraph.py`
  * dcn  
    - 原始 ntu Fat-tree `Fat-tree-ntu-origin.cc`
    - 新 Fat-tree 拓扑: `./waf --run "scratch/Fat-tree --PrintHelp"``
