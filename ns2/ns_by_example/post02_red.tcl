@@ -46,6 +46,7 @@ set ftp2 [$tcp2 attach-source FTP]
 # Tracing a queue
 set redq [[$ns link $node_(r1) $node_(r2)] queue]
 set tchan_ [open all.q w]
+# 输出两组 trace 数据到 all.q(tchan_) 中, 包括瞬时值 Q 和平均值 a
 $redq trace curq_
 $redq trace ave_
 $redq attach $tchan_
@@ -58,26 +59,29 @@ $ns at 10 "finish"
 # Define 'finish' procedure (include post-simulation processes)
 proc finish {} {
     global tchan_
+
+    # 定义 awk 统计平均代码
     set awkCode {
-	{
-	    if ($1 == "Q" && NF>2) {
-		print $2, $3 >> "temp.q";
-		set end $2
-	    }
-	    else if ($1 == "a" && NF>2)
-	    print $2, $3 >> "temp.a";
-	}
+    	{
+    	    if ($1 == "Q" && NF>2) {
+        		print $2, $3 >> "temp.q";
+        		set end $2
+    	    }
+    	    else if ($1 == "a" && NF>2)
+            print $2, $3 >> "temp.a";
+    	}
     }
     set f [open temp.queue w]
     puts $f "TitleText: red"
     puts $f "Device: Postscript"
 
     if { [info exists tchan_] } {
-	close $tchan_
+      close $tchan_
     }
     exec rm -f temp.q temp.a
     exec touch temp.a temp.q
 
+    # 基于 temp.queue 进行绘图， 内部包含两组数据, 瞬时值 Q 和平均值 a
     exec awk $awkCode all.q
 
     puts $f \"queue
@@ -85,6 +89,8 @@ proc finish {} {
     puts $f \n\"ave_queue
     exec cat temp.a >@ $f
     close $f
+
+    # 基于 temp.queue 进行绘图， 显示两组数据, 瞬时值 Q 和平均值 a
     exec xgraph -bb -tk -x time -y queue temp.queue &
     exit 0
 }

@@ -73,8 +73,8 @@ if args.display:
 else:
     print "== 不显示绘图 "
 
-field_list=args.field.split(":") 
-field1, field2 = int(field_list[0]), int(field_list[1]) 
+field_list=args.field.split(":")
+field1, field2 = int(field_list[0]), int(field_list[1])
 print "== 选择 field %d:%d 进行绘图 " % (field1, field2)
 
 plt_handles = []
@@ -83,7 +83,7 @@ for this_file in args.filenames: # support multiple file
         plt.clf() # 清除上一次绘图
     arr = np.genfromtxt(this_file)
     print ("读入了数据文件 %s" % this_file)
-    
+
     # 设定输出文件名
     if not args.label:
         png_filename = "%s.%s" % (this_file, 'png')
@@ -96,9 +96,16 @@ for this_file in args.filenames: # support multiple file
         plt_handles = [this_handle]
     else:
         plt_handles += [this_handle]
-    plt.legend(handles=plt_handles)
+    
+    #print sys.version_info
+    # 兼容 unbuntu14.04 自带的 python 2.7.6 所对应的 matplotlib (1.3.1)
+    if sys.version_info < (2,7,7): # 这里的指定版本为 unbuntu14.04 自带的 2.7.6，注意 <= 中的=不起作用， 
+        plt.legend(plt_handles)
+    else:
+        plt.legend(handles=plt_handles)
+
     plt.grid(True)
-        
+
     plt.savefig(png_filename) # 保存文件
     print ("生成了图形文件 %s" % png_filename)
     if args.display: # and len(sys.argv) == 2: # 如果仅有一个图表则显示, 否则只是批量生产png文件
