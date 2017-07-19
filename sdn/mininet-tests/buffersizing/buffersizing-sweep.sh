@@ -30,17 +30,19 @@ iperf=~/iperf-patched/src/iperf
 iface=s0-eth1
 
 # 3 组时间总计约 45 分钟
-# for run in 1 2 3; do
+for run in 1 2 3; do
 # 1 组时间小计约 15 分钟, 
-for run in 1; do
+# for run in 1; do
 	#for flows_per_host in 1 2 5 10 20 30 40 50 75 100 125 150 175 200 225 250 275 300 325 350 375 400; do
 	#for flows_per_host in 1; do
 
 	# orignal 
 	# for flows_per_host in 1 2 5 10 50 100 200 300 400; do
 	# 在 mininet 虚拟机上, 平均 2 分钟一组, 小计约15分钟
-	for flows_per_host in 1 2; do
+	# for flows_per_host in 1 2; do
 	#for flows_per_host in 1 2 5 10 50 100 200 300 400; do
+	# 参考 buffering-red 的流设置
+	for flows_per_host in 10 25 50 100 200; do
 	  	dir=$rootdir/nf$flows_per_host-r$run
 	  	mkdir -p $dir
 

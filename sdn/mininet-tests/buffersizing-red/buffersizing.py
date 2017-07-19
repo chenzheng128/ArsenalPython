@@ -53,6 +53,10 @@ SAMPLE_PERIOD_SEC = 1.0
 # Time to wait for first sample, in seconds, as a float.
 SAMPLE_WAIT_SEC = 3.0
 
+AVPKT = 1000
+
+PROB = 0.2
+
 def dprint(str):
     """Print debug strings """
     if True:
@@ -137,6 +141,7 @@ parser.add_argument('--iperf',
 
 parser.add_argument('-c', '--cli', action='store_true', help='是否进入命令行调试')
 parser.add_argument('-r', '--red', action='store_true', help='是否使用 red AQM')
+parser.add_argument('-s', '--simu_rate', action='store_true', help='是否使用模拟带宽, 快速测试 RED 情况')
 
 # Expt parameters
 args = parser.parse_args()
@@ -207,7 +212,7 @@ def set_q_red(iface, q):
     # cmd = ("tc qdisc change dev %s parent 1:1 "
     # ubuntu 14.04
     cmd = ("tc qdisc change dev %s parent 5:1 "
-           "handle 10: red limit %d avpkt 1000" % (iface, q*10000))
+           "handle 10: red limit %d avpkt %d probability %f" % (iface, q, AVPKT, PROB))
     dprint (cmd)
     os.system(cmd)
 
@@ -247,18 +252,21 @@ def get_rates(iface, nsamples=NSAMPLES, period=SAMPLE_PERIOD_SEC,
     sleep(wait)
     while nsamples:
         nsamples -= 1
+        # 获取传输字节
         txbytes = get_txbytes(iface)
         now = time()
         elapsed = now - last_time
         #if last_time:
         #    print "elapsed: %0.4f" % (now - last_time)
         last_time = now
+        # 计算带宽
         # Get rate in Mbps; correct for elapsed time.
         rate = (txbytes - last_txbytes) * 8.0 / 1e6 / elapsed
         if last_txbytes != 0:
             # Wait for 1 second sample
             ret.append(rate)
         last_txbytes = txbytes
+        # 打印进度条 . 
         print '.',
         sys.stdout.flush()
         sleep(period)
@@ -305,9 +313,10 @@ def do_sweep(iface):
        We assume a monotonic relationship and use a binary
        search to find a value that yields the desired result"""
 
-    bdp = args.bw_net * 2 * args.delay * 1000.0 / 8.0 / 1500.0
+    # bdp = args.bw_net * 2 * args.delay * 1000.0 / 8.0 / 1500.0
+    bdp = args.bw_net * 2 * args.delay * 1000.0 / 8.0 
     nflows = args.nflows * (args.n - 1)
-    min_q, max_q = 1, int(bdp)
+    min_q, max_q = 12000, int(bdp)
 
     # Set a higher speed
     set_speed(iface, "2Gbit")
@@ -317,6 +326,7 @@ def do_sweep(iface):
     while wait_time > 0 and succeeded != nflows:
         wait_time -= 1
         succeeded = count_connections()
+        # "输出 \r 能够起到刷新效果..."
         print 'Connections %d/%d  \r' % (succeeded, nflows),
         sys.stdout.flush()
         sleep(1)
@@ -341,7 +351,7 @@ def do_sweep(iface):
         dprint (cmd)
         os.system(cmd)
         cmd = ("tc qdisc add dev %s parent 5:1 "
-               "handle 10: red limit %d avpkt 1000" % (iface, max_q*10000))
+               "handle 10: red limit %d avpkt %d" % (iface, max_q, AVPKT))
         dprint (cmd)
         os.system(cmd)
     else:
@@ -350,19 +360,27 @@ def do_sweep(iface):
 
     # Wait till link is 100% utilised and train 
     reference_rate = 0.0
-    while reference_rate <= args.bw_net * START_BW_FRACTION:
-        rates = get_rates(iface, nsamples=CALIBRATION_SAMPLES+CALIBRATION_SKIP)
-        print "measured calibration rates: %s" % rates
-        # Ignore first N; need to ramp up to full speed.
-        rates = rates[CALIBRATION_SKIP:]
-        reference_rate = median(rates)
-        ru_max = max(rates)
-        ru_stdev = stdev(rates)
-        cprint ("Reference rate median: %.3f max: %.3f stdev: %.3f" %
-                (reference_rate, ru_max, ru_stdev), 'blue')
-        sys.stdout.flush()
+    
+    # 测试带宽, 或是模拟
+    if not args.simu_rate: 
+        while reference_rate <= args.bw_net * START_BW_FRACTION:
+            # 获取带宽大小 
+            rates = get_rates(iface, nsamples=CALIBRATION_SAMPLES+CALIBRATION_SKIP)
+            print "measured calibration rates: %s" % rates
+            # Ignore first N; need to ramp up to full speed.
+            rates = rates[CALIBRATION_SKIP:]
+            reference_rate = median(rates)
+            ru_max = max(rates)
+            ru_stdev = stdev(rates)
+            cprint ("Reference rate median: %.3f max: %.3f stdev: %.3f" %
+                    (reference_rate, ru_max, ru_stdev), 'blue')
+            sys.stdout.flush()
+    else:
+        reference_rate = 61.536
+        cprint ("模拟速率, 跳过之前的速率检测 Reference rate median: %.3f" % (reference_rate), 'yellow')
 
-    while abs(min_q - max_q) >= 2:
+    # 增加 qlen > 12000 的判断条件, 避免设置过低 limit 对 red 也不起左右
+    while abs(min_q - max_q) >= 2000 and min_q >= 12000 and max_q >= 12000:
         mid = (min_q + max_q) / 2
         print "Trying q=%d  [%d,%d] " % (mid, min_q, max_q),
         sys.stdout.flush()
@@ -390,7 +408,9 @@ def do_sweep(iface):
         if ok(fraction):
             max_q = mid
         else:
-            min_q = mid + 1
+            #min_q = mid + 1
+            min_q = mid + 1000
+            print "debug: incr min_q from %d to %d" % (mid, min_q)
         ######################## End: delete code ##############################
 
     monitor.terminate()
@@ -480,7 +500,8 @@ def main():
             cmd = ('%s -c 10.0.0.1 -p %s -t %d -i 1 '
                    '-yc -Z %s > %s/iperf_%s_%d.txt &' %
                    (CUSTOM_IPERF_PATH, 5001, seconds,
-                    args.cong, args.dir, node_name, j))
+                   args.cong, args.dir, node_name, 0)) # 为简化输出, 输出到同一文件中
+                    # args.cong, args.dir, node_name, j)) #输出不同文件
             if j == 1: # 仅debug 第一个流的命令
                 dprint (cmd)
             h.cmd(cmd)
@@ -488,11 +509,15 @@ def main():
     ####################### End: Delete Code #######################
 
     # TODO: change the interface for which queue size is adjusted
-    ret = do_sweep(iface='s0-eth1')
+    
     total_flows = flowindex + 1
-
+    
+    q_limit = do_sweep(iface='s0-eth1')
+    q_max = q_limit / 4.0
     # Store output
-    output = "%d %s %.3f\n" % (total_flows, ret, ret * 1500.0)
+    # output = "%d %s %.3f\n" % (total_flows, ret, ret * 1500.0)
+    # output: 
+    output = "%d %s %.3f\n" % (total_flows, q_limit, q_max)
     open("%s/result.txt" % args.dir, "w").write(output)
 
     for monitor in monitors:

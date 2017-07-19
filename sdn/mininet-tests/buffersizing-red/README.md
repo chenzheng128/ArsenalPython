@@ -1,6 +1,6 @@
 # buffersizing-red
 
-参考 buffersizng 修改, 对 red 队列进行测试
+参考 buffersizng 修改, 使用 red 进行队列管理
 
 ## 文件说明
 
@@ -18,4 +18,16 @@
 1. `sudo ./buffersizing-sweep.sh` 运行脚本; 在对应的 `result-buffersizing-xxx` trace 目录下生成了 `result.png`
     2. 增加 `buffersizing.py` 参数 `--red` 以使用 red 进行AQM 队列管理
 1. 如果绘图执行失败. 可以 `$rootdir` 重新执行绘图程序
+1. `gen.sh` 执行绘图程序, 生成相关数据图表
 
+## 调试方法
+
+`buffersizing.py` 激活 `--cli` , `--simu_rate` 命令行参数便于调试 red 队列
+```
+ # 初始化 red 队列 最小值为 limit 12000 ;
+sudo tc qdisc del dev s0-eth1 parent 5:1; sudo tc qdisc add dev s0-eth1 parent 5:1 handle 10: red limit 12000 avpkt 1000
+# 监看队列的配置效果
+ watch -n 1 tc -s qdisc show dev s0-eth1
+# 效果如下 max= limit /4; min = max /3 ; min = limit/12 因为 min 至少要大于 1个 avpkt, 所以 limit 应设置为 avpkt 的12倍
+qdisc red 10: parent 5:1 limit 12000b min 1000b max 3000b
+```

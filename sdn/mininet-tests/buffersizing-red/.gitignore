@@ -1,2 +1,4 @@
 #临时 ignore 一些文件
 result-buffersizing-*
+red-*/
+red-*.png
