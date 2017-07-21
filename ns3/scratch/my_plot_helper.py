@@ -79,13 +79,14 @@ print "== 选择 field %d:%d 进行绘图 " % (field1, field2)
 
 plt_handles = []
 for this_file in args.filenames: # support multiple file
+    print this_file
     if not args.merge:
         plt.clf() # 清除上一次绘图
     arr = np.genfromtxt(this_file)
     print ("读入了数据文件 %s" % this_file)
 
     # 设定输出文件名
-    if not args.label:
+    if not args.label or args.merge:
         png_filename = "%s.%s" % (this_file, 'png')
         args.label = this_file
     else:
@@ -107,6 +108,7 @@ for this_file in args.filenames: # support multiple file
     plt.grid(True)
 
     plt.savefig(png_filename) # 保存文件
+    print png_filename
     print ("生成了图形文件 %s" % png_filename)
     if args.display: # and len(sys.argv) == 2: # 如果仅有一个图表则显示, 否则只是批量生产png文件
         plt.show()

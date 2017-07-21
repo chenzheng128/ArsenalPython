@@ -51,6 +51,10 @@ puts $record_config "$MSS (packet size)"
 puts $record_config "$EndTime (finish time)"
 close $record_config
 
+puts "EndTime = $EndTime"
+
+set SideBWNum [string map {Mb ""} $SideBW]
+
 #Create a simulator object
 set ns [new Simulator]
 
@@ -115,7 +119,7 @@ $ns queue-limit $bs $br $MainBuffer
 #Setup TCP connections
 for {set i 0} {$i < $FlowNumber} {incr i 1} {
 	#setup topology
-        set win [open result$i w]
+  set win [open result$i w]
 	close $win
 	set sendNode($i) [$ns node]
 	set rcvNode($i) [$ns node]
@@ -128,7 +132,7 @@ for {set i 0} {$i < $FlowNumber} {incr i 1} {
 	set tcp($i) [new $TCP_Variant]
 	$tcp($i) set packetSize_ $MSS
 	$tcp($i) set window_ $BDP
-        $tcp($i) set timestamps_ true
+  $tcp($i) set timestamps_ true
 	$tcp($i) set partial_ack_ true
 
 #        $tcp($i) set windowOption_ $TCP_Name
@@ -155,6 +159,58 @@ for {set i 0} {$i < $FlowNumber} {incr i 1} {
 	$ns at $EndTime+1 "$ftp($i) stop"
 }
 
+# 计算中位数  Source: https://wiki.tcl.tk/750
+proc median {l} {
+  if {[set len [llength $l]] % 2} then {
+    return [lindex [lsort -real $l] [expr {($len - 1) / 2}]]
+  } else {
+    return [expr {([lindex [set sl [lsort -real $l]] [expr {($len / 2) - 1}]] \
+                   + [lindex $sl [expr {$len / 2}]]) / 2.0}]
+  }
+}
+
+$ns queue-limit $bs $br $MainBuffer
+set MIN_Q 1
+set MAX_Q $MainBuffer
+set MON_RATES [list]
+set FRAC_THREDHOD 0.99
+proc monitor_rates {utilz} { ;# 监测带宽并保存在数组 list 中
+  global MON_RATES
+  if { [llength $MON_RATES] > 4} {
+    set MON_RATES [lreplace $MON_RATES 0 0] ;# 已有足够元素, 移除第一个元素
+  }
+  lappend MON_RATES $utilz ;# 追加到最后一个元素中
+  # puts "$.f \n"
+}
+proc bufferSweep {link qmon interval} {
+  global ns bs br FlowNumber MIN_Q MAX_Q MON_RATES FRAC_THREDHOD
+  set now_time [$ns now]
+  $ns at [expr $now_time + $interval] "bufferSweep $link $qmon $interval"  
+  
+  set bandw [[$link link] set bandwidth_]
+  set utilz [expr 8*[$qmon set bdepartures_]/[expr 1.*$interval*$bandw]]
+  
+  if { [expr {abs($MAX_Q-$MIN_Q)} >=2] } {
+        set mid [ expr ($MIN_Q + $MAX_Q) / 2]
+        puts [format "%.2f Trying q=%d  %d-%d " $now_time $mid $MIN_Q $MAX_Q ]
+        
+        # 调整队列大小会导致带宽进行抖动, 需要寻找更好的评估办法
+        $ns queue-limit $bs $br $mid
+        
+        # 获取带宽中位数
+        set fraction [median $MON_RATES]
+        puts "MON_RATES: $MON_RATES"
+        if { $fraction > $FRAC_THREDHOD } {
+          puts "当前中位数为 $fraction --"
+          set MAX_Q $mid
+        } else {
+          puts "当前中位数为 $fraction ++"
+          set MIN_Q [expr $mid + 1]
+    }
+  } else {
+    puts [open result.txt w] "$FlowNumber $MAX_Q [expr $MAX_Q*1500]"
+  }
+}
 
 set ratefile [open rate0 w]
 set utilfile [open util0 w]
@@ -170,12 +226,13 @@ proc linkDump {link qmon interval} {
 	set bandw [[$link link] set bandwidth_]
   set rate0 [expr 8*[$qmon set bdepartures_]]
   set utilz [expr 8*[$qmon set bdepartures_]/[expr 1.*$interval*$bandw]]
-
-
-  if {$utilz > 0.9} {
-    # puts "debug: decrease udp rate"
-    # $cbr set rate_ 1mb
-  }
+  
+  # 记录当前带宽
+  monitor_rates $utilz
+  
+  # 计算 banw 的方法
+  # set bandw [expr $rate0 * 2 / 1000 / 100] ;# TODO 为什么 * 2 / 100 待分析. 
+  
   # 关闭一些暂时没用的输出
 	#puts [format "%s \tLink %s: Util=%.3f\tDrRt=%.3f\tADel=%.1fms\tAQuP=%.0f\tAQuB=%.0f" $now_time "thisname" $utilz $drprt $a_delay $apd_queue $abd_queue]
 	#puts -nonewline [format "%.3f\t" $utilz]
@@ -193,6 +250,7 @@ proc linkDump {link qmon interval} {
 # 对链路带宽进行统计, 将这里的两个节点 bs br 指定为要监测的节点, 即可进行链路带宽监测
 set qmon_xy [$ns monitor-queue $bs $br ""]  ;
 $ns at 0.5 "linkDump [$ns link $bs $br] $qmon_xy 0.5" 
+$ns at 10 "bufferSweep [$ns link $bs $br] $qmon_xy 10" ;# 支持用更低的频率检查带宽
 
 
 

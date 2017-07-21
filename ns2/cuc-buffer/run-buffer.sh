@@ -1,6 +1,8 @@
 # rename from run-linux.csh to un-linux.sh for .sh bash color highlight
 
-for flownum in 5 2 1
+#for flownum in 
+# for flownum in 5 10 20 50 100 200 
+for flownum in 1 5 20 100 200 300 400 500
 #2 8 32 128
 do
 
@@ -22,7 +24,7 @@ do
 			buffer=220
 			
 			# 减小 endtime 可以起到加快测试的效果
-			for endtime in 60
+			for endtime in 120
 			#for endtime in 900
 #20 200
 			do
@@ -61,6 +63,7 @@ do
 					# -${dirname}
 					# 绘制队列占用图形
 					xgraph.py -l queue0-size queue0
+					xgraph.py -l util0 util0
 					
 					cd ..
 				done

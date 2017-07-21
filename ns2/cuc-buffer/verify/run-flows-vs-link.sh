@@ -7,7 +7,7 @@ exit
 fi
 
 exp=$1
-for flownum in 5 2 1; do
+for flownum in 5 10 20; do
   
   foldername=${flownum}-${exp}
   
