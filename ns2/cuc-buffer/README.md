@@ -29,8 +29,8 @@ cd output; rm -rf ../output/1-100-64-900-*;
 
 * `run-buffer.sh` 运行脚本 
 * `plot-buffer.sh` 生成汇总页面图形脚本 
-* `script-gnuplot.txt` 单独绘图脚本; 可改为使用 `plot_figures.sh` 中的 `xgraph.py`
-* `red.tcl` 拓扑脚本 (用途?) 暂时没用到
+* `verify/` 验证数据
+  - `flows-vs-link.py` 验证多流吞吐是否和链路带宽一致 
 # `output\` 结果输出目录
   - `result0` result0 格式为 $nowtime $cwnd $rate $ack; `column -t result0` 格式化 result0 更便于查看 
   - ~~`output/rate0` rate0 格式为 $nowtime $rate; 在 run-linux.sh 中使用 awk 从 result0 中的 ack 生成~~ 改为在tcl 中计算至 result0 中

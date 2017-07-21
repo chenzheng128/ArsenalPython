@@ -70,13 +70,18 @@ proc monitor {interval last_ack} {
         # cat result0 | awk 'BEGIN{old=0}{print $1, ($3-old)*1448*8*2}{old=$3}' > rate0
         set this_ack [$tcp($i) set ack_]
         set bw0 [expr $this_ack - $last_ack]
+        if {$i == 3} {
+          # TODO
+          # 某些流的 this_ack 和 last_ack 没有正确传递, 导致数据产生负值 bw 计算失误, 取消在 tcl 中计算多流带宽, 仅记录 ack
+          # puts "this_ack-last_ack $this_ack $last_ack $bw0"
+        }
         #Calculate the bandwidth (in MBit/s) and write it to the files 
         # / $interval 就相当于 * 2, 1448 待解释
         set rate_interval [expr $bw0 / $interval * 1448 * 8 / 1000000]
         #Reset the bytes_ values on the traffic sinks
         
-        # result0 格式为 $nowtime $cwnd $rate $ack
-      	puts $win "$nowtime [$tcp($i) set cwnd_] $rate_interval $this_ack"
+        # result0 格式为 $nowtime $cwnd $ack 取消在 tcl 中计算多流带宽, 仅记录 ack
+      	puts $win "[format "%.1f %d %d" $nowtime [$tcp($i) set cwnd_] $this_ack]"
       	close $win
     }
     $ns after $interval "monitor $interval $this_ack"
@@ -149,6 +154,35 @@ for {set i 0} {$i < $FlowNumber} {incr i 1} {
 	$ns at 0 "$ftp($i) start"
 	$ns at $EndTime+1 "$ftp($i) stop"
 }
+
+
+set ratefile [open rate0 w]
+set utilfile [open util0 w]
+proc linkDump {link qmon interval} {
+	global ns ratefile utilfile
+	set now_time [$ns now]
+	$ns at [expr $now_time + $interval] "linkDump $link $qmon $interval"  
+	set bandw [[$link link] set bandwidth_]
+	set utilz [expr 8*[$qmon set bdepartures_]/[expr 1.*$interval*$bandw]]
+  set rate0 [expr 8*[$qmon set bdepartures_]]
+
+
+  if {$utilz > 0.9} {
+    # puts "debug: decrease udp rate"
+    # $cbr set rate_ 1mb
+  }
+  # 关闭一些暂时没用的输出
+	#puts [format "%s \tLink %s: Util=%.3f\tDrRt=%.3f\tADel=%.1fms\tAQuP=%.0f\tAQuB=%.0f" $now_time "thisname" $utilz $drprt $a_delay $apd_queue $abd_queue]
+	#puts -nonewline [format "%.3f\t" $utilz]
+  puts $utilfile "[format "%s %.3f" $now_time $utilz]"
+  puts $ratefile "[format "%s %.3f" $now_time $rate0]"
+
+	$qmon reset
+}
+
+# 对链路带宽进行统计, 将这里的两个节点 bs br 指定为要监测的节点, 即可进行链路带宽监测
+set qmon_xy [$ns monitor-queue $bs $br ""]  ;
+$ns at 0.5 "linkDump [$ns link $bs $br] $qmon_xy 0.5" 
 
 #call the monitor at the end
 $ns at 0 "monitor 0.5 0"

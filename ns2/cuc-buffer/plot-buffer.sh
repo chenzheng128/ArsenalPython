@@ -6,6 +6,7 @@ if [ $# -ne 1 ]
 then
     echo "Usage: `basename $0` {experiment_name}"
     echo "  Examples: `basename $0` 100-64-900-cubic"
+    echo "     Debug: `basename $0` 100-64-60-cubic"  # 调试数据
 exit
 fi
 

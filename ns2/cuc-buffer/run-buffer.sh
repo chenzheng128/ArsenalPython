@@ -1,14 +1,14 @@
 # rename from run-linux.csh to un-linux.sh for .sh bash color highlight
 
-for flownum in 1 2
+for flownum in 5 2 1
 #2 8 32 128
 do
 
-	for bw in 100
+	for bw in 150
 #1 10 100 1000
 	do
 		#sidebw=`echo "$bw*4" | bc`
-		sidebw=1000
+		sidebw=1500
 		for onewaydelay in 64
 #2 8 32 128
 		do
@@ -22,8 +22,8 @@ do
 			buffer=220
 			
 			# 减小 endtime 可以起到加快测试的效果
-			# for endtime in 9
-			for endtime in 900
+			for endtime in 60
+			#for endtime in 900
 #20 200
 			do
 				#for i in highspeed reno htcp cubic hybla westwood bic vegas scalable
