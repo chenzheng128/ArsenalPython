@@ -158,13 +158,18 @@ for {set i 0} {$i < $FlowNumber} {incr i 1} {
 
 set ratefile [open rate0 w]
 set utilfile [open util0 w]
+set queuefile [open queue0 w]
 proc linkDump {link qmon interval} {
-	global ns ratefile utilfile
+	global ns ratefile utilfile queuefile
 	set now_time [$ns now]
 	$ns at [expr $now_time + $interval] "linkDump $link $qmon $interval"  
+  
+  # 获取 queue_monitor 中的相关变量
+  $qmon instvar size_ pkts_ barrivals_ bdepartures_ parrivals_ pdepartures_ bdrops_ pdrops_ 
+  
 	set bandw [[$link link] set bandwidth_]
-	set utilz [expr 8*[$qmon set bdepartures_]/[expr 1.*$interval*$bandw]]
   set rate0 [expr 8*[$qmon set bdepartures_]]
+  set utilz [expr 8*[$qmon set bdepartures_]/[expr 1.*$interval*$bandw]]
 
 
   if {$utilz > 0.9} {
@@ -174,8 +179,13 @@ proc linkDump {link qmon interval} {
   # 关闭一些暂时没用的输出
 	#puts [format "%s \tLink %s: Util=%.3f\tDrRt=%.3f\tADel=%.1fms\tAQuP=%.0f\tAQuB=%.0f" $now_time "thisname" $utilz $drprt $a_delay $apd_queue $abd_queue]
 	#puts -nonewline [format "%.3f\t" $utilz]
-  puts $utilfile "[format "%s %.3f" $now_time $utilz]"
+  
+  # 输出速率占用
   puts $ratefile "[format "%s %.3f" $now_time $rate0]"
+  # 输出速率占用百分比
+  puts $utilfile "[format "%s %.3f" $now_time $utilz]"
+  # 输出队列占用
+  puts $queuefile "[format "%s %d" $now_time $size_]"
 
 	$qmon reset
 }
@@ -183,6 +193,8 @@ proc linkDump {link qmon interval} {
 # 对链路带宽进行统计, 将这里的两个节点 bs br 指定为要监测的节点, 即可进行链路带宽监测
 set qmon_xy [$ns monitor-queue $bs $br ""]  ;
 $ns at 0.5 "linkDump [$ns link $bs $br] $qmon_xy 0.5" 
+
+
 
 #call the monitor at the end
 $ns at 0 "monitor 0.5 0"
