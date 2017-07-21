@@ -1,6 +1,6 @@
 # rename from run-linux.csh to un-linux.sh for .sh bash color highlight
 
-for flownum in 1
+for flownum in 1 2
 #2 8 32 128
 do
 
@@ -32,7 +32,7 @@ do
 				#for i in veno lp yeah illinois compound
 
 				# for i in bic cubic highspeed htcp hybla reno scalable vegas westwood veno lp yeah illinois compound cong;
-				for i in cubic bic;
+				for i in cubic;
 				do
 					dirname=$flownum-$bw-$onewaydelay-$endtime-$i
 #					rm $dirname -r
