@@ -16,15 +16,15 @@ MacOSX
 
 ```
 # 进入 output . 可选删除某一组历史结果目录
-cd output; rm -rf ../output/*-150;
+cd output; rm -rf ../output/data980;
 
 # 运行程序收集数据
 ../run-buffer.sh
 
-# 使用 buffersizing 绘图工具制图
+# 使用 buffersizing 绘图工具制图, 可支持多组data 目录绘图
 cd mininet-tests/buffersizing
 rootdir=/opt/ArsenalPython/ns2/cuc-buffer/output
-python ./plot-results.py --dir=$rootdir
+python ./plot-results-cuc.py --dir=$rootdir
 ```
 
 ## 文件说明

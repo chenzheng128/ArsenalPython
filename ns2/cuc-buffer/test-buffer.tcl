@@ -34,6 +34,7 @@ set MainDelay [gets $conf]
 set MainBuffer [gets $conf]
 set SideBW [gets $conf]
 set EndTime [gets $conf]
+set UTILZ_THREDHOD [expr [gets $conf] / 1000.0]
 close $conf
 
 set record_config [open "Configuration_Record" w]
@@ -173,7 +174,6 @@ $ns queue-limit $bs $br $MainBuffer
 set MIN_Q 1
 set MAX_Q $MainBuffer
 set MON_RATES [list]
-set FRAC_THREDHOD 0.99
 proc monitor_rates {utilz} { ;# 监测带宽并保存在数组 list 中
   global MON_RATES
   if { [llength $MON_RATES] > 4} {
@@ -183,7 +183,7 @@ proc monitor_rates {utilz} { ;# 监测带宽并保存在数组 list 中
   # puts "$.f \n"
 }
 proc bufferSweep {link qmon interval} {
-  global ns bs br FlowNumber MIN_Q MAX_Q MON_RATES FRAC_THREDHOD
+  global ns bs br FlowNumber MIN_Q MAX_Q MON_RATES UTILZ_THREDHOD
   set now_time [$ns now]
   $ns at [expr $now_time + $interval] "bufferSweep $link $qmon $interval"  
   
@@ -191,24 +191,38 @@ proc bufferSweep {link qmon interval} {
   set utilz [expr 8*[$qmon set bdepartures_]/[expr 1.*$interval*$bandw]]
   
   if { [expr {abs($MAX_Q-$MIN_Q)} >=2] } {
+    
+        # 二分法进行搜索, 效果欠佳
         set mid [ expr ($MIN_Q + $MAX_Q) / 2]
-        puts [format "%.2f Trying q=%d  %d-%d " $now_time $mid $MIN_Q $MAX_Q ]
+        
+        # 修改为每次缩减 1/6 步长
+        set step [ expr round(ceil(($MAX_Q - $MIN_Q) / 6))]
+        # step 太小时, 修订一下, 加快收敛速度
+        if {$step <= 3} { incr step }
+        set mid  [ expr $MAX_Q - $step]
+        set mid2 [ expr $MIN_Q + $step]
+        # 二分法进行搜索, 效果欠佳
+        
+        
+        puts -nonewline [format "%.2f Trying q=%d  %d-%d step=%d " $now_time $mid $MIN_Q $MAX_Q  $step]
         
         # 调整队列大小会导致带宽进行抖动, 需要寻找更好的评估办法
         $ns queue-limit $bs $br $mid
         
         # 获取带宽中位数
         set fraction [median $MON_RATES]
-        puts "MON_RATES: $MON_RATES"
-        if { $fraction > $FRAC_THREDHOD } {
-          puts "当前中位数为 $fraction --"
+        #puts "debug: [format MON_RATES: %.4f ] $MON_RATES" # 调试打印监控带宽值
+        if { $fraction > $UTILZ_THREDHOD } {
+          puts "[format "当前带宽为 %.4f > %.4f --" $fraction $UTILZ_THREDHOD ] "
           set MAX_Q $mid
         } else {
-          puts "当前中位数为 $fraction ++"
-          set MIN_Q [expr $mid + 1]
+          puts "[format "当前带宽为 %.4f < %.4f ++" $fraction $UTILZ_THREDHOD ] "
+          set MIN_Q [expr $mid2 + 1]
     }
   } else {
     puts [open result.txt w] "$FlowNumber $MAX_Q [expr $MAX_Q*1500]"
+    puts "结束搜索, 最终队列搜索结果: $FlowNumber 流 pkts=$MAX_Q [expr $MAX_Q*1500]"
+    $ns at [expr $now_time + $interval - 1] "finish"  
   }
 }
 
