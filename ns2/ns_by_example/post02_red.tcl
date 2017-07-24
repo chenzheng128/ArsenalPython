@@ -91,6 +91,7 @@ proc finish {} {
     close $f
 
     # 基于 temp.queue 进行绘图， 显示两组数据, 瞬时值 Q 和平均值 a
+    # 下面这条命令，可使用 xgraph.py -m temp.q temp.a 进行替代
     exec xgraph -bb -tk -x time -y queue temp.queue &
     exit 0
 }
