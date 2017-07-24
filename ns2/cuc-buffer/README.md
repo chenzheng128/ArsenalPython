@@ -21,18 +21,21 @@ cd output; rm -rf ../output/data980;
 # 运行程序收集数据
 ../run-buffer.sh
 
-# 使用 buffersizing 绘图工具制图, 可支持多组data 目录绘图
-cd mininet-tests/buffersizing
+# 使用 ./plot.py 绘图工具制图, 支持多组 data 目录绘图
 rootdir=/opt/ArsenalPython/ns2/cuc-buffer/output
-python ./plot-results-cuc.py --dir=$rootdir
+python ../plot-cuc-buffer.py --dir=$rootdir
+
+# 调试, 输出 queue util 各目录汇总 html 图表
+../plot-buffer.sh $rootdir/data980 43.5-480-reno
 ```
 
 ## 文件说明
 
 * `run-buffer.sh` 运行脚本 
-* `plot-buffer.sh` 生成汇总页面图形脚本 
+* `plot-cuc-buffer.py` 使用 matplotlib 输出含多组 data 目录数据图表
+* `plot-buffer.sh` 调试: 生成汇总 html 页面图形脚本 
 * `verify/` 验证数据
   - `run-flows-vs-link.sh` 验证多流吞吐是否和链路带宽一致 
-# `output\` 结果输出目录
+# `output\dataxxx\xxx\` 结果输出目录
   - `result.txt` 格式为 flowNumber packetNum packetSize
-
+  

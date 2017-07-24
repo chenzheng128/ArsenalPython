@@ -76,8 +76,8 @@ do
 					
 					# -${dirname}
 					# 绘制队列占用图形
-					#xgraph.py -l queue0-size queue0
-					#xgraph.py -l util0 util0
+					xgraph.py -l queue0-size queue0
+					xgraph.py -l util0 util0
 					
 					cd ..
 				 cd ..

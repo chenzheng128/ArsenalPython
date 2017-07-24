@@ -19,6 +19,7 @@
     2. 增加 `buffersizing.py` 参数 `--red` 以使用 red 进行AQM 队列管理
 1. 如果绘图执行失败. 可以 `$rootdir` 重新执行绘图程序
 1. `gen.sh` 执行绘图程序, 生成相关数据图表
+1. ~~plot-cuc-buffer.py~~ 此文件已经被移动到 ns2/cuc-buffer 中, 这里暂不使用
 
 ## 调试方法
 
