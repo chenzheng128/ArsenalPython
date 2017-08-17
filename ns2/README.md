@@ -6,30 +6,23 @@ ns 代码目录放在 `/opt/coding/ns-allinone-2.35` 中. 一般在output目录�
 * `make` 编译后运行: `/opt/coding/ns-allinone-2.35/ns-2.35/ns ../xxx.tcl`
 * `make install` 安装后运行：`ns ../xxx.tcl`
 
-## ns-by-examples
-Source: http://nile.wpi.edu/NS/
+## 相关实验
 
-不错的入门材料
+* `cuc-buffer/` buffer-sizing (mininet-tests) 的 ns2 实现
+* `dctcp-sigcomm10/` dctcp sigcomm10 论文 Figure 还原
+* `dctcp/` dctcp 补丁与验证代码
+* `caltech-ns2tcplinux/` 
+  - TCP implementation for NS2: http://netlab.caltech.edu/projects/ns2tcplinux/ns2linux/index.html
+  - Documentation: http://netlab.caltech.edu/projects/ns2tcplinux/ns2linux-2.29-linux-2.6.16/
+* `tcpsuit/` ucla tcp 评估(未还原), 应该是基于 caltech ns2 tcplinux 的. http://netlab.cs.ucla.edu/tcpsuite/
 
-## tutorial
-* Tutorial: https://www.isi.edu/nsnam/ns/tutorial/
+## 相关教程
+* `course-for-beginners` 附带的 pdf 书籍不错, 和代码一起参考学习 https://www-sop.inria.fr/members/Eitan.Altman/ns.htm
+* `ns-by-examples/` 不错的入门材料 http://nile.wpi.edu/NS/ 
+* `tutorial/`  入门手册 Tutorial: https://www.isi.edu/nsnam/ns/tutorial/
+* `the-ns-manual` 高级手册 https://www.isi.edu/nsnam/ns/tutorial/ 
 
-## the-ns-manual
-* the-ns-manual: https://www.isi.edu/nsnam/ns/tutorial/
-
-## caltech-ns2tcplinux
-
-documentation: http://netlab.caltech.edu/projects/ns2tcplinux/ns2linux-2.29-linux-2.6.16/
-
-A Linux TCP implementation for NS2: http://netlab.caltech.edu/projects/ns2tcplinux/ns2linux/index.html
-
-## tcpsuit
-TCP Evaluation Suite
-Evaluating New Congestion Control Schemes and Its Impact on Standard TCP NewReno
-
-ucla 的 这个 patch 和 ns2tcplinux 很想, 不知道有何关系
-
-Source: http://netlab.cs.ucla.edu/tcpsuite/
+Source: 
 
 ## NS2 参考教程资料
 * ns by examples: http://nile.wpi.edu/NS/

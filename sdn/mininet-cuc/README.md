@@ -1,6 +1,6 @@
 # CUC Mininet 实验
 
-建立一个 QoS / tc 队列拥塞控制的实验拓扑, 用于评估测试我们的队列拥塞级联自适应控制算法. 目前完成的实验包括
+建立一个 QoS / tc 队列拥塞控制的[实验拓扑][1], 用于评估测试我们的队列拥塞级联自适应控制算法. 目前完成的实验包括
 - 基于 red AQM 队列的实验效果评估( 带宽时延)
 - 基于 SDN 的队列管理
   + ecn_ip: 在队列拥塞时, 使用 openflow (自定义ovs-ofctl)修改 ip tos ecn 标记
@@ -175,3 +175,5 @@ sudo mn -c && sudo python <your-topo>.py  #设置拓扑
  cp <some_file>.h ../linux-header/
 
 ```
+
+[1]: https://www.processon.com/view/link/5752d7f1e4b0695484404d39
