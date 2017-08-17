@@ -7,6 +7,7 @@ if {$argc != 6} {
     exit 0
 }
 
+# 参数读取
 set congestion_alg [lindex $argv 0]
 set out_q_file [lindex $argv 1]
 set num_flows [lindex $argv 2]
@@ -42,6 +43,10 @@ set deque_prio_ false
 # set tcl_dir $::env(TCL_DIR)
 set tcl_dir "."
 
+# 环境变量读取
+set tcpstartinterval $::env(tcpstartinterval)
+
+
 #Create a simulator object
 set ns [new Simulator]
 
@@ -50,7 +55,7 @@ $ns color 1 Blue
 $ns color 2 Red
 
 #Open the NAM trace file
-set nf [open $tcl_dir/output/out.nam w]
+set nf [open $tcl_dir/./out.nam w]
 $ns namtrace-all $nf
 
 #Create switch_node, dst_node, and num_flows src nodes
@@ -155,13 +160,16 @@ for {set i 0} {$i < $num_flows} {incr i} {
 }
 
 # queue monitoring
-set qf_size [open $tcl_dir/output/$out_q_file w]
+set qf_size [open $tcl_dir/./$out_q_file w]
 set qmon_size [$ns monitor-queue $switch_node $dst_node $qf_size $samp_int]
 [$ns link $switch_node $dst_node] queue-sample-timeout
 
 #Schedule events for the CBR and FTP agents
 for {set i 0} {$i < $num_flows} {incr i} {
-    $ns at 0.1 "$ftp($i) start"
+    # 某些flownum 和间隔设置下, 不会出现同步图形
+    set start_time [expr 0.1 + ($tcpstartinterval * $i)]
+    puts "tcl debug: schedule flow $i start at  $start_time"
+    $ns at $start_time "$ftp($i) start"
     $ns at [expr $run_time - 0.5] "$ftp($i) stop"
 }
 
@@ -176,7 +184,7 @@ proc finish {} {
     close $nf
     close $qf_size
     #Execute NAM on the trace file
-#    exec nam $tcl_dir/output/out.nam &
+#    exec nam $tcl_dir/./out.nam &
     exit 0
 }
 

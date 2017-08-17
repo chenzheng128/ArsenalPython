@@ -1,3 +1,6 @@
+# 默认参数运行Fig
+DEFAULT_OUT=output/4.0-2-100-25-0.0-dctcp
+DEFAULT_ENVS=tmin=4.0 flownum=2 tcpstartinterval=0.0
 
 install_deps:
 	sudo apt-get update
@@ -16,3 +19,17 @@ settings:
 clean:
 	rm ${TCL_DIR}/out/*
 
+run:
+	mkdir -p $DEFAULT_OUT
+	cd $(DEFAULT_OUT); \
+		$(DEFAULT_ENVS) \
+		python ../../run_sim.py --fig_1 --fig_13 --fig_14
+	
+	# echo "Please navigate to:  http://<IP_ADDRESS>:8002 in your browser to view the results."
+	# sudo python -m SimpleHTTPServer 8002
+
+run1:
+	mkdir -p $(DEFAULT_OUT)
+	cd $(DEFAULT_OUT); \
+		$(DEFAULT_ENVS) \
+		python ../../run_sim.py --fig_1

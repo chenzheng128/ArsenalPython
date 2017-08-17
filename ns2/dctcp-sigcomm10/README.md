@@ -1,6 +1,15 @@
 ## 准备
 按照 ../dctcp 准备 ns-2.35 dctcp ns, 并顺利运行 `dctcp-dumbbell.tcl`, 支持激活 dctcp 的 ns
 
+## 运行
+
+方式1
+* `make run` 默认参数运行所有Fig
+* `make run1` 默认参数运行Fig1
+
+方式2
+* `cd output/ ; ../run.sh` 多组参数运行比较
+
 ## 修改
 
 Revisied from https://github.com/sibanez12/dctcp-ns2.git
@@ -9,6 +18,7 @@ Revisied from https://github.com/sibanez12/dctcp-ns2.git
 主要修改为:
 * 所有输出放到 output 目录下
 * /bin 中的代码不再使用, 仅作参考
+* run.sh 代码移动至 make run 下
 
 Reproduce the Results
 =====================
