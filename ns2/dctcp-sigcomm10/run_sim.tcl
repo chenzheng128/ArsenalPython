@@ -23,7 +23,7 @@ set link_delay [lindex $argv 5]
 # tcp_window (pkts)
 set tcp_window 1000000
 # run_time (sec)
-set run_time 10.0
+set run_time $::env(run_time)
 # pktSize (bytes)
 set pktSize 1460
 
@@ -46,6 +46,12 @@ set tcl_dir "."
 # 环境变量读取
 set tcpstartinterval $::env(tcpstartinterval)
 
+puts "tcl 最终实验参数 (通过在 Makefile/.sh/.py/.tcl 中配置后) ..."
+puts "  run_time [set run_time]"
+puts "  link_delay [set link_delay]"
+puts "  num_flows [set num_flows]"
+puts "  congestion_alg [set congestion_alg]"
+puts "  DCTCP_K [set DCTCP_K]"
 
 #Create a simulator object
 set ns [new Simulator]
@@ -95,6 +101,7 @@ if {[string compare $congestion_alg "DCTCP"] == 0} {
 
 $ns duplex-link $switch_node $dst_node $link_cap $link_delay $queue_type
 
+# 依据 flownum 的数量, 生成相关的发送节点
 for {set i 0} {$i < $num_flows} {incr i} {
     $ns duplex-link $h($i) $switch_node $link_cap $link_delay $queue_type
 }
@@ -170,6 +177,8 @@ for {set i 0} {$i < $num_flows} {incr i} {
     set start_time [expr 0.1 + ($tcpstartinterval * $i)]
     puts "tcl debug: schedule flow $i start at  $start_time"
     $ns at $start_time "$ftp($i) start"
+    # puts [$ftp($i) produce]
+    # $ftp($i) set maxpkts_ [expr 268435456/2]
     $ns at [expr $run_time - 0.5] "$ftp($i) stop"
 }
 

@@ -37,14 +37,20 @@ def os_getenv(env_name):
     print "debug: os_get_env: %s=%s" % (env_name, os.getenv(env_name))
     return os.getenv(env_name)
 
+print "python 实验参数加载 (通过在 Makefile/.sh 中配置后) ..."
 # 初始值
 # 流数量
-num_flows=int(os_getenv("flownum"))
+num_flows=int(os_getenv("num_flows"))
 # 流启动间隔
 tcpstartinterval=float(os_getenv("tcpstartinterval"))
 # 绘图启动时间
 tmin=float(os_getenv("tmin")) # 基本上 tmin在4秒时, 2个流就同步了
-
+# 链路大小
+link_cap=(os_getenv("link_cap"))+"Mbps"
+# 链路延时
+link_delay=(os_getenv("link_delay"))
+# K
+K=int(os_getenv("K"))
 
 def make_fig_1():
     # if not os.path.exists(PLOTS_DIR):
@@ -57,8 +63,6 @@ def make_fig_1():
         # run NS-2 simulation
         
         K = 20
-        link_cap = '100Mbps'
-        link_delay = '0.25ms'
         print "debug: running %s congestion_alg k=%d ..." % (congestion_alg, K)
         os.system('ns ../../run_sim.tcl {0} {1} {2} {3} {4} {5}'.format(congestion_alg, out_q_file,
                                                                       num_flows, K, link_cap,
@@ -72,6 +76,44 @@ def make_fig_1():
     plt.cla()
 
 
+def make_fig_12():
+    # if not os.path.exists(PLOTS_DIR):
+    #         os.makedirs(PLOTS_DIR)
+    # if not os.path.exists('output'):
+    #         os.makedirs('output')
+
+    # 链路大小
+    # congestion_algs=(os_getenv("congestion_algs"))
+    congestion_algs="DCTCP"
+
+    #for congestion_alg in congestion_algs:
+    for num_flows in [2, 10, 20]:
+        congestion_alg=congestion_algs
+        out_q_file = congestion_alg + '_q_size.out' 
+        # run NS-2 simulation
+
+        # 调试绘图数据区间
+        tmin, tmax = 0.0, 3.0
+        
+        # 正式绘图参数
+        tmin, tmax = 1.5, 2.0
+        K = 45
+
+
+        print "debug: running %s congestion_alg k=%d ..." % (congestion_alg, K)
+        os.system('ns ../../run_sim.tcl {0} {1} {2} {3} {4} {5}'.format(congestion_alg, out_q_file,
+                                                                      num_flows, K, link_cap, link_delay))
+
+        # parse and plot queue size
+        time, q_size = ns_tools.parse_qfile(os.path.join('./', out_q_file), t_min=tmin, t_max=tmax)
+        plt.ylim((0, 100))
+        plt.plot(time, q_size, linestyle='-', marker='', label=congestion_alg)
+
+        ns_tools.config_plot('time (sec)', 'queue size (packets)', 'Queue Size over Time K=%d' % K)
+        ns_tools.save_plot('figure_12_%d' % num_flows, PLOTS_DIR)
+        plt.cla()
+
+
 def make_fig_13():
     # if not os.path.exists(PLOTS_DIR):
     #         os.makedirs(PLOTS_DIR)
@@ -81,8 +123,6 @@ def make_fig_13():
         for congestion_alg in ['TCP','DCTCP']:
             out_q_file = congestion_alg + '_q_size.out' 
             K = 20
-            link_cap = '100Mbps'
-            link_delay = '0.25ms'
             # run NS-2 simulation
             print "debug: running %s congestion_alg k=%d ..." % (congestion_alg, K)
             os.system('ns ../../run_sim.tcl {0} {1} {2} {3} {4} {5}'.format(congestion_alg, out_q_file,
@@ -137,6 +177,7 @@ def make_fig_14():
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--fig_1', action='store_true', help="reproduce figure 1 from the DCTCP paper")
+    parser.add_argument('--fig_12', action='store_true', help="reproduce figure 12 from the DCTCP paper")
     parser.add_argument('--fig_13', action='store_true', help="reproduce figure 13 from the DCTCP paper")
     parser.add_argument('--fig_14', action='store_true', help="reproduce figure 14 from the DCTCP paper")
     args = parser.parse_args()
@@ -144,6 +185,10 @@ def main():
     print "debug: lab start " , datetime.now()
     if (args.fig_1):
         make_fig_1()
+
+    print "debug: " , datetime.now()
+    if (args.fig_12):
+        make_fig_12()
 
     print "debug: " , datetime.now()
     if (args.fig_13):
