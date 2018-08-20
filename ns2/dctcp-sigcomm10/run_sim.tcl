@@ -48,6 +48,7 @@ set tcpstartinterval $::env(tcpstartinterval)
 
 puts "tcl 最终实验参数 (通过在 Makefile/.sh/.py/.tcl 中配置后) ..."
 puts "  run_time [set run_time]"
+puts "  link_cap [set link_cap]"
 puts "  link_delay [set link_delay]"
 puts "  num_flows [set num_flows]"
 puts "  congestion_alg [set congestion_alg]"

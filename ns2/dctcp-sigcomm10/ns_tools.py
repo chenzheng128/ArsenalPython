@@ -50,7 +50,9 @@ def parse_namfile(fname, t_min=None, t_max=None):
         end_time = t_max
     else:
         end_time = t
-    return total_bytes * 8 / float(end_time - start_time)
+    bw = total_bytes * 8 / float(end_time - start_time)
+    print bw
+    return bw
 
 def config_plot(xlabel, ylabel, title, legend_loc=None):
     plt.ylabel(ylabel)

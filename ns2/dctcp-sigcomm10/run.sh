@@ -11,11 +11,14 @@ link_delay=250us
 link_cap=100
 K=20
 run_time=10.0
-run_time=3.0  # fig12 不需要太长运行时间
+# DEFAULT
 
-tmin=0.0
-for num_flows in 2 ; # DEFAULT 
-#for flownum in 2 20;
+#run_time=3.0  # fig12 不需要太长运行时间
+tcpstartinterval=0.0
+
+tmin=0.0 # 设置 tmin 为 0, 便于观察流的同步
+#for num_flows in 2 ; # DEFAULT 
+for num_flows in 2;
 do
 	for K in 45  # DEFAULT
 	#for tcpstartinterval in 0.05 0.1
@@ -61,6 +64,7 @@ do
 					export num_flows=$num_flows
 					export tcpstartinterval=$tcpstartinterval
 					export tmin=$tmin
+					export link_delay=$link_delay
 					export link_cap=$link_cap
 					export congestion_algs=$i
 					export K=$K
@@ -72,7 +76,7 @@ do
 					pwd
 					# ns ../../test-linux.tcl > txt
 					# 打开调试信息
-					python ../../run_sim.py --fig_12
+					python ../../run_sim.py --fig_14
 					# ns ../../test-linux.tcl
 					
 					edtime=`cat /proc/uptime | awk '{print $1}'`

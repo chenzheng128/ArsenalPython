@@ -65,8 +65,8 @@ def make_fig_1():
         K = 20
         print "debug: running %s congestion_alg k=%d ..." % (congestion_alg, K)
         os.system('ns ../../run_sim.tcl {0} {1} {2} {3} {4} {5}'.format(congestion_alg, out_q_file,
-                                                                      num_flows, K, link_cap,
-                                                                      link_delay))
+                                                                      num_flows, K, link_cap, link_delay))
+
         # parse and plot queue size
         time, q_size = ns_tools.parse_qfile(os.path.join('./', out_q_file), t_min=tmin, t_max=9.0)
         plt.plot(time, q_size, linestyle='-', marker='', label=congestion_alg)
@@ -126,8 +126,7 @@ def make_fig_13():
             # run NS-2 simulation
             print "debug: running %s congestion_alg k=%d ..." % (congestion_alg, K)
             os.system('ns ../../run_sim.tcl {0} {1} {2} {3} {4} {5}'.format(congestion_alg, out_q_file,
-                                                                          num_flows, K, link_cap,
-                                                                          link_delay))
+                                                                         num_flows, K, link_cap, link_delay))
             # parse and plot queue size
             time, q_size = ns_tools.parse_qfile(os.path.join('./', out_q_file), t_min=4.0, t_max=9.0)
             plt_label = congestion_alg + '_' + str(num_flows) + '_flows'
@@ -153,21 +152,24 @@ def make_fig_14():
         Ks += [i for i in range(4,11,3)]
         Ks += [i for i in range(15,35,5)]
         Ks += [i for i in range(40,101,10)]
+
+        Ks = [40]
       
         for K in Ks:
             out_q_file = congestion_alg + '_q_size.out'
             # run NS-2 simulation
-            num_flows = 2
-            link_cap = '100Mbps'
+            num_flows = 20
+            link_cap = '200Mbps'
             link_delay = '10ms'
             # run NS-2 simulation
             print "debug: running %s congestion_alg k=%d ..." % (congestion_alg, K)
             os.system('ns ../../run_sim.tcl {0} {1} {2} {3} {4} {5}'.format(congestion_alg, out_q_file,
-                                                                          num_flows, K, link_cap,
-                                                                          link_delay))
+                                                                         num_flows, K, link_cap, link_delay))
+
             # Save throughput
             throughputs.append(1e-06 * ns_tools.parse_namfile(os.path.join('./',
                                'out.nam'), t_min=4.0, t_max=9.0))
+            print throughputs
         plt.plot(Ks, throughputs, linestyle='-', marker='o', label=congestion_alg)
 
     ns_tools.config_plot('K', 'Throughput (Mbps)', 'Throughput over K')
