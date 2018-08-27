@@ -7,7 +7,7 @@ filename:
 import time
 from datetime import datetime
 from douban_client import DoubanClient
-from mongo_client import StorageClient
+from douban_mongo import StorageClient
 import logging
 
 log = logging.getLogger(__name__)
@@ -58,13 +58,15 @@ def task_movie_subject_recent():
     # now=datetime.now() - START_TIME
     # run_seconds=BREAK_SECOND-now.seconds
 
-    ids = list(mongo_client.get_movies_subject_ids_recent())
+    ids = list(mongo_client.get_movies_subject_ids_recent())  # 从 mongodb collects 中获取不重复的id列表, 便于下一次抓取
     log.warn("length(ids) %s", len(ids))
     # id = ids[0]
     for id in ids:
+        if mongo_client.subject_existed("subject_recent", id): # 如果已经有此条数据， 则跳过抓取, 优化抓取效率
+            continue
         content, error = douban_client.movie_subject(id)
         if content != None:
-            mongo_client.save_movie_subject(id, content)
+            mongo_client.save_movie_subject(id, content)  # 抓取这些电影信息并保存
             # mongo_client.collect_movie_subject(id, content)
         else:
             print content, error
@@ -82,11 +84,15 @@ if __name__ == "__main__":
     mongo_client = StorageClient()
     while True:
         content, error = douban_client.movie_in_theaters()  # 测试抓取,
-        if content == None and error.code == 1998:
+        if content == None and error.code == 112:
             print "我们抓取的太快了, 休息一下 ..."
             time.sleep(BREAK_INTERVEL_SECONDS)  # 如果抓取太快, 等候下一轮抓取
 
-        task_movie_list()
-        time.sleep(BREAK_INTERVEL_SECONDS)
+        break
+        print ("抓取最近电影列表, 保存至 mongodb ...")
+        # task_movie_list()
+        print ("提取不重复 id，抓取电影详细信息至 mongodb ...")
         task_movie_subject_recent()
+        time.sleep(BREAK_INTERVEL_SECONDS)
+        
         #break  # debug

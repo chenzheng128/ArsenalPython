@@ -7,6 +7,13 @@ import logging
 log = logging.getLogger(__name__)
 
 class StorageClient(object):
+    """
+    豆瓣 爬虫的 model 类
+
+    存储 电影 subject 到 subject_recent 下
+    存储 变动信息到 move_comoing_soon 下
+    """
+
     def __init__(self):
         #default client localhost interface on port 27017.
         self.client = MongoClient() # MongoClient("mongodb://mongodb0.example.net:27019")
@@ -40,15 +47,20 @@ class StorageClient(object):
         return result
 
     def save_movie_subject(self, id, data):
-        """
-        追踪电影变化信息, 每个电影存在db_movie数据库的独立的collection下面
+        """  
         :param id:
         :param data:
         :return:
         """
-        result = self._save( self.db.get_collection("movie__id_%s" % id), data )
-        if result!=None: log.debug( "insert movie_id_%s id: %s" % (id, result.inserted_id))
-        return result
+        # 追踪电影变化信息, 每个电影存在db_movie数据库的独立的collection下面
+        if False:  # 不考虑研究影片数据变动， 暂时屏蔽这两个语句， 每个电影作为单独的 collect 数据进行抓取
+            result = self._save( self.db.get_collection("movie__id_%s" % id), data )
+            if result!=None: log.debug( "insert movie_id_%s id: %s" % (id, result.inserted_id))
+
+        # 另外存储一份到 movie_list 下，便于获取列表数据
+        result2 = self._save( self.db.get_collection("subject_recent"), data )
+        if result2!=None: log.debug( "insert movie_list id: %s" % (id, result2.inserted_id))
+        return result2
     def collect_movie_subject(self, id, data):
         """
         保持电影信息, 所有电影存放在一个 collection movie_subject 下
@@ -98,6 +110,13 @@ class StorageClient(object):
     def get_movies_subject_ids_in_theaters(self):
         return self.get_movies_subject_ids([ self.db.movie_in_theaters])
 
+    def subject_existed(self, col, id):
+        """
+        检查是否存在相关电影
+        """
+        result = self.db.get_collection("subject_recent").find({"id":id})
+        return result.count() > 0
+
 
 if __name__ == "__main__":
     level = logging.WARNING
@@ -110,5 +129,10 @@ if __name__ == "__main__":
     #print len(ids), ids
     #ids = storage_client.get_movies_subject_ids_in_theaters()
     #print len(ids), ids
-    id = "26614128"
-    storage_client.collect_movie_subject(id, {"id":id, "hello":"true"})
+    id = "27191430"  
+    id2 = "2719143022"
+    # storage_client.collect_movie_subject(id, {"id":id, "hello":"true"})
+    print "电影存在"
+    print storage_client.subject_existed("subject_recent", id)
+    print "电影不存在"
+    print storage_client.subject_existed("subject_recent", id2)

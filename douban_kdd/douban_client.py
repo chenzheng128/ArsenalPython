@@ -8,6 +8,9 @@ import logging
 log = logging.getLogger(__name__)
 
 class DoubanClient(object):
+    """
+    豆瓣 数据的 api 类
+    """
     def __init__(self):
         self.api_entry = "https://api.douban.com/v2"
         self.access_token = ""
@@ -73,15 +76,16 @@ class DoubanClient(object):
         :param rsp:
         :return:
         """
-
-        if rsp.status_code != 200 and rsp.status_code != 403:
+        # 处理 豆瓣 的错误请求
+        if rsp.status_code != 200 and rsp.status_code != 403 and rsp.status_code != 400:
+            log.warn("请留意此错误码 %d ，可能豆瓣 api 有所调整， 需要时加入上面的 if 判断中", (rsp.status_code))
             return None, APIError(rsp.status_code, 'http error')
         try:
             content = rsp.json()
         except:
             return None, APIError(99999, 'invalid rsp (not json) ')
 
-        if rsp.status_code == 403:
+        if rsp.status_code == 400:  # 错误码从 403 变更为 400, 注意及时升级
             error = APIError(rsp.status_code, rsp.content, "0")
             if  'code' in content:
                 error.code = content['code']

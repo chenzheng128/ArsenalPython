@@ -72,10 +72,11 @@ class StorageClient(object):
 
         # 更新日期
         result = self.db.restaurants.update_one(
-            {"name": "Juni"},  # filter
+            {"name": "Vella"},  # filter
             {
                 "$set": {
-                    "cuisine": "American (New2)"  # $set operator 名称更新
+                    "cuisine": "American (New3)",  # $set operator 名称更新
+                    "name": "Vella(updated)"
                 },
                 "$currentDate": {"lastModified": True}  # $currentDate operator 日期更新操作
             }
@@ -108,6 +109,7 @@ class StorageClient(object):
                 {"$group": {"_id": "$borough", "count": {"$sum": 1}}}
             ])
 
+        print ("  聚合结果 " )
         for document in cursor:
             print(document)
 
@@ -124,18 +126,22 @@ class StorageClient(object):
         """
         汇聚分析, 增加 $match 删选
         :return:
+
         """
-        print """_aggregate2 with $match borough(自治的市镇; 有议员选举权的市镇; 纽约市五个行政区之一)
-                group by $address.zipcode
-                The _id field contains the distinct zipcode value
-              """
+        print "_aggregate2 group by zipcode"
+        # print """_aggregate2 with $match borough(自治的市镇; 有议员选举权的市镇; 纽约市五个行政区之一)
+        #         group by $address.zipcode
+        #         The _id field contains the distinct zipcode value
+        #       """
         cursor = self.db.restaurants.aggregate(
             [
-                {"$match": {"borough": "Queens", "cuisine": "Brazilian"}},
+                #{"$match": {"borough": "Manhattan", "cuisine": "italian"}},
+                {"$match": {"borough": "Manhattan",}},
                 {"$group": {"_id": "$address.zipcode", "count": {"$sum": 1}}}  # 这里的
             ]
         )
 
+        print ("  聚合结果 " )
         for document in cursor:
             print(document)
 
@@ -154,11 +160,16 @@ class StorageClient(object):
 
 
 if __name__ == "__main__":
+    print ("初始化 test库 客户端 ... ")
     storage_client = StorageClient()
+    print ("插入示范数据 ...")
     storage_client._save()
     # storage_client._find()
+    print ("更新一条 vella 数据 ...")
     storage_client._update()
     # storage_client._delete()
+    print ("聚合统计1 ...")
     storage_client._aggregate1()
+    print ("聚合统计2 ...")
     storage_client._aggregate2()
     storage_client._create_index()
