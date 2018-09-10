@@ -5,8 +5,10 @@ t.colormode(255)
 t.pensize(4)
 t.hideturtle()
 t.color((255,155,192),"pink")
-t.speed(10)
 t.tracer(10)
+
+t.speed(1)
+t.Turtle().screen.delay(100)
 
 #鼻子
 t.pu()
