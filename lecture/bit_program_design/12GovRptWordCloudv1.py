@@ -1,7 +1,12 @@
 #GovRptWordCloudv1.py
 import jieba
 import wordcloud
-f = open("12test.txt", "r", encoding="utf-8")
+import os
+
+src_file="threekingdoms.txt"
+src_file="12test.txt"
+
+f = open(src_file, "r", encoding="utf-8")
  
 t = f.read()
 f.close()
@@ -19,3 +24,4 @@ w = wordcloud.WordCloud( \
     )
 w.generate(txt)
 w.to_file("12grwordcloud.png")
+os.system("open 12grwordcloud.png")

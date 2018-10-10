@@ -9,6 +9,7 @@
 pip install plotly
 """
 
+import os
 import plotly
 import plotly.plotly as py
 import plotly.graph_objs as go
@@ -34,3 +35,4 @@ fig = go.Figure(data=data, layout=layout)
 #py.iplot(fig, filename = "radar/basic")
 # 修改为离线绘制
 plotly.offline.plot(fig, filename = "15radar-plotly")
+os.system("open 15radar-plotly.html")
