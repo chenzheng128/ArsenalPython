@@ -5,6 +5,7 @@ def DegreeCurve(n, r, d=1):
     for i in range(n):
         t.left(d)
         t.circle(r, abs(d))
+        
 t.speed(1)
 # t.speed(10)
 # 初始位置设定
