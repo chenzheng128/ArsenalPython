@@ -13,7 +13,7 @@ paramiko==1.16.0
 pycrypto==2.6.1
 Pygments==2.0.2
 pytz==2015.7
-requests==2.9.0
+requests==2.20.0
 six==1.10.0
 tablib==0.10.0
 wechat==0.4.16
